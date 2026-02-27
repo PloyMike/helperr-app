@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+.test-hero {
+  width: 100%;
+  height: 400px;
+  position: relative;
+  overflow: hidden;
+}
+
+.bg-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=1600&q=80');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.5;
+}
+
+.bg-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(20,184,166,0.7) 0%, rgba(13,148,136,0.8) 100%);
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  color: white;
+  text-align: center;
+  padding-top: 150px;
+  font-size: 48px;
+  font-weight: bold;
+}
+</style>
+</head>
+<body>
+
+<div class="test-hero">
+  <div class="bg-image"></div>
+  <div class="bg-overlay"></div>
+  <div class="content">TEST BACKGROUND IMAGE</div>
+</div>
+
+<p style="padding: 20px;">Siehst du das Bild im Hintergrund? (Gärtner/Pflanzen)</p>
+
+</body>
+</html>
