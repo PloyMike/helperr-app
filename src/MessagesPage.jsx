@@ -150,7 +150,7 @@ function MessagesPage() {
           <div className="hero-bg"></div>
           <div className="hero-gradient"></div>
           <div className="hero-content">
-            <h1 className="hero-title">💬 Nachrichten</h1>
+            <h1 className="hero-title">Nachrichten</h1>
             <p className="hero-subtitle">Alle deine Konversationen</p>
           </div>
         </div>
@@ -244,6 +244,7 @@ function MessagesPage() {
           position: relative;
           z-index: 2;
           color: #1F2937;
+          text-align: center;
         }
         .hero-title {
           font-size: 48px;

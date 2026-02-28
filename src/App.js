@@ -9,6 +9,7 @@ import AdminDashboard from './AdminDashboard';
 import LoginPage from './LoginPage';
 import SignupPage from './SignupPage';
 import MessagesPage from './MessagesPage';
+import EditProfilePage from './EditProfilePage';
 import Impressum from './Impressum';
 import Datenschutz from './Datenschutz';
 import AGB from './AGB';
@@ -43,6 +44,8 @@ function App() {
           <SignupPage />
         ) : currentView === 'messages' ? (
           <MessagesPage />
+        ) : currentView === 'edit-profile' ? (
+          <EditProfilePage />
         ) : currentView === 'impressum' ? (
           <Impressum />
         ) : currentView === 'datenschutz' ? (

@@ -33,7 +33,7 @@ function LoginPage() {
           <div className="hero-bg"></div>
           <div className="hero-gradient"></div>
           <div className="hero-content">
-            <h1 className="hero-title">🔐 Login</h1>
+            <h1 className="hero-title">Login</h1>
             <p className="hero-subtitle">Willkommen zurück!</p>
           </div>
         </div>
@@ -52,7 +52,7 @@ function LoginPage() {
             </div>
 
             <button type="submit" disabled={loading} className={`submit-btn ${loading?'loading':''}`}>
-              {loading ? '⏳ Lädt...' : 'Einloggen'}
+              {loading ? 'Lädt...' : 'Einloggen'}
             </button>
 
             <p className="signup-link">

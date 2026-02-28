@@ -138,7 +138,7 @@ function MyBookings() {
           <div className="hero-bg"></div>
           <div className="hero-gradient"></div>
           <div className="hero-content">
-            <h1 className="hero-title">📋 Meine Buchungen</h1>
+            <h1 className="hero-title">Meine Buchungen</h1>
             <p className="hero-subtitle">Verwalte alle deine Buchungen an einem Ort</p>
           </div>
         </div>
@@ -292,6 +292,7 @@ function MyBookings() {
           position: relative;
           z-index: 2;
           color: #1F2937;
+          text-align: center;
         }
         .hero-title {
           font-size: 48px;

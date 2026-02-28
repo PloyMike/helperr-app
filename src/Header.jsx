@@ -80,6 +80,10 @@ function Header() {
             + Anbieter werden
           </button>
 
+          
+          {user&&<button onClick={()=>{window.navigateTo('edit-profile');setMobileMenuOpen(false);}} style={{width:'100%',padding:16,background:'none',border:'none',color:'white',fontSize:16,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',textAlign:'left',borderBottom:'1px solid rgba(255,255,255,0.1)'}}>
+            Mein Profil
+          </button>}
           {user ? (
             <div style={{display:'flex',alignItems:'center',gap:16}}>
               <span style={{fontSize:14,fontWeight:600,color:'white',fontFamily:'"Outfit",sans-serif'}}>{user.user_metadata?.name || user.email}</span>
@@ -105,16 +109,19 @@ function Header() {
           <button onClick={()=>{window.navigateTo('register');setMobileMenuOpen(false);}} style={{width:'100%',padding:16,background:'none',border:'none',color:'white',fontSize:16,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',textAlign:'left',borderBottom:'1px solid rgba(255,255,255,0.1)'}}>
             Anbieter werden
           </button>
-          <button onClick={()=>{window.navigateTo('bookings');setMobileMenuOpen(false);}} style={{width:'100%',padding:16,background:'none',border:'none',color:'white',fontSize:16,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',textAlign:'left',borderBottom:'1px solid rgba(255,255,255,0.1)'}}>
+          {user&&<button onClick={()=>{window.navigateTo('bookings');setMobileMenuOpen(false);}} style={{width:'100%',padding:16,background:'none',border:'none',color:'white',fontSize:16,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',textAlign:'left',borderBottom:'1px solid rgba(255,255,255,0.1)'}}>
             Buchungen
-          </button>
-          <button onClick={()=>{window.navigateTo('messages');setMobileMenuOpen(false);}} style={{width:'100%',padding:16,background:'none',border:'none',color:'white',fontSize:16,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',textAlign:'left',borderBottom:'1px solid rgba(255,255,255,0.1)',position:'relative'}}>
+          </button>}
+          {user&&<button onClick={()=>{window.navigateTo('messages');setMobileMenuOpen(false);}} style={{width:'100%',padding:16,background:'none',border:'none',color:'white',fontSize:16,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',textAlign:'left',borderBottom:'1px solid rgba(255,255,255,0.1)',position:'relative'}}>
             Nachrichten {unreadCount>0&&<span style={{marginLeft:8,padding:'2px 8px',backgroundColor:'#F97316',borderRadius:12,fontSize:12}}>({unreadCount})</span>}
-          </button>
+          </button>}
           
-          <button onClick={()=>{window.navigateTo('favorites');setMobileMenuOpen(false);}} style={{width:'100%',padding:16,background:'none',border:'none',color:'white',fontSize:16,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',textAlign:'left',borderBottom:'1px solid rgba(255,255,255,0.1)'}}>
+          {user&&<button onClick={()=>{window.navigateTo('favorites');setMobileMenuOpen(false);}} style={{width:'100%',padding:16,background:'none',border:'none',color:'white',fontSize:16,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',textAlign:'left',borderBottom:'1px solid rgba(255,255,255,0.1)'}}>
             Favoriten {favorites.length>0&&<span style={{marginLeft:8,padding:'2px 8px',backgroundColor:'#F97316',borderRadius:12,fontSize:12}}>({favorites.length})</span>}
-          </button>
+          </button>}
+          {user&&<button onClick={()=>{window.navigateTo('edit-profile');setMobileMenuOpen(false);}} style={{width:'100%',padding:16,background:'none',border:'none',color:'white',fontSize:16,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',textAlign:'left',borderBottom:'1px solid rgba(255,255,255,0.1)'}}>
+            Mein Profil
+          </button>}
           
           {user ? (
             <>
