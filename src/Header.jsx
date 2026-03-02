@@ -58,27 +58,27 @@ function Header() {
             Startseite
           </button>
           
-          <button onClick={()=>window.navigateTo('bookings')} style={{background:'none',border:'none',color:'white',fontSize:15,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',transition:'all 0.2s'}} onMouseOver={(e)=>e.target.style.opacity='0.8'} onMouseOut={(e)=>e.target.style.opacity='1'}>
-            Buchungen
-          </button>
-
-          <button onClick={()=>window.navigateTo('messages')} style={{position:'relative',background:'none',border:'none',color:'white',fontSize:15,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',transition:'all 0.2s'}} onMouseOver={(e)=>e.target.style.opacity='0.8'} onMouseOut={(e)=>e.target.style.opacity='1'}>
-            Nachrichten
-            {unreadCount>0&&<span style={{position:'absolute',top:-8,right:-12,backgroundColor:'#F97316',color:'white',borderRadius:'50%',width:20,height:20,display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700}}>{unreadCount}</span>}
-          </button>
-
-          <button onClick={()=>{const mapSection=document.getElementById('map-section');if(mapSection)mapSection.scrollIntoView({behavior:'smooth'});}} style={{background:'none',border:'none',color:'white',fontSize:15,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',transition:'all 0.2s'}} onMouseOver={(e)=>e.target.style.opacity='0.8'} onMouseOut={(e)=>e.target.style.opacity='1'}>
-            Karte
-          </button>
-
-          <button onClick={()=>window.navigateTo('favorites')} style={{position:'relative',background:'none',border:'none',color:'white',fontSize:15,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',transition:'all 0.2s'}} onMouseOver={(e)=>e.target.style.opacity='0.8'} onMouseOut={(e)=>e.target.style.opacity='1'}>
-            Favoriten
-            {favorites.length>0&&<span style={{position:'absolute',top:-8,right:-12,backgroundColor:'#F97316',color:'white',borderRadius:'50%',width:20,height:20,display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700}}>{favorites.length}</span>}
-          </button>
-
           <button onClick={()=>window.navigateTo('register')} style={{background:'none',border:'none',color:'white',fontSize:15,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',transition:'all 0.2s'}} onMouseOver={(e)=>e.target.style.opacity='0.8'} onMouseOut={(e)=>e.target.style.opacity='1'}>
             + Anbieter werden
           </button>
+
+          {user&&<button onClick={()=>window.navigateTo('bookings')} style={{background:'none',border:'none',color:'white',fontSize:15,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',transition:'all 0.2s'}} onMouseOver={(e)=>e.target.style.opacity='0.8'} onMouseOut={(e)=>e.target.style.opacity='1'}>
+            Buchungen
+          </button>}
+
+          {user&&<button onClick={()=>window.navigateTo('messages')} style={{position:'relative',background:'none',border:'none',color:'white',fontSize:15,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',transition:'all 0.2s'}} onMouseOver={(e)=>e.target.style.opacity='0.8'} onMouseOut={(e)=>e.target.style.opacity='1'}>
+            Nachrichten
+            {unreadCount>0&&<span style={{position:'absolute',top:-8,right:-12,backgroundColor:'#F97316',color:'white',borderRadius:'50%',width:20,height:20,display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700}}>{unreadCount}</span>}
+          </button>}
+
+          
+
+          {user&&<button onClick={()=>window.navigateTo('favorites')} style={{position:'relative',background:'none',border:'none',color:'white',fontSize:15,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',transition:'all 0.2s'}} onMouseOver={(e)=>e.target.style.opacity='0.8'} onMouseOut={(e)=>e.target.style.opacity='1'}>
+            Favoriten
+            {favorites.length>0&&<span style={{position:'absolute',top:-8,right:-12,backgroundColor:'#F97316',color:'white',borderRadius:'50%',width:20,height:20,display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700}}>{favorites.length}</span>}
+          </button>}
+
+          
 
           
           {user&&<button onClick={()=>{window.navigateTo('edit-profile');setMobileMenuOpen(false);}} style={{width:'100%',padding:16,background:'none',border:'none',color:'white',fontSize:16,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',textAlign:'left',borderBottom:'1px solid rgba(255,255,255,0.1)'}}>
@@ -86,7 +86,7 @@ function Header() {
           </button>}
           {user ? (
             <div style={{display:'flex',alignItems:'center',gap:16}}>
-              <span style={{fontSize:14,fontWeight:600,color:'white',fontFamily:'"Outfit",sans-serif'}}>{user.user_metadata?.name || user.email}</span>
+              
               <button onClick={async()=>{await signOut();window.navigateTo('home');}} style={{padding:'10px 20px',backgroundColor:'rgba(255,255,255,0.2)',color:'white',border:'none',borderRadius:12,fontSize:14,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',transition:'all 0.3s'}}>Logout</button>
             </div>
           ) : (
@@ -126,7 +126,7 @@ function Header() {
           {user ? (
             <>
               <div style={{padding:16,color:'white',fontSize:14,fontFamily:'"Outfit",sans-serif',borderBottom:'1px solid rgba(255,255,255,0.1)'}}>
-                {user.user_metadata?.name || user.email}
+                
               </div>
               <button onClick={async()=>{await signOut();setMobileMenuOpen(false);window.navigateTo('home');}} style={{width:'100%',padding:16,background:'rgba(255,255,255,0.2)',border:'none',color:'white',fontSize:16,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',textAlign:'left',borderRadius:8,marginTop:8}}>
                 Logout

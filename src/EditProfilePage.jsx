@@ -9,6 +9,8 @@ function EditProfilePage() {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     job: '',
@@ -60,10 +62,59 @@ function EditProfilePage() {
         languages: data.languages || '',
         services: data.services || ''
       });
+      setImagePreview(data.image_url);
     } catch (error) {
       console.error('Error:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Bitte nur Bilder hochladen!');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Bild zu groß! Max 5MB');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('profile-images')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('profile-images')
+        .getPublicUrl(fileName);
+
+      const imageUrl = urlData.publicUrl;
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ image_url: imageUrl })
+        .eq('id', profile.id);
+
+      if (updateError) throw updateError;
+
+      setImagePreview(imageUrl);
+      alert('✅ Bild erfolgreich hochgeladen!');
+      fetchProfile();
+    } catch (error) {
+      console.error('Upload error:', error);
+      alert('❌ Upload fehlgeschlagen: ' + error.message);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -152,6 +203,33 @@ function EditProfilePage() {
         <div style={{maxWidth:800,margin:'-40px auto 80px',padding:'0 20px'}}>
           <form onSubmit={handleSubmit} style={{backgroundColor:'white',borderRadius:20,padding:40,boxShadow:'0 8px 30px rgba(0,0,0,0.1)'}}>
             
+            {/* BILD UPLOAD */}
+            <div style={{marginBottom:32,textAlign:'center'}}>
+              <label style={{display:'block',marginBottom:12,fontWeight:600,fontSize:15,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Profilbild</label>
+              
+              {imagePreview ? (
+                <div style={{position:'relative',display:'inline-block'}}>
+                  <img src={imagePreview} alt="Profil" style={{width:150,height:150,borderRadius:'50%',objectFit:'cover',border:'4px solid #14B8A6'}}/>
+                  <label htmlFor="image-upload" style={{position:'absolute',bottom:0,right:0,background:'#14B8A6',color:'white',width:44,height:44,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:20,border:'3px solid white'}}>
+                    📷
+                  </label>
+                </div>
+              ) : (
+                <div style={{width:150,height:150,borderRadius:'50%',background:'linear-gradient(135deg,#14B8A6 0%,#0D9488 100%)',display:'inline-flex',alignItems:'center',justifyContent:'center',fontSize:60,color:'white',fontWeight:700,fontFamily:'"Outfit",sans-serif',position:'relative'}}>
+                  {formData.name?.charAt(0)?.toUpperCase() || '?'}
+                  <label htmlFor="image-upload" style={{position:'absolute',bottom:0,right:0,background:'white',color:'#14B8A6',width:44,height:44,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:20,border:'3px solid #14B8A6'}}>
+                    📷
+                  </label>
+                </div>
+              )}
+              
+              <input id="image-upload" type="file" accept="image/*" onChange={handleImageUpload} style={{display:'none'}}/>
+              
+              {uploading && <p style={{marginTop:12,fontSize:14,color:'#14B8A6',fontWeight:600,fontFamily:'"Outfit",sans-serif'}}>Lädt hoch...</p>}
+              
+              <p style={{marginTop:12,fontSize:13,color:'#6B7280',fontFamily:'"Outfit",sans-serif'}}>Klick auf 📷 um Bild hochzuladen (max 5MB)</p>
+            </div>
+
             <div style={{marginBottom:24}}>
               <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:15,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Name *</label>
               <input required type="text" value={formData.name} onChange={(e)=>setFormData({...formData,name:e.target.value})} style={{width:'100%',padding:'14px 18px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',boxSizing:'border-box'}}/>
@@ -211,55 +289,18 @@ function EditProfilePage() {
       </div>
 
       <Footer/>
+      
       <style>{`
         @media (max-width: 768px) {
-          /* Hero Section kleiner */
-          div[style*="padding: 60px 20px"] {
-            padding: 40px 16px !important;
-          }
-          h1 {
-            font-size: 28px !important;
-            margin-bottom: 8px !important;
-          }
-          div[style*="fontSize:18"] {
-            font-size: 15px !important;
-          }
-          
-          /* Form Container - KEIN negatives Margin auf Mobile */
-          div[style*="margin: -40px auto"] {
-            margin: 20px auto 60px !important;
-            padding: 0 16px !important;
-          }
-          
-          /* Form selbst */
-          form {
-            padding: 28px 20px !important;
-          }
-          
-          /* Inputs & Labels */
-          input, textarea {
-            font-size: 14px !important;
-            padding: 12px 16px !important;
-          }
-          label {
-            font-size: 14px !important;
-          }
-          
-          /* Submit Button */
-          button[type="submit"] {
-            padding: 16px !important;
-            font-size: 16px !important;
-          }
-          
-          /* Grid zu Single Column */
-          div[style*="gridTemplateColumns: '1fr 1fr'"] {
-            grid-template-columns: 1fr !important;
-          }
+          h1 { font-size: 28px !important; }
+          p { font-size: 15px !important; }
+          form { padding: 28px 20px !important; }
+          input, textarea { font-size: 14px !important; padding: 12px 16px !important; }
+          label { font-size: 14px !important; }
+          button[type="submit"] { padding: 16px !important; font-size: 16px !important; }
+          div[style*="gridTemplateColumns"] { grid-template-columns: 1fr !important; }
         }
       `}</style>
-
-      
-
     </div>
   );
 }
