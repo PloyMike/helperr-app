@@ -10,6 +10,7 @@ import LoginPage from './LoginPage';
 import SignupPage from './SignupPage';
 import MessagesPage from './MessagesPage';
 import EditProfilePage from './EditProfilePage';
+import ProviderDashboard from './ProviderDashboard';
 import Impressum from './Impressum';
 import Datenschutz from './Datenschutz';
 import AGB from './AGB';
@@ -46,6 +47,8 @@ function App() {
           <MessagesPage />
         ) : currentView === 'edit-profile' ? (
           <EditProfilePage />
+        ) : currentView === 'provider-dashboard' ? (
+          <ProviderDashboard />
         ) : currentView === 'impressum' ? (
           <Impressum />
         ) : currentView === 'datenschutz' ? (

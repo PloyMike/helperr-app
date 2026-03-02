@@ -77,7 +77,7 @@ function BookingCalendar({ profile, onClose }) {
           time_slot: bookingData.time_slot,
           message: bookingData.message,
           total_price: bookingData.total_price,
-          status: 'confirmed'
+          status: 'pending'
         }])
         .select();
       if (error) throw error;
