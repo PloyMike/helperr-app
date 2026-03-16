@@ -14,6 +14,7 @@ import ProviderDashboard from './ProviderDashboard';
 import Impressum from './Impressum';
 import Datenschutz from './Datenschutz';
 import AGB from './AGB';
+import ChatbotWidget from './ChatbotWidget';
 
 function App() {
   const [currentView, setCurrentView] = useState('home');
@@ -37,8 +38,6 @@ function App() {
           <Favorites />
         ) : currentView === 'register' ? (
           <RegisterPage />
-        ) : currentView === 'admin' ? (
-          <AdminDashboard />
         ) : currentView === 'login' ? (
           <LoginPage />
         ) : currentView === 'signup' ? (
@@ -58,6 +57,9 @@ function App() {
         ) : (
           <Helperr />
         )}
+        
+        {/* AI CHATBOT - IMMER SICHTBAR */}
+        <ChatbotWidget />
       </div>
     </AuthProvider>
   );

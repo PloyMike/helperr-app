@@ -16,7 +16,7 @@ function AGB() {
           </h2>
           <p>
             Diese Allgemeinen Geschäftsbedingungen (AGB) gelten für alle Verträge, die zwischen Helperr 
-            (Ploy TIBOR) und den Nutzern der Plattform geschlossen werden. Helperr stellt eine Vermittlungsplattform 
+            (Helperr Platform) und den Nutzern der Plattform geschlossen werden. Helperr stellt eine Vermittlungsplattform 
             zur Verfügung, über die Dienstleister und Kunden in Kontakt treten können.
           </p>
 
@@ -149,7 +149,7 @@ function AGB() {
 
           <p style={{ marginTop: 40, paddingTop: 30, borderTop: '1px solid #e2e8f0' }}>
             <strong>Kontakt:</strong><br />
-            Ploy TIBOR<br />
+            Helperr Platform<br />
             E-Mail: <a href="mailto:helperrapp@gmail.com" style={{ color: '#667eea' }}>helperrapp@gmail.com</a>
           </p>
 
