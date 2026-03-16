@@ -1,3 +1,9 @@
-# https://www.robotstxt.org/robotstxt.html
+# Helperr - Robots.txt
 User-agent: *
-Disallow:
+Allow: /
+
+# Sitemap location
+Sitemap: https://helperr-app-indol.vercel.app/sitemap.xml
+
+# Crawl delay (optional, be nice to servers)
+Crawl-delay: 1

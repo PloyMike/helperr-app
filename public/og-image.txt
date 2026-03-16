@@ -1,0 +1,5 @@
+Erstelle ein 1200x630px Bild mit:
+- Hintergrund: Gradient #14B8A6 → #0D9488
+- Text: "Helperr" (groß, weiß, zentriert)
+- Untertitel: "Finde vertrauenswürdige Helfer"
+- Icon: 🤝
