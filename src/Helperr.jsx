@@ -131,7 +131,11 @@ function Helperr() {
             {filtered.map(p => (
               <div key={p.id} onClick={() => setSelected(p)} style={styles.card}>
                 <div style={styles.cardTop}>
-                  <div style={styles.cardAvatar}>{p.image_url || '👤'}</div>
+                  {p.image_url && p.image_url.startsWith('http') ? (
+                    <img src={p.image_url} alt={p.name} style={{...styles.cardAvatar, fontSize: 'inherit', objectFit: 'cover'}} />
+                  ) : (
+                    <div style={styles.cardAvatar}>{p.image_url || '👤'}</div>
+                  )}
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <h3 style={styles.cardName}>{p.name}</h3>
@@ -180,7 +184,11 @@ function Helperr() {
             <button onClick={() => setSelected(null)} style={styles.closeBtn}>✕</button>
             <div style={{ padding: 24 }}>
               <div style={{ display: 'flex', gap: 16, marginBottom: 20 }}>
+                {selected.image_url && selected.image_url.startsWith('http') ? (
+                <img src={selected.image_url} alt={selected.name} style={{ width: 64, height: 64, borderRadius: 16, objectFit: 'cover' }} />
+              ) : (
                 <div style={{ fontSize: 64 }}>{selected.image_url || '👤'}</div>
+              )}
                 <div>
                   <h2 style={{ margin: 0, fontSize: 24 }}>{selected.name}</h2>
                   <p style={{ color: '#6b7280', margin: '4px 0' }}>{selected.subcategory}</p>

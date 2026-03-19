@@ -43,7 +43,7 @@ function Header() {
           .from('profiles')
           .select('id')
           .eq('email', user.email)
-          .single();
+          .maybeSingle();
 
         if (profileData) {
           const { data: bookingsData } = await supabase
@@ -79,140 +79,151 @@ function Header() {
   };
 
   return (
-    <header style={{position:'fixed',top:0,left:0,right:0,background:'white',padding:'16px 20px',boxShadow:'0 2px 10px rgba(0,0,0,0.08)',zIndex:1000}}>
+    <header style={styles.header}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      <div style={{maxWidth:1400,margin:'0 auto',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+      <div style={styles.container}>
         
         {/* LOGO */}
-        <div onClick={()=>window.navigateTo('home')} style={{display:'flex',alignItems:'center',gap:12,cursor:'pointer'}}>
-          <div style={{fontSize:32,fontWeight:800,color:'#14B8A6',fontFamily:'"Outfit",sans-serif',letterSpacing:'-1px'}}>Helperr</div>
+        <div onClick={() => window.navigateTo('home')} style={styles.logo}>
+          <div style={styles.logoText}>Helperr</div>
         </div>
 
         {/* DESKTOP NAVIGATION */}
-        <nav style={{display:'flex',alignItems:'center',gap:32}}className="desktop-nav">
-          <button onClick={()=>window.navigateTo('home')} style={{background:'none',border:'none',color:'#374151',fontSize:15,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',transition:'all 0.2s'}} onMouseOver={(e)=>e.target.style.color='#14B8A6'} onMouseOut={(e)=>e.target.style.color='#374151'}>
-            Startseite
+        <nav style={styles.desktopNav} className="desktop-nav">
+          <button onClick={() => window.navigateTo('home')} style={styles.navBtn} onMouseOver={(e) => e.target.style.color = '#14B8A6'} onMouseOut={(e) => e.target.style.color = '#374151'}>
+            Home
           </button>
 
-          {user&&<button onClick={()=>window.navigateTo('bookings')} style={{position:'relative',background:'none',border:'none',color:'#374151',fontSize:15,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',transition:'all 0.2s'}} onMouseOver={(e)=>e.target.style.color='#14B8A6'} onMouseOut={(e)=>e.target.style.color='#374151'}>
-            Buchungen
-            {pendingBookings>0&&<span style={{position:'absolute',top:-8,right:-12,background:'#F97316',color:'white',fontSize:11,fontWeight:700,padding:'2px 6px',borderRadius:10,minWidth:18,textAlign:'center'}}>{pendingBookings}</span>}
-          </button>}
-
-          {user&&<button onClick={()=>window.navigateTo('messages')} style={{position:'relative',background:'none',border:'none',color:'#374151',fontSize:15,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',transition:'all 0.2s'}} onMouseOver={(e)=>e.target.style.color='#14B8A6'} onMouseOut={(e)=>e.target.style.color='#374151'}>
-            Nachrichten
-            {unreadCount>0&&<span style={{position:'absolute',top:-8,right:-12,background:'#F97316',color:'white',fontSize:11,fontWeight:700,padding:'2px 6px',borderRadius:10,minWidth:18,textAlign:'center'}}>{unreadCount}</span>}
-          </button>}
-
-          {/* ZAHNRAD DROPDOWN FÜR EINGELOGGTE */}
-          {user ? (
-            <div style={{position:'relative'}}>
-              <button onClick={()=>setDropdownOpen(!dropdownOpen)} style={{background:'#F3F4F6',border:'none',color:'#14B8A6',fontSize:20,fontWeight:700,cursor:'pointer',width:40,height:40,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 8px rgba(0,0,0,0.1)',transition:'all 0.2s'}} onMouseOver={(e)=>e.target.style.transform='rotate(90deg)'} onMouseOut={(e)=>e.target.style.transform='rotate(0deg)'}>
-                ⚙️
-              </button>
-
-              {dropdownOpen && (
-                <>
-                  <div onClick={()=>setDropdownOpen(false)} style={{position:'fixed',top:0,left:0,right:0,bottom:0,zIndex:999}}/>
-                  <div style={{position:'absolute',top:50,right:0,background:'white',borderRadius:12,boxShadow:'0 8px 30px rgba(0,0,0,0.2)',minWidth:200,overflow:'hidden',zIndex:1000}}>
-                    <button onClick={()=>{window.navigateTo('edit-profile');setDropdownOpen(false);}} style={{width:'100%',padding:'14px 20px',background:'none',border:'none',textAlign:'left',fontSize:15,fontWeight:600,color:'#1F2937',cursor:'pointer',fontFamily:'"Outfit",sans-serif',borderBottom:'1px solid #F3F4F6',transition:'all 0.2s'}} onMouseOver={(e)=>e.target.style.background='#F9FAFB'} onMouseOut={(e)=>e.target.style.background='none'}>
-                      Profil bearbeiten
-                    </button>
-                    <button onClick={()=>{window.navigateTo('register');setDropdownOpen(false);}} style={{width:'100%',padding:'14px 20px',background:'none',border:'none',textAlign:'left',fontSize:15,fontWeight:600,color:'#1F2937',cursor:'pointer',fontFamily:'"Outfit",sans-serif',borderBottom:'1px solid #F3F4F6',transition:'all 0.2s'}} onMouseOver={(e)=>e.target.style.background='#F9FAFB'} onMouseOut={(e)=>e.target.style.background='none'}>
-                      Anbieter werden
-                    </button>
-                    <button onClick={()=>{window.navigateTo('favorites');setDropdownOpen(false);}} style={{width:'100%',padding:'14px 20px',background:'none',border:'none',textAlign:'left',fontSize:15,fontWeight:600,color:'#1F2937',cursor:'pointer',fontFamily:'"Outfit",sans-serif',borderBottom:'1px solid #F3F4F6',transition:'all 0.2s',position:'relative'}} onMouseOver={(e)=>e.target.style.background='#F9FAFB'} onMouseOut={(e)=>e.target.style.background='none'}>
-                      Favoriten
-                      {favorites.length>0&&<span style={{position:'absolute',right:20,top:'50%',transform:'translateY(-50%)',background:'#F97316',color:'white',fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:10}}>{favorites.length}</span>}
-                    </button>
-                    <button onClick={()=>{window.navigateTo('provider-dashboard');setDropdownOpen(false);}} style={{width:'100%',padding:'14px 20px',background:'none',border:'none',textAlign:'left',fontSize:15,fontWeight:600,color:'#1F2937',cursor:'pointer',fontFamily:'"Outfit",sans-serif',borderBottom:'1px solid #F3F4F6',transition:'all 0.2s'}} onMouseOver={(e)=>e.target.style.background='#F9FAFB'} onMouseOut={(e)=>e.target.style.background='none'}>
-                      Info & Statistik
-                    </button>
-                    <button onClick={handleLogout} style={{width:'100%',padding:'14px 20px',background:'none',border:'none',textAlign:'left',fontSize:15,fontWeight:700,color:'#EF4444',cursor:'pointer',fontFamily:'"Outfit",sans-serif',transition:'all 0.2s'}} onMouseOver={(e)=>e.target.style.background='#FEE2E2'} onMouseOut={(e)=>e.target.style.background='none'}>
-                      Logout
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          ) : (
+          {user && (
             <>
-              <button onClick={()=>window.navigateTo('register')} style={{background:'none',border:'none',color:'#374151',fontSize:15,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',transition:'all 0.2s'}} onMouseOver={(e)=>e.target.style.color='#14B8A6'} onMouseOut={(e)=>e.target.style.color='#374151'}>
-                + Anbieter werden
+              <button onClick={() => window.navigateTo('bookings')} style={styles.navBtnWithBadge} onMouseOver={(e) => e.target.style.color = '#14B8A6'} onMouseOut={(e) => e.target.style.color = '#374151'}>
+                Bookings
+                {pendingBookings > 0 && <span style={styles.badge}>{pendingBookings}</span>}
               </button>
-              <button onClick={()=>window.navigateTo('login')} style={{padding:'10px 20px',backgroundColor:'#14B8A6',color:'white',border:'none',borderRadius:12,fontSize:14,fontWeight:600,cursor:'pointer',boxShadow:'0 2px 8px rgba(20,184,166,0.3)',fontFamily:'"Outfit",sans-serif',transition:'all 0.3s'}}>
-                Login
+
+              <button onClick={() => window.navigateTo('messages')} style={styles.navBtnWithBadge} onMouseOver={(e) => e.target.style.color = '#14B8A6'} onMouseOut={(e) => e.target.style.color = '#374151'}>
+                Messages
+                {unreadCount > 0 && <span style={styles.badge}>{unreadCount}</span>}
+              </button>
+
+              <button onClick={() => window.navigateTo('favorites')} style={styles.navBtnWithBadge} onMouseOver={(e) => e.target.style.color = '#14B8A6'} onMouseOut={(e) => e.target.style.color = '#374151'}>
+                Favorites
+                {favorites.length > 0 && <span style={styles.badge}>{favorites.length}</span>}
               </button>
             </>
           )}
+
+          {!user && (
+            <button onClick={() => window.navigateTo('register')} style={styles.navBtn} onMouseOver={(e) => e.target.style.color = '#14B8A6'} onMouseOut={(e) => e.target.style.color = '#374151'}>
+              Become a Provider
+            </button>
+          )}
+
+          {user ? (
+            <div style={{ position: 'relative' }}>
+              <button onClick={() => setDropdownOpen(!dropdownOpen)} style={styles.settingsBtn}>
+                ⚙️
+              </button>
+              {dropdownOpen && (
+                <div style={styles.dropdown}>
+                  <button onClick={() => { window.navigateTo('edit-profile'); setDropdownOpen(false); }} style={styles.dropdownItem}>
+                    Edit Profile
+                  </button>
+                  <button onClick={() => { window.navigateTo('provider-dashboard'); setDropdownOpen(false); }} style={styles.dropdownItem}>
+                    Dashboard
+                  </button>
+                  <div style={styles.divider} />
+                  <button onClick={handleLogout} style={{...styles.dropdownItem, color: '#DC2626'}}>
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button onClick={() => window.navigateTo('login')} style={styles.loginBtn}>
+              Login
+            </button>
+          )}
         </nav>
 
-        {/* MOBILE HAMBURGER */}
-        <button onClick={()=>setMobileMenuOpen(!mobileMenuOpen)} className="mobile-menu-btn" style={{display:'none',background:'none',border:'none',color:'#374151',fontSize:28,cursor:'pointer',padding:8}}>
+        {/* MOBILE MENU BUTTON */}
+        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={styles.mobileMenuBtn} className="mobile-menu-btn">
           {mobileMenuOpen ? '✕' : '☰'}
         </button>
       </div>
 
       {/* MOBILE MENU */}
       {mobileMenuOpen && (
-        <div style={{position:'fixed',top:70,left:0,right:0,bottom:0,background:'rgba(0,0,0,0.5)',zIndex:999}} onClick={()=>setMobileMenuOpen(false)}>
-          <div onClick={(e)=>e.stopPropagation()} style={{background:'white',padding:'20px 0',boxShadow:'0 8px 30px rgba(0,0,0,0.3)'}}>
-            
-            <button onClick={()=>{window.navigateTo('home');setMobileMenuOpen(false);}} style={{width:'100%',padding:16,background:'none',border:'none',color:'#374151',fontSize:16,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',textAlign:'left',borderBottom:'1px solid #F3F4F6'}}>
-              Startseite
-            </button>
-
-            {user&&<button onClick={()=>{window.navigateTo('bookings');setMobileMenuOpen(false);}} style={{width:'100%',padding:16,background:'none',border:'none',color:'#374151',fontSize:16,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',textAlign:'left',borderBottom:'1px solid #F3F4F6',position:'relative'}}>
-              Buchungen
-              {pendingBookings>0&&<span style={{position:'absolute',right:20,top:'50%',transform:'translateY(-50%)',background:'#F97316',color:'white',fontSize:11,fontWeight:700,padding:'4px 8px',borderRadius:10}}>{pendingBookings}</span>}
-            </button>}
-
-            {user&&<button onClick={()=>{window.navigateTo('messages');setMobileMenuOpen(false);}} style={{width:'100%',padding:16,background:'none',border:'none',color:'#374151',fontSize:16,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',textAlign:'left',borderBottom:'1px solid #F3F4F6',position:'relative'}}>
-              Nachrichten
-              {unreadCount>0&&<span style={{position:'absolute',right:20,top:'50%',transform:'translateY(-50%)',background:'#F97316',color:'white',fontSize:11,fontWeight:700,padding:'4px 8px',borderRadius:10}}>{unreadCount}</span>}
-            </button>}
-
-            {user&&<button onClick={()=>{window.navigateTo('edit-profile');setMobileMenuOpen(false);}} style={{width:'100%',padding:16,background:'none',border:'none',color:'#374151',fontSize:16,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',textAlign:'left',borderBottom:'1px solid #F3F4F6'}}>
-              Profil bearbeiten
-            </button>}
-
-            {user&&<button onClick={()=>{window.navigateTo('favorites');setMobileMenuOpen(false);}} style={{width:'100%',padding:16,background:'none',border:'none',color:'#374151',fontSize:16,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',textAlign:'left',borderBottom:'1px solid #F3F4F6',position:'relative'}}>
-              Favoriten
-              {favorites.length>0&&<span style={{position:'absolute',right:20,top:'50%',transform:'translateY(-50%)',background:'#F97316',color:'white',fontSize:11,fontWeight:700,padding:'4px 8px',borderRadius:10}}>{favorites.length}</span>}
-            </button>}
-
-            {user&&<button onClick={()=>{window.navigateTo('provider-dashboard');setMobileMenuOpen(false);}} style={{width:'100%',padding:16,background:'none',border:'none',color:'#374151',fontSize:16,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',textAlign:'left',borderBottom:'1px solid #F3F4F6'}}>
-              Info & Statistik
-            </button>}
-
-            <button onClick={()=>{window.navigateTo('register');setMobileMenuOpen(false);}} style={{width:'100%',padding:16,background:'none',border:'none',color:'#374151',fontSize:16,fontWeight:600,cursor:'pointer',fontFamily:'"Outfit",sans-serif',textAlign:'left',borderBottom:'1px solid #F3F4F6'}}>
-              + Anbieter werden
-            </button>
-
-            {user ? (
-              <button onClick={handleLogout} style={{width:'100%',padding:16,background:'none',border:'none',color:'#EF4444',fontSize:16,fontWeight:700,cursor:'pointer',fontFamily:'"Outfit",sans-serif',textAlign:'left'}}>
+        <div style={styles.mobileMenu} className="mobile-menu">
+          <button onClick={() => { window.navigateTo('home'); setMobileMenuOpen(false); }} style={styles.mobileMenuItem}>
+            Home
+          </button>
+          {user && (
+            <>
+              <button onClick={() => { window.navigateTo('bookings'); setMobileMenuOpen(false); }} style={styles.mobileMenuItem}>
+                Bookings {pendingBookings > 0 && `(${pendingBookings})`}
+              </button>
+              <button onClick={() => { window.navigateTo('messages'); setMobileMenuOpen(false); }} style={styles.mobileMenuItem}>
+                Messages {unreadCount > 0 && `(${unreadCount})`}
+              </button>
+              <button onClick={() => { window.navigateTo('favorites'); setMobileMenuOpen(false); }} style={styles.mobileMenuItem}>
+                Favorites {favorites.length > 0 && `(${favorites.length})`}
+              </button>
+              <div style={styles.mobileDivider} />
+              <button onClick={() => { window.navigateTo('edit-profile'); setMobileMenuOpen(false); }} style={styles.mobileMenuItem}>
+                Edit Profile
+              </button>
+              <button onClick={() => { window.navigateTo('provider-dashboard'); setMobileMenuOpen(false); }} style={styles.mobileMenuItem}>
+                Dashboard
+              </button>
+              <button onClick={handleLogout} style={{...styles.mobileMenuItem, color: '#DC2626'}}>
                 Logout
               </button>
-            ) : (
-              <button onClick={()=>{window.navigateTo('login');setMobileMenuOpen(false);}} style={{width:'100%',padding:16,background:'none',border:'none',color:'#14B8A6',fontSize:16,fontWeight:700,cursor:'pointer',fontFamily:'"Outfit",sans-serif',textAlign:'left'}}>
+            </>
+          )}
+          {!user && (
+            <>
+              <button onClick={() => { window.navigateTo('register'); setMobileMenuOpen(false); }} style={styles.mobileMenuItem}>
+                Become a Provider
+              </button>
+              <button onClick={() => { window.navigateTo('login'); setMobileMenuOpen(false); }} style={styles.mobileMenuItem}>
                 Login
               </button>
-            )}
-          </div>
+            </>
+          )}
         </div>
       )}
 
       <style>{`
-        @media (min-width: 769px) {
-          .mobile-menu-btn { display: none !important; }
-        }
         @media (max-width: 768px) {
           .desktop-nav { display: none !important; }
-          .mobile-menu-btn { display: block !important; }
+        }
+        @media (min-width: 769px) {
+          .mobile-menu-btn { display: none !important; }
         }
       `}</style>
     </header>
   );
 }
+
+const styles = {
+  header: { position: 'fixed', top: 0, left: 0, right: 0, background: 'white', padding: '16px 20px', boxShadow: '0 2px 10px rgba(0,0,0,0.08)', zIndex: 1000, fontFamily: '"Outfit", sans-serif' },
+  container: { maxWidth: 1400, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
+  logo: { display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' },
+  logoText: { fontSize: 32, fontWeight: 800, color: '#14B8A6', letterSpacing: '-1px' },
+  desktopNav: { display: 'flex', alignItems: 'center', gap: 32 },
+  navBtn: { background: 'none', border: 'none', color: '#374151', fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.2s' },
+  navBtnWithBadge: { position: 'relative', background: 'none', border: 'none', color: '#374151', fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.2s' },
+  badge: { position: 'absolute', top: -8, right: -12, background: '#F97316', color: 'white', fontSize: 11, fontWeight: 700, padding: '2px 6px', borderRadius: 10, minWidth: 18, textAlign: 'center' },
+  settingsBtn: { background: '#F3F4F6', border: 'none', width: 40, height: 40, borderRadius: '50%', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' },
+  loginBtn: { background: '#14B8A6', color: 'white', border: 'none', padding: '10px 24px', borderRadius: 8, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.2s' },
+  dropdown: { position: 'absolute', top: 50, right: 0, background: 'white', borderRadius: 12, boxShadow: '0 10px 30px rgba(0,0,0,0.15)', minWidth: 180, overflow: 'hidden', zIndex: 1001 },
+  dropdownItem: { width: '100%', padding: '12px 20px', background: 'none', border: 'none', textAlign: 'left', fontSize: 14, fontWeight: 500, color: '#374151', cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'background 0.2s' },
+  divider: { height: 1, background: '#F3F4F6', margin: '4px 0' },
+  mobileMenuBtn: { background: '#F3F4F6', border: 'none', width: 40, height: 40, borderRadius: 8, fontSize: 20, cursor: 'pointer', fontWeight: 600, color: '#374151' },
+  mobileMenu: { background: 'white', borderTop: '1px solid #F3F4F6', padding: '12px 0' },
+  mobileMenuItem: { width: '100%', padding: '14px 20px', background: 'none', border: 'none', textAlign: 'left', fontSize: 15, fontWeight: 500, color: '#374151', cursor: 'pointer', fontFamily: '"Outfit", sans-serif', display: 'block' },
+  mobileDivider: { height: 1, background: '#F3F4F6', margin: '8px 20px' }
+};
 
 export default Header;

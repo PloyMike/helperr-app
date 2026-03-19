@@ -1,484 +1,174 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from './AuthContext';
+import React, { useState, useEffect, useCallback } from 'react';
+import { supabase } from './supabase';
 import Header from './Header';
-import Footer from './Footer';
 
 function Favorites() {
-  const { user, signIn } = useAuth();
   const [favorites, setFavorites] = useState([]);
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [loginLoading, setLoginLoading] = useState(false);
+  const [profiles, setProfiles] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchFavorites = useCallback(async () => {
+    const saved = localStorage.getItem('helperr_favorites');
+    const favs = saved ? JSON.parse(saved) : [];
+    setFavorites(favs);
+
+    if (favs.length > 0) {
+      const ids = favs.map(f => f.id);
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('id', ids);
+      setProfiles(data || []);
+    }
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
-    if (user) {
-      const saved = localStorage.getItem('helperr_favorites');
-      if (saved) setFavorites(JSON.parse(saved));
+    fetchFavorites();
+    
+    const handleStorageChange = () => {
+      fetchFavorites();
+    };
 
-      const handleStorageChange = () => {
-        const updated = localStorage.getItem('helperr_favorites');
-        if (updated) setFavorites(JSON.parse(updated));
-      };
+    window.addEventListener('storage', handleStorageChange);
+    const interval = setInterval(handleStorageChange, 1000);
 
-      window.addEventListener('storage', handleStorageChange);
-      const interval = setInterval(handleStorageChange, 1000);
-
-      return () => {
-        window.removeEventListener('storage', handleStorageChange);
-        clearInterval(interval);
-      };
-    }
-  }, [user]);
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoginLoading(true);
-    const { error } = await signIn(loginEmail, loginPassword);
-    if (error) {
-      alert('Login fehlgeschlagen: ' + error.message);
-    }
-    setLoginLoading(false);
-  };
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [fetchFavorites]);
 
   const removeFavorite = (profileId) => {
     const updated = favorites.filter(f => f.id !== profileId);
     localStorage.setItem('helperr_favorites', JSON.stringify(updated));
     setFavorites(updated);
+    setProfiles(profiles.filter(p => p.id !== profileId));
   };
 
-  const clearAll = () => {
-    if (window.confirm('Alle Favoriten löschen?')) {
-      localStorage.removeItem('helperr_favorites');
-      setFavorites([]);
-    }
-  };
-
-  if (!user) {
+  if (loading) {
     return (
-      <div style={{minHeight:'100vh',backgroundColor:'#F9FAFB'}}>
+      <div style={styles.app}>
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-        <Header/>
-        <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:'90px 20px 40px'}}>
-          <div style={{background:'white',padding:40,borderRadius:20,boxShadow:'0 8px 30px rgba(0,0,0,0.1)',maxWidth:400,width:'100%',fontFamily:'"Outfit",sans-serif'}}>
-            <h2 style={{fontSize:28,fontWeight:700,marginBottom:30,color:'#1F2937',textAlign:'center'}}>Login für Favoriten</h2>
-            <form onSubmit={handleLogin}>
-              <div style={{marginBottom:20}}>
-                <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:14,color:'#1F2937'}}>Email</label>
-                <input type="email" required value={loginEmail} onChange={(e)=>setLoginEmail(e.target.value)} placeholder="deine@email.com" style={{width:'100%',padding:'12px 16px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',boxSizing:'border-box'}}/>
-              </div>
-              <div style={{marginBottom:24}}>
-                <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:14,color:'#1F2937'}}>Passwort</label>
-                <input type="password" required value={loginPassword} onChange={(e)=>setLoginPassword(e.target.value)} placeholder="Passwort" style={{width:'100%',padding:'12px 16px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',boxSizing:'border-box'}}/>
-              </div>
-              <button type="submit" disabled={loginLoading} style={{width:'100%',padding:16,background:loginLoading?'#CBD5E0':'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)',color:'white',border:'none',borderRadius:12,fontSize:16,fontWeight:700,cursor:loginLoading?'not-allowed':'pointer'}}>
-                {loginLoading ? 'Lädt...' : 'Einloggen'}
-              </button>
-              <p style={{textAlign:'center',marginTop:20,fontSize:14,color:'#6B7280'}}>Noch kein Account? <span onClick={()=>window.navigateTo('signup')} style={{color:'#14B8A6',fontWeight:600,cursor:'pointer',textDecoration:'underline'}}>Registrieren</span></p>
-            </form>
-          </div>
+        <Header />
+        <div style={styles.loading}>
+          <div style={{ fontSize: 48 }}>⭐</div>
+          <h2>Loading favorites...</h2>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="favorites-container">
+    <div style={styles.app}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Header/>
-      
-      <div className="favorites-wrapper">
-        <div className="hero-section">
-          <div className="hero-bg"></div>
-          <div className="hero-gradient"></div>
-          <div className="hero-content">
-            <h1 className="hero-title">Meine Favoriten</h1>
-            <p className="hero-subtitle">Deine gespeicherten Helfer an einem Ort</p>
-          </div>
-        </div>
+      <Header />
 
-        <div className="favorites-content">
-
-          {favorites.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-icon">🤍</div>
-              <h2>Noch keine Favoriten</h2>
-              <p>Speichere Profile, die dir gefallen!</p>
-              <button onClick={()=>window.navigateTo('home')} className="browse-button">Profile durchsuchen</button>
-            </div>
-          ) : (
-            <>
-              <div className="favorites-grid">
-                {favorites.map(profile => (
-                  <div key={profile.id} className="favorite-card">
-                    
-                    <button onClick={(e)=>{e.stopPropagation();removeFavorite(profile.id);}} className="remove-btn">
-                      ❤️
-                    </button>
-
-                    {profile.image_url?
-                      <img src={profile.image_url} alt={profile.name} className="profile-avatar"/>
-                      :
-                      <div className="profile-avatar-placeholder">{profile.name?profile.name.charAt(0).toUpperCase():'?'}</div>
-                    }
-                    
-                    <h3 className="profile-name">{profile.name}</h3>
-                    <p className="profile-job">{profile.job}</p>
-                    <p className="profile-location">📍 {profile.city}, {profile.country}</p>
-                    <p className="profile-price">{profile.price}</p>
-
-                    <button onClick={()=>window.navigateTo('profile',profile)} className="view-profile-btn">
-                      Profil ansehen
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              <div className="favorites-footer">
-                <div className="favorites-count">
-                  {favorites.length} {favorites.length===1?'Favorit':'Favoriten'}
-                </div>
-                <button onClick={clearAll} className="clear-all-btn">
-                  Alle löschen
-                </button>
-              </div>
-            </>
-          )}
+      <div style={styles.hero}>
+        <div style={styles.heroInner}>
+          <h1 style={styles.heroTitle}>My Favorites</h1>
+          <p style={styles.heroSub}>Your saved providers - quick access anytime</p>
         </div>
       </div>
 
-      <Footer/>
+      <div style={styles.container}>
+        {profiles.length === 0 ? (
+          <div style={styles.empty}>
+            <div style={{ fontSize: 48 }}>⭐</div>
+            <h3>No favorites yet</h3>
+            <p>Start adding providers to your favorites for quick access</p>
+            <button onClick={() => window.navigateTo('home')} style={styles.btnPrimary}>
+              Browse Providers
+            </button>
+          </div>
+        ) : (
+          <div style={styles.grid}>
+            {profiles.map(p => (
+              <div key={p.id} style={styles.card}>
+                <div style={styles.cardTop}>
+                  {p.image_url && p.image_url.startsWith('http') ? (
+                    <img src={p.image_url} alt={p.name} style={styles.cardAvatarImg} />
+                  ) : (
+                    <div style={styles.cardAvatar}>{p.image_url || '👤'}</div>
+                  )}
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <h3 style={styles.cardName}>{p.name}</h3>
+                      {p.verified && <span style={styles.verified}>✓</span>}
+                    </div>
+                    <p style={styles.cardSub}>{p.subcategory || p.category}</p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
+                      <span style={{ color: '#f59e0b' }}>⭐</span>
+                      <span style={{ fontSize: 12, color: '#6b7280' }}>
+                        {p.rating} · {p.review_count} reviews
+                      </span>
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={styles.price}>{p.price}</div>
+                    <button
+                      onClick={() => removeFavorite(p.id)}
+                      style={styles.removeBtn}
+                    >
+                      ❤️
+                    </button>
+                  </div>
+                </div>
 
-      <style>{`
-        .favorites-container {
-          min-height: 100vh;
-          background-color: #F9FAFB;
-        }
-        .favorites-wrapper {
-          padding-top: 70px;
-        }
-        .hero-section {
-          position: relative;
-          overflow: hidden;
-          padding: 60px 20px;
-        }
-        .hero-bg {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background-image: url(https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=1600&q=80);
-          background-size: cover;
-          background-position: center;
-          opacity: 0.7;
-          z-index: 0;
-        }
-        .hero-gradient {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(250,250,250,0.9) 100%);
-          z-index: 1;
-        }
-        .hero-content {
-          max-width: 1200px;
-          margin: 0 auto;
-          position: relative;
-          z-index: 2;
-          color: #1F2937;
-          text-align: center;
-        }
-        .hero-title {
-          font-size: 48px;
-          font-weight: 800;
-          margin-bottom: 12px;
-          font-family: "Outfit", sans-serif;
-          letter-spacing: -1px;
-        }
-        .hero-subtitle {
-          font-size: 18px;
-          opacity: 0.95;
-          font-family: "Outfit", sans-serif;
-          font-weight: 400;
-        }
-        .favorites-content {
-          max-width: 1200px;
-          margin: 40px auto;
-          padding: 0 20px;
-        }
-        .empty-state {
-          text-align: center;
-          padding: 100px;
-          background-color: white;
-          border-radius: 20px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        }
-        .empty-icon {
-          font-size: 72px;
-          margin-bottom: 24px;
-        }
-        .empty-state h2 {
-          font-size: 28px;
-          font-weight: 700;
-          margin-bottom: 16px;
-          color: #1F2937;
-          font-family: "Outfit", sans-serif;
-        }
-        .empty-state p {
-          font-size: 16px;
-          color: #6B7280;
-          margin-bottom: 40px;
-          font-family: "Outfit", sans-serif;
-        }
-        .browse-button {
-          padding: 16px 32px;
-          background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%);
-          color: white;
-          border: none;
-          border-radius: 16px;
-          font-size: 16px;
-          font-weight: 700;
-          cursor: pointer;
-          font-family: "Outfit", sans-serif;
-          box-shadow: 0 4px 15px rgba(20,184,166,0.3);
-          transition: all 0.3s;
-        }
-        .browse-button:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(20,184,166,0.4);
-        }
-        .favorites-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-          gap: 28px;
-          margin-bottom: 32px;
-        }
-        .favorites-footer {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          background: transparent;
-          padding: 24px 0;
-        }
-        .favorites-count {
-          font-size: 16px;
-          font-weight: 600;
-          color: #6B7280;
-          font-family: "Outfit", sans-serif;
-        }
-        .clear-all-btn {
-          padding: 12px 24px;
-          background-color: #EF4444;
-          color: white;
-          border: none;
-          border-radius: 12px;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          font-family: "Outfit", sans-serif;
-          transition: all 0.3s;
-        }
-        .clear-all-btn:hover {
-          background-color: #DC2626;
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(239,68,68,0.3);
-        }
-        .favorite-card {
-          background-color: white;
-          border-radius: 20px;
-          padding: 28px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-          transition: all 0.3s;
-          position: relative;
-          text-align: center;
-        }
-        .favorite-card:hover {
-          transform: translateY(-8px);
-          box-shadow: 0 12px 40px rgba(0,0,0,0.12);
-        }
-        .remove-btn {
-          position: absolute;
-          top: 20px;
-          right: 20px;
-          background: white;
-          border: none;
-          border-radius: 50%;
-          width: 44px;
-          height: 44px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 20px;
-          cursor: pointer;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-          z-index: 10;
-          transition: all 0.2s;
-        }
-        .remove-btn:hover {
-          transform: scale(1.1);
-          box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-        }
-        .profile-avatar {
-          width: 90px;
-          height: 90px;
-          border-radius: 50%;
-          object-fit: cover;
-          margin-bottom: 20px;
-          border: 4px solid #14B8A6;
-        }
-        .profile-avatar-placeholder {
-          width: 90px;
-          height: 90px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 40px;
-          font-weight: 700;
-          color: white;
-          margin: 0 auto 20px;
-          font-family: "Outfit", sans-serif;
-        }
-        .profile-name {
-          font-size: 22px;
-          font-weight: 700;
-          margin-bottom: 8px;
-          color: #1F2937;
-          font-family: "Outfit", sans-serif;
-        }
-        .profile-job {
-          font-size: 16px;
-          color: #14B8A6;
-          font-weight: 600;
-          margin-bottom: 10px;
-          font-family: "Outfit", sans-serif;
-        }
-        .profile-location {
-          font-size: 14px;
-          color: #6B7280;
-          margin-bottom: 14px;
-          font-family: "Outfit", sans-serif;
-        }
-        .profile-price {
-          font-size: 20px;
-          font-weight: 700;
-          color: #F97316;
-          margin-bottom: 20px;
-          font-family: "Outfit", sans-serif;
-        }
-        .view-profile-btn {
-          width: 100%;
-          padding: 14px;
-          background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%);
-          color: white;
-          border: none;
-          border-radius: 12px;
-          font-size: 15px;
-          font-weight: 700;
-          cursor: pointer;
-          font-family: "Outfit", sans-serif;
-          box-shadow: 0 4px 12px rgba(20,184,166,0.3);
-          transition: all 0.3s;
-        }
-        .view-profile-btn:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 6px 20px rgba(20,184,166,0.4);
-        }
+                <p style={styles.cardBio}>{p.bio?.slice(0, 100)}...</p>
 
-        /* MOBILE */
-        @media (max-width: 768px) {
-          .hero-section {
-            padding: 40px 16px !important;
-          }
-          .hero-title {
-            font-size: 28px !important;
-            margin-bottom: 8px !important;
-          }
-          .hero-subtitle {
-            font-size: 15px !important;
-          }
-          .favorites-content {
-            margin: 24px auto !important;
-            padding: 0 16px !important;
-          }
-          .empty-state {
-            padding: 60px 20px !important;
-          }
-          .empty-icon {
-            font-size: 56px !important;
-          }
-          .empty-state h2 {
-            font-size: 22px !important;
-          }
-          .empty-state p {
-            font-size: 14px !important;
-            margin-bottom: 28px !important;
-          }
-          .browse-button {
-            padding: 14px 24px !important;
-            font-size: 14px !important;
-          }
-          .favorites-grid {
-            grid-template-columns: 1fr !important;
-            gap: 20px !important;
-            margin-bottom: 24px !important;
-          }
-          .favorites-footer {
-            flex-direction: column !important;
-            gap: 12px !important;
-            padding: 16px 0 !important;
-          }
-          .favorites-count {
-            font-size: 14px !important;
-            text-align: center !important;
-          }
-          .clear-all-btn {
-            width: 100% !important;
-            padding: 10px !important;
-            font-size: 13px !important;
-          }
-          .favorite-card {
-            padding: 24px !important;
-          }
-          .remove-btn {
-            top: 16px !important;
-            right: 16px !important;
-            width: 38px !important;
-            height: 38px !important;
-            font-size: 18px !important;
-          }
-          .profile-avatar, .profile-avatar-placeholder {
-            width: 70px !important;
-            height: 70px !important;
-            font-size: 32px !important;
-            border-width: 3px !important;
-            margin-bottom: 16px !important;
-          }
-          .profile-name {
-            font-size: 20px !important;
-          }
-          .profile-job {
-            font-size: 15px !important;
-          }
-          .profile-location {
-            font-size: 13px !important;
-            margin-bottom: 12px !important;
-          }
-          .profile-price {
-            font-size: 18px !important;
-            margin-bottom: 16px !important;
-          }
-          .view-profile-btn {
-            padding: 12px !important;
-            font-size: 14px !important;
-          }
-        }
-      `}</style>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
+                  {p.tags?.slice(0, 3).map(tag => (
+                    <span key={tag} style={styles.tag}>{tag}</span>
+                  ))}
+                </div>
+
+                <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+                  <button
+                    onClick={() => window.navigateTo('home')}
+                    style={styles.btnSecondary}
+                  >
+                    View Profile
+                  </button>
+                  <button
+                    onClick={() => window.navigateTo('home')}
+                    style={styles.btnPrimary}
+                  >
+                    Book Now
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
+
+const styles = {
+  app: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh', paddingTop: 80 },
+  loading: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 },
+  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 100%)', padding: '40px 20px', marginBottom: 40 },
+  heroInner: { maxWidth: 1100, margin: '0 auto', textAlign: 'center' },
+  heroTitle: { color: '#fff', fontSize: 42, fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.02em' },
+  heroSub: { color: '#d1fae5', fontSize: 16, margin: 0 },
+  container: { maxWidth: 1100, margin: '0 auto', padding: '0 20px 60px' },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 20 },
+  card: { background: 'white', borderRadius: 16, padding: 20, border: '1.5px solid #e5e7eb', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' },
+  cardTop: { display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 12 },
+  cardAvatar: { width: 52, height: 52, background: '#ecfdf5', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, flexShrink: 0 },
+  cardAvatarImg: { width: 52, height: 52, borderRadius: 14, objectFit: 'cover', flexShrink: 0 },
+  cardName: { margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' },
+  cardSub: { margin: '4px 0 0', fontSize: 13, color: '#6b7280' },
+  cardBio: { margin: 0, fontSize: 13, color: '#6b7280', lineHeight: 1.6 },
+  price: { fontSize: 15, fontWeight: 700, color: '#065f46', marginBottom: 8 },
+  removeBtn: { background: '#fee2e2', border: 'none', padding: '6px 10px', borderRadius: 8, fontSize: 16, cursor: 'pointer' },
+  verified: { background: '#d1fae5', color: '#065f46', fontSize: 10, fontWeight: 700, padding: '1px 5px', borderRadius: 10 },
+  tag: { background: '#f3f4f6', color: '#374151', fontSize: 12, padding: '4px 10px', borderRadius: 20, fontWeight: 500 },
+  empty: { textAlign: 'center', padding: '60px 20px', background: 'white', borderRadius: 16, border: '1.5px solid #e5e7eb', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 },
+  btnPrimary: { flex: 1, padding: '10px 16px', background: '#065f46', color: 'white', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' },
+  btnSecondary: { flex: 1, padding: '10px 16px', background: 'white', color: '#065f46', border: '2px solid #065f46', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' }
+};
 
 export default Favorites;

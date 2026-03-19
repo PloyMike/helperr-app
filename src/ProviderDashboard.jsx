@@ -1,63 +1,76 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabase';
 import { useAuth } from './AuthContext';
 import Header from './Header';
-import Footer from './Footer';
 
 function ProviderDashboard() {
   const { user } = useAuth();
-  const [profile, setProfile] = useState(null);
-  const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState(null);
+  const [stats, setStats] = useState({
+    totalBookings: 0,
+    pendingBookings: 0,
+    confirmedBookings: 0,
+    totalRevenue: 0
+  });
 
-  useEffect(() => {
-    if (user) {
-      fetchProviderData();
-    } else {
+  const fetchDashboard = useCallback(async () => {
+    if (!user) {
       setLoading(false);
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
 
-  const fetchProviderData = async () => {
     try {
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('*')
         .eq('email', user.email)
-        .single();
+        .maybeSingle();
 
       if (profileError) throw profileError;
-      setProfile(profileData);
 
-      const { data: bookingsData, error: bookingsError } = await supabase
-        .from('bookings')
-        .select('*')
-        .eq('profile_id', profileData.id)
-        .order('created_at', { ascending: false });
+      if (profileData) {
+        setProfile(profileData);
 
-      if (bookingsError) throw bookingsError;
-      setBookings(bookingsData || []);
+        const { data: bookingsData } = await supabase
+          .from('bookings')
+          .select('*')
+          .eq('profile_id', profileData.id);
+
+        const totalBookings = bookingsData?.length || 0;
+        const pendingBookings = bookingsData?.filter(b => b.status === 'pending').length || 0;
+        const confirmedBookings = bookingsData?.filter(b => b.status === 'confirmed').length || 0;
+
+        setStats({
+          totalBookings,
+          pendingBookings,
+          confirmedBookings,
+          totalRevenue: 0
+        });
+      }
     } catch (error) {
       console.error('Error:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    fetchDashboard();
+  }, [fetchDashboard]);
 
   if (!user) {
     return (
-      <div style={{minHeight:'100vh',backgroundColor:'#F9FAFB'}}>
+      <div style={styles.app}>
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-        <Header/>
-        <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:'90px 20px 40px'}}>
-          <div style={{background:'white',padding:40,borderRadius:20,boxShadow:'0 8px 30px rgba(0,0,0,0.1)',maxWidth:400,width:'100%',fontFamily:'"Outfit",sans-serif',textAlign:'center'}}>
-            <h2 style={{fontSize:24,fontWeight:700,marginBottom:20,color:'#1F2937'}}>Login erforderlich</h2>
-            <p style={{fontSize:15,color:'#6B7280',marginBottom:24}}>Bitte logge dich ein um dein Dashboard zu sehen.</p>
-            <button onClick={()=>window.navigateTo('login')} style={{width:'100%',padding:16,background:'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)',color:'white',border:'none',borderRadius:12,fontSize:16,fontWeight:700,cursor:'pointer'}}>
-              Zum Login
-            </button>
-          </div>
+        <Header />
+        <div style={styles.loginRequired}>
+          <div style={{ fontSize: 64 }}>🔐</div>
+          <h2>Login Required</h2>
+          <p>Please login to view your dashboard</p>
+          <button onClick={() => window.navigateTo('login')} style={styles.btnPrimary}>
+            Login
+          </button>
         </div>
       </div>
     );
@@ -65,103 +78,213 @@ function ProviderDashboard() {
 
   if (loading) {
     return (
-      <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',backgroundColor:'#F9FAFB'}}>
-        <p style={{fontSize:20,fontWeight:600,color:'#14B8A6',fontFamily:'"Outfit",sans-serif'}}>Lädt Dashboard...</p>
+      <div style={styles.app}>
+        <Header />
+        <div style={styles.loading}>
+          <div style={{ fontSize: 48 }}>📊</div>
+          <h2>Loading dashboard...</h2>
+        </div>
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div style={{minHeight:'100vh',backgroundColor:'#F9FAFB'}}>
-        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-        <Header/>
-        <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:'90px 20px 40px'}}>
-          <div style={{background:'white',padding:40,borderRadius:20,boxShadow:'0 8px 30px rgba(0,0,0,0.1)',maxWidth:400,width:'100%',fontFamily:'"Outfit",sans-serif',textAlign:'center'}}>
-            <div style={{fontSize:64,marginBottom:20}}>🚀</div>
-            <h2 style={{fontSize:24,fontWeight:700,marginBottom:12,color:'#1F2937'}}>Noch kein Provider</h2>
-            <p style={{fontSize:15,color:'#6B7280',marginBottom:24}}>Erstelle zuerst ein Provider-Profil!</p>
-            <button onClick={()=>window.navigateTo('register')} style={{width:'100%',padding:16,background:'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)',color:'white',border:'none',borderRadius:12,fontSize:16,fontWeight:700,cursor:'pointer'}}>
-              Anbieter werden
-            </button>
-          </div>
+      <div style={styles.app}>
+        <Header />
+        <div style={styles.noProfile}>
+          <div style={{ fontSize: 64 }}>👤</div>
+          <h2>No Provider Profile Found</h2>
+          <p>Create a provider profile to access your dashboard</p>
+          <button onClick={() => window.navigateTo('register')} style={styles.btnPrimary}>
+            Create Profile
+          </button>
         </div>
       </div>
     );
   }
 
-  const stats = {
-    total: bookings.length,
-    pending: bookings.filter(b => b.status === 'pending').length,
-    confirmed: bookings.filter(b => b.status === 'confirmed').length,
-    cancelled: bookings.filter(b => b.status === 'cancelled').length,
-    revenue: bookings.filter(b => b.status === 'confirmed').reduce((sum, b) => {
-      const price = b.total_price?.match(/\d+/);
-      return sum + (price ? parseInt(price[0]) : 0);
-    }, 0)
-  };
-
   return (
-    <div style={{minHeight:'100vh',backgroundColor:'#F9FAFB'}}>
+    <div style={styles.app}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Header/>
-      
-      <div style={{paddingTop:70}}>
-        <div style={{position:'relative',overflow:'hidden',padding:'60px 20px',background:'linear-gradient(135deg,rgba(20,184,166,0.1) 0%,rgba(13,148,136,0.1) 100%)'}}>
-          <div style={{maxWidth:1200,margin:'0 auto',textAlign:'center'}}>
-            <h1 style={{fontSize:48,fontWeight:800,marginBottom:12,fontFamily:'"Outfit",sans-serif',color:'#1F2937'}}>Provider Dashboard</h1>
-            <p style={{fontSize:18,color:'#6B7280',fontFamily:'"Outfit",sans-serif'}}>Willkommen zurück, {profile.name}!</p>
+      <Header />
+
+      <div style={styles.hero}>
+        <div style={styles.heroInner}>
+          <h1 style={styles.heroTitle}>Provider Dashboard</h1>
+          <p style={styles.heroSub}>Welcome back, {profile.name}!</p>
+        </div>
+      </div>
+
+      <div style={styles.container}>
+        
+        {/* STATS GRID */}
+        <div style={styles.statsGrid}>
+          <div style={styles.statCard}>
+            <div style={styles.statIcon}>📅</div>
+            <div style={styles.statValue}>{stats.totalBookings}</div>
+            <div style={styles.statLabel}>Total Bookings</div>
+          </div>
+
+          <div style={styles.statCard}>
+            <div style={{ ...styles.statIcon, background: '#FEF3C7', color: '#D97706' }}>⏳</div>
+            <div style={styles.statValue}>{stats.pendingBookings}</div>
+            <div style={styles.statLabel}>Pending</div>
+          </div>
+
+          <div style={styles.statCard}>
+            <div style={{ ...styles.statIcon, background: '#D1FAE5', color: '#059669' }}>✓</div>
+            <div style={styles.statValue}>{stats.confirmedBookings}</div>
+            <div style={styles.statLabel}>Confirmed</div>
+          </div>
+
+          <div style={styles.statCard}>
+            <div style={{ ...styles.statIcon, background: '#E0E7FF', color: '#4F46E5' }}>⭐</div>
+            <div style={styles.statValue}>{profile.rating}</div>
+            <div style={styles.statLabel}>Rating</div>
           </div>
         </div>
 
-        <div style={{maxWidth:1200,margin:'40px auto',padding:'0 20px'}}>
-          
-          {/* STATISTIKEN */}
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))',gap:20,marginBottom:40}}>
-            <div style={{background:'white',padding:24,borderRadius:16,boxShadow:'0 4px 20px rgba(0,0,0,0.08)'}}>
-              <div style={{fontSize:14,fontWeight:600,color:'#6B7280',marginBottom:8,fontFamily:'"Outfit",sans-serif'}}>Gesamt Buchungen</div>
-              <div style={{fontSize:32,fontWeight:800,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>{stats.total}</div>
+        {/* PROFILE INFO */}
+        <div style={styles.section}>
+          <h2 style={styles.sectionTitle}>Your Profile</h2>
+          <div style={styles.profileCard}>
+            <div style={styles.profileHeader}>
+              {profile.image_url && profile.image_url.startsWith('http') ? (
+                <img src={profile.image_url} alt={profile.name} style={styles.profileAvatar} />
+              ) : (
+                <div style={styles.profileAvatarPlaceholder}>{profile.image_url || '👤'}</div>
+              )}
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <h3 style={styles.profileName}>{profile.name}</h3>
+                  {profile.verified && <span style={styles.verified}>✓ Verified</span>}
+                  <span style={{
+                    ...styles.statusBadge,
+                    background: profile.available ? '#D1FAE5' : '#FEE2E2',
+                    color: profile.available ? '#059669' : '#DC2626'
+                  }}>
+                    {profile.available ? '● Available' : '● Busy'}
+                  </span>
+                </div>
+                <p style={styles.profileJob}>{profile.job}</p>
+                <p style={styles.profileLocation}>📍 {profile.city}, {profile.country}</p>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={styles.price}>{profile.price}</div>
+                <button onClick={() => window.navigateTo('edit-profile')} style={styles.editBtn}>
+                  ✏️ Edit Profile
+                </button>
+              </div>
             </div>
-            
-            <div style={{background:'white',padding:24,borderRadius:16,boxShadow:'0 4px 20px rgba(0,0,0,0.08)'}}>
-              <div style={{fontSize:14,fontWeight:600,color:'#6B7280',marginBottom:8,fontFamily:'"Outfit",sans-serif'}}>Ausstehend</div>
-              <div style={{fontSize:32,fontWeight:800,color:'#F59E0B',fontFamily:'"Outfit",sans-serif'}}>{stats.pending}</div>
-            </div>
-            
-            <div style={{background:'white',padding:24,borderRadius:16,boxShadow:'0 4px 20px rgba(0,0,0,0.08)'}}>
-              <div style={{fontSize:14,fontWeight:600,color:'#6B7280',marginBottom:8,fontFamily:'"Outfit",sans-serif'}}>Bestätigt</div>
-              <div style={{fontSize:32,fontWeight:800,color:'#14B8A6',fontFamily:'"Outfit",sans-serif'}}>{stats.confirmed}</div>
-            </div>
-            
-            <div style={{background:'white',padding:24,borderRadius:16,boxShadow:'0 4px 20px rgba(0,0,0,0.08)'}}>
-              <div style={{fontSize:14,fontWeight:600,color:'#6B7280',marginBottom:8,fontFamily:'"Outfit",sans-serif'}}>Umsatz (bestätigt)</div>
-              <div style={{fontSize:32,fontWeight:800,color:'#F97316',fontFamily:'"Outfit",sans-serif'}}>€{stats.revenue}</div>
-            </div>
-          </div>
 
-          {/* LINK ZU BUCHUNGEN */}
-          <div style={{background:'white',padding:40,borderRadius:20,boxShadow:'0 4px 20px rgba(0,0,0,0.08)',textAlign:'center'}}>
-            <div style={{fontSize:48,marginBottom:20}}>📋</div>
-            <h2 style={{fontSize:24,fontWeight:700,marginBottom:12,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Buchungen verwalten</h2>
-            <p style={{fontSize:16,color:'#6B7280',marginBottom:24,fontFamily:'"Outfit",sans-serif'}}>Sieh alle deine Buchungen an und verwalte sie.</p>
-            <button onClick={()=>window.navigateTo('bookings')} style={{padding:'16px 32px',background:'linear-gradient(135deg,#14B8A6 0%,#0D9488 100%)',color:'white',border:'none',borderRadius:16,fontSize:16,fontWeight:700,cursor:'pointer',fontFamily:'"Outfit",sans-serif',boxShadow:'0 4px 15px rgba(20,184,166,0.3)'}}>
-              Zu meinen Buchungen →
+            <div style={styles.profileInfo}>
+              <div style={styles.infoRow}>
+                <span style={styles.infoLabel}>Category:</span>
+                <span style={styles.infoValue}>{profile.category}</span>
+              </div>
+              <div style={styles.infoRow}>
+                <span style={styles.infoLabel}>Specialization:</span>
+                <span style={styles.infoValue}>{profile.subcategory}</span>
+              </div>
+              <div style={styles.infoRow}>
+                <span style={styles.infoLabel}>Languages:</span>
+                <span style={styles.infoValue}>{profile.languages?.join(', ')}</span>
+              </div>
+              {profile.line_id && (
+                <div style={styles.infoRow}>
+                  <span style={styles.infoLabel}>LINE ID:</span>
+                  <span style={styles.infoValue}>{profile.line_id}</span>
+                </div>
+              )}
+            </div>
+
+            {profile.tags && profile.tags.length > 0 && (
+              <div style={{ marginTop: 16 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#6b7280', marginBottom: 8 }}>Skills:</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {profile.tags.map(tag => (
+                    <span key={tag} style={styles.tag}>{tag}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* QUICK ACTIONS */}
+        <div style={styles.section}>
+          <h2 style={styles.sectionTitle}>Quick Actions</h2>
+          <div style={styles.actionsGrid}>
+            <button onClick={() => window.navigateTo('bookings')} style={styles.actionCard}>
+              <div style={styles.actionIcon}>📅</div>
+              <div style={styles.actionTitle}>View Bookings</div>
+              <div style={styles.actionSub}>Manage your appointments</div>
+            </button>
+
+            <button onClick={() => window.navigateTo('messages')} style={styles.actionCard}>
+              <div style={styles.actionIcon}>💬</div>
+              <div style={styles.actionTitle}>Messages</div>
+              <div style={styles.actionSub}>Chat with customers</div>
+            </button>
+
+            <button onClick={() => window.navigateTo('edit-profile')} style={styles.actionCard}>
+              <div style={styles.actionIcon}>✏️</div>
+              <div style={styles.actionTitle}>Edit Profile</div>
+              <div style={styles.actionSub}>Update your information</div>
             </button>
           </div>
         </div>
       </div>
-
-      <Footer/>
-
-      <style>{`
-        @media (max-width: 768px) {
-          h1 { font-size: 28px !important; }
-          div[style*="gridTemplateColumns: repeat(auto-fit"] { grid-template-columns: 1fr 1fr !important; }
-          div[style*="fontSize:32"] { font-size: 24px !important; }
-        }
-      `}</style>
     </div>
   );
 }
+
+const styles = {
+  app: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh', paddingTop: 80 },
+  loading: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 },
+  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 100%)', padding: '40px 20px', marginBottom: 40 },
+  heroInner: { maxWidth: 1100, margin: '0 auto', textAlign: 'center' },
+  heroTitle: { color: '#fff', fontSize: 42, fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.02em' },
+  heroSub: { color: '#d1fae5', fontSize: 16, margin: 0 },
+  container: { maxWidth: 1100, margin: '0 auto', padding: '0 20px 60px' },
+  
+  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20, marginBottom: 40 },
+  statCard: { background: 'white', borderRadius: 16, padding: 24, border: '1.5px solid #e5e7eb', textAlign: 'center' },
+  statIcon: { width: 48, height: 48, background: '#DBEAFE', color: '#1D4ED8', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, margin: '0 auto 12px' },
+  statValue: { fontSize: 32, fontWeight: 800, color: '#111827', marginBottom: 4 },
+  statLabel: { fontSize: 13, color: '#6b7280', fontWeight: 500 },
+  
+  section: { marginBottom: 40 },
+  sectionTitle: { fontSize: 22, fontWeight: 700, color: '#111827', marginBottom: 20 },
+  
+  profileCard: { background: 'white', borderRadius: 16, padding: 24, border: '1.5px solid #e5e7eb' },
+  profileHeader: { display: 'flex', gap: 20, alignItems: 'flex-start', paddingBottom: 20, borderBottom: '1px solid #f3f4f6' },
+  profileAvatar: { width: 80, height: 80, borderRadius: 16, objectFit: 'cover', flexShrink: 0 },
+  profileAvatarPlaceholder: { width: 80, height: 80, background: '#ecfdf5', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, flexShrink: 0 },
+  profileName: { margin: 0, fontSize: 20, fontWeight: 700, color: '#111827' },
+  profileJob: { margin: '4px 0 0', fontSize: 14, color: '#6b7280' },
+  profileLocation: { margin: '4px 0 0', fontSize: 13, color: '#6b7280' },
+  price: { fontSize: 18, fontWeight: 700, color: '#065f46', marginBottom: 8 },
+  editBtn: { background: '#f3f4f6', border: 'none', padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#374151', fontFamily: '"Outfit", sans-serif' },
+  verified: { background: '#d1fae5', color: '#065f46', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 10 },
+  statusBadge: { fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 20 },
+  
+  profileInfo: { marginTop: 20, display: 'flex', flexDirection: 'column', gap: 12 },
+  infoRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  infoLabel: { fontSize: 13, color: '#6b7280', fontWeight: 500 },
+  infoValue: { fontSize: 13, color: '#374151', fontWeight: 600 },
+  tag: { background: '#f3f4f6', color: '#374151', fontSize: 12, padding: '4px 10px', borderRadius: 20, fontWeight: 500 },
+  
+  actionsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 },
+  actionCard: { background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 16, padding: 24, cursor: 'pointer', transition: 'all 0.2s', fontFamily: '"Outfit", sans-serif', textAlign: 'center' },
+  actionIcon: { fontSize: 40, marginBottom: 12 },
+  actionTitle: { fontSize: 16, fontWeight: 700, color: '#111827', marginBottom: 4 },
+  actionSub: { fontSize: 13, color: '#6b7280' },
+  
+  loginRequired: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 20 },
+  noProfile: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 20 },
+  btnPrimary: { padding: '14px 24px', background: 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)', color: 'white', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(20,184,166,0.3)' }
+};
 
 export default ProviderDashboard;

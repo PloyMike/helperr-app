@@ -1,140 +1,132 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabase';
 import { useAuth } from './AuthContext';
 import Header from './Header';
-import Footer from './Footer';
 
 function EditProfilePage() {
   const { user } = useAuth();
-  const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [profile, setProfile] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
-    job: '',
-    city: '',
-    country: '',
-    price: '',
-    bio: '',
     phone: '',
-    email: '',
-    whatsapp: '',
+    bio: '',
+    city: '',
+    country: 'Thailand',
+    category: '',
+    subcategory: '',
+    job: '',
+    price: '',
+    tags: '',
     languages: '',
-    services: ''
+    line_id: '',
+    available: true
   });
 
-  useEffect(() => {
-    if (user) {
-      fetchProfile();
-    } else {
-      setLoading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  const subcategories = {
+    'Massage & Wellness': ['Traditional Thai Massage', 'Oil Massage', 'Foot Massage', 'Aromatherapy', 'Deep Tissue', 'Sports Massage'],
+    'Tours & Adventures': ['Island Tours', 'Snorkeling', 'Diving', 'Kayaking', 'Hiking', 'Food Tours', 'Cultural Tours'],
+    'Yoga & Fitness': ['Vinyasa Yoga', 'Yin Yoga', 'Hatha Yoga', 'Personal Training', 'Pilates', 'Beach Yoga'],
+    'Cooking Classes': ['Thai Cooking', 'Vegetarian Cooking', 'Street Food', 'Desserts', 'Market Tours'],
+    'Beauty & Spa': ['Manicure/Pedicure', 'Hair Styling', 'Facials', 'Makeup', 'Waxing'],
+    'Photography': ['Wedding', 'Portrait', 'Events', 'Product', 'Travel'],
+    'Teaching & Tutoring': ['English', 'Thai Language', 'Music', 'Art', 'Math/Science'],
+    'Home Services': ['Cleaning', 'Repairs', 'Gardening', 'Pet Care', 'Babysitting'],
+    'Transportation': ['Airport Transfer', 'Car Rental', 'Motorbike Rental', 'Private Driver'],
+    'Diving & Water Sports': ['PADI Courses', 'Snorkeling', 'Kayaking', 'Paddleboarding'],
+    'Other': ['Custom Service']
+  };
 
-  const fetchProfile = async () => {
+  const categories = Object.keys(subcategories);
+  const countries = ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore'];
+  
+  const citiesByCountry = {
+    'Thailand': ['Bangkok', 'Phuket', 'Koh Samui', 'Chiang Mai', 'Pattaya', 'Hua Hin', 'Krabi', 'Koh Phangan'],
+    'Vietnam': ['Ho Chi Minh City', 'Hanoi', 'Da Nang', 'Hoi An', 'Nha Trang'],
+    'Indonesia': ['Bali', 'Jakarta', 'Yogyakarta', 'Lombok'],
+    'Philippines': ['Manila', 'Cebu', 'Boracay', 'Palawan'],
+    'Malaysia': ['Kuala Lumpur', 'Penang', 'Langkawi'],
+    'Singapore': ['Singapore']
+  };
+
+  const fetchProfile = useCallback(async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('email', user.email)
-        .single();
+        .maybeSingle();
 
-      if (error) {
-        console.log('Kein Profil gefunden');
-        setLoading(false);
-        return;
+      if (error) throw error;
+
+      if (data) {
+        setProfile(data);
+        setFormData({
+          name: data.name || '',
+          phone: data.phone || '',
+          bio: data.bio || '',
+          city: data.city || '',
+          country: data.country || 'Thailand',
+          category: data.category || '',
+          subcategory: data.subcategory || '',
+          job: data.job || '',
+          price: data.price || '',
+          tags: data.tags?.join(', ') || '',
+          languages: data.languages?.join(', ') || '',
+          line_id: data.line_id || '',
+          available: data.available !== false
+        });
       }
-
-      setProfile(data);
-      setFormData({
-        name: data.name || '',
-        job: data.job || '',
-        city: data.city || '',
-        country: data.country || '',
-        price: data.price || '',
-        bio: data.bio || '',
-        phone: data.phone || '',
-        email: data.email || '',
-        whatsapp: data.whatsapp || '',
-        languages: data.languages || '',
-        services: data.services || ''
-      });
-      setImagePreview(data.image_url);
     } catch (error) {
       console.error('Error:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      alert('Bitte nur Bilder hochladen!');
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Bild zu groß! Max 5MB');
-      return;
-    }
-
-    setUploading(true);
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('profile-images')
-        .upload(fileName, file, { upsert: true });
-
-      if (uploadError) throw uploadError;
-
-      const { data: urlData } = supabase.storage
-        .from('profile-images')
-        .getPublicUrl(fileName);
-
-      const imageUrl = urlData.publicUrl;
-
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ image_url: imageUrl })
-        .eq('id', profile.id);
-
-      if (updateError) throw updateError;
-
-      setImagePreview(imageUrl);
-      alert('✅ Bild erfolgreich hochgeladen!');
-      fetchProfile();
-    } catch (error) {
-      console.error('Upload error:', error);
-      alert('❌ Upload fehlgeschlagen: ' + error.message);
-    } finally {
-      setUploading(false);
-    }
-  };
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
 
     try {
+      const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+      const languagesArray = formData.languages.split(',').map(lang => lang.trim()).filter(lang => lang.length > 0);
+
       const { error } = await supabase
         .from('profiles')
-        .update(formData)
-        .eq('id', profile.id);
+        .update({
+          name: formData.name,
+          phone: formData.phone,
+          bio: formData.bio,
+          city: formData.city,
+          country: formData.country,
+          category: formData.category,
+          subcategory: formData.subcategory,
+          job: formData.job,
+          price: formData.price,
+          tags: tagsArray,
+          languages: languagesArray,
+          line_id: formData.line_id,
+          available: formData.available
+        })
+        .eq('email', user.email);
 
       if (error) throw error;
 
-      alert('✅ Profil erfolgreich aktualisiert!');
-      fetchProfile();
+      alert('✅ Profile updated successfully!');
+      window.navigateTo('home');
     } catch (error) {
-      console.error('Error:', error);
-      alert('❌ Fehler beim Speichern: ' + error.message);
+      alert('Error: ' + error.message);
     } finally {
       setSaving(false);
     }
@@ -142,17 +134,15 @@ function EditProfilePage() {
 
   if (!user) {
     return (
-      <div style={{minHeight:'100vh',backgroundColor:'#F9FAFB'}}>
-        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-        <Header/>
-        <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:'90px 20px 40px'}}>
-          <div style={{background:'white',padding:40,borderRadius:20,boxShadow:'0 8px 30px rgba(0,0,0,0.1)',maxWidth:400,width:'100%',fontFamily:'"Outfit",sans-serif',textAlign:'center'}}>
-            <h2 style={{fontSize:24,fontWeight:700,marginBottom:20,color:'#1F2937'}}>Login erforderlich</h2>
-            <p style={{fontSize:15,color:'#6B7280',marginBottom:24}}>Bitte logge dich ein um dein Profil zu bearbeiten.</p>
-            <button onClick={()=>window.navigateTo('login')} style={{width:'100%',padding:16,background:'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)',color:'white',border:'none',borderRadius:12,fontSize:16,fontWeight:700,cursor:'pointer'}}>
-              Zum Login
-            </button>
-          </div>
+      <div style={styles.app}>
+        <Header />
+        <div style={styles.loginRequired}>
+          <div style={{ fontSize: 64 }}>🔐</div>
+          <h2>Login Required</h2>
+          <p>Please login to edit your profile</p>
+          <button onClick={() => window.navigateTo('login')} style={styles.btnPrimary}>
+            Login
+          </button>
         </div>
       </div>
     );
@@ -160,149 +150,172 @@ function EditProfilePage() {
 
   if (loading) {
     return (
-      <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',backgroundColor:'#F9FAFB'}}>
-        <p style={{fontSize:20,fontWeight:600,color:'#14B8A6',fontFamily:'"Outfit",sans-serif'}}>Lädt Profil...</p>
+      <div style={styles.app}>
+        <Header />
+        <div style={styles.loading}>
+          <div style={{ fontSize: 48 }}>✏️</div>
+          <h2>Loading profile...</h2>
+        </div>
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div style={{minHeight:'100vh',backgroundColor:'#F9FAFB'}}>
-        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-        <Header/>
-        <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:'90px 20px 40px'}}>
-          <div style={{background:'white',padding:40,borderRadius:20,boxShadow:'0 8px 30px rgba(0,0,0,0.1)',maxWidth:400,width:'100%',fontFamily:'"Outfit",sans-serif',textAlign:'center'}}>
-            <div style={{fontSize:64,marginBottom:20}}>🤷</div>
-            <h2 style={{fontSize:24,fontWeight:700,marginBottom:12,color:'#1F2937'}}>Kein Profil gefunden</h2>
-            <p style={{fontSize:15,color:'#6B7280',marginBottom:24}}>Du hast noch kein Anbieter-Profil erstellt.</p>
-            <button onClick={()=>window.navigateTo('register')} style={{width:'100%',padding:16,background:'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)',color:'white',border:'none',borderRadius:12,fontSize:16,fontWeight:700,cursor:'pointer'}}>
-              Profil erstellen
-            </button>
-          </div>
+      <div style={styles.app}>
+        <Header />
+        <div style={styles.noProfile}>
+          <div style={{ fontSize: 64 }}>👤</div>
+          <h2>No Profile Found</h2>
+          <p>You need to create a provider profile first</p>
+          <button onClick={() => window.navigateTo('register')} style={styles.btnPrimary}>
+            Create Profile
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{minHeight:'100vh',backgroundColor:'#F9FAFB'}}>
+    <div style={styles.app}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Header/>
-      
-      <div style={{paddingTop:70}}>
-        <div style={{position:'relative',overflow:'hidden',padding:'60px 20px'}}>
-          <div style={{position:'absolute',top:0,left:0,right:0,bottom:0,backgroundImage:'url(https://images.unsplash.com/photo-1556740738-b6a63e27c4df?w=1600&q=80)',backgroundSize:'cover',backgroundPosition:'center',opacity:0.7,zIndex:0}}/>
-          <div style={{position:'absolute',top:0,left:0,right:0,bottom:0,background:'linear-gradient(135deg,rgba(255,255,255,0.85) 0%,rgba(250,250,250,0.9) 100%)',zIndex:1}}/>
-          <div style={{maxWidth:800,margin:'0 auto',textAlign:'center',position:'relative',zIndex:2,color:'#1F2937'}}>
-            <h1 style={{fontSize:48,fontWeight:800,marginBottom:12,fontFamily:'"Outfit",sans-serif',letterSpacing:'-1px'}}>Profil bearbeiten</h1>
-            <p style={{fontSize:18,opacity:0.95,fontFamily:'"Outfit",sans-serif',fontWeight:400}}>Aktualisiere deine Informationen</p>
-          </div>
-        </div>
+      <Header />
 
-        <div style={{maxWidth:800,margin:'-40px auto 80px',padding:'0 20px'}}>
-          <form onSubmit={handleSubmit} style={{backgroundColor:'white',borderRadius:20,padding:40,boxShadow:'0 8px 30px rgba(0,0,0,0.1)'}}>
-            
-            {/* BILD UPLOAD */}
-            <div style={{marginBottom:32,textAlign:'center'}}>
-              <label style={{display:'block',marginBottom:12,fontWeight:600,fontSize:15,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Profilbild</label>
-              
-              {imagePreview ? (
-                <div style={{position:'relative',display:'inline-block'}}>
-                  <img src={imagePreview} alt="Profil" style={{width:150,height:150,borderRadius:'50%',objectFit:'cover',border:'4px solid #14B8A6'}}/>
-                  <label htmlFor="image-upload" style={{position:'absolute',bottom:0,right:0,background:'#14B8A6',color:'white',width:44,height:44,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:20,border:'3px solid white'}}>
-                    📷
-                  </label>
-                </div>
-              ) : (
-                <div style={{width:150,height:150,borderRadius:'50%',background:'linear-gradient(135deg,#14B8A6 0%,#0D9488 100%)',display:'inline-flex',alignItems:'center',justifyContent:'center',fontSize:60,color:'white',fontWeight:700,fontFamily:'"Outfit",sans-serif',position:'relative'}}>
-                  {formData.name?.charAt(0)?.toUpperCase() || '?'}
-                  <label htmlFor="image-upload" style={{position:'absolute',bottom:0,right:0,background:'white',color:'#14B8A6',width:44,height:44,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',fontSize:20,border:'3px solid #14B8A6'}}>
-                    📷
-                  </label>
-                </div>
-              )}
-              
-              <input id="image-upload" type="file" accept="image/*" onChange={handleImageUpload} style={{display:'none'}}/>
-              
-              {uploading && <p style={{marginTop:12,fontSize:14,color:'#14B8A6',fontWeight:600,fontFamily:'"Outfit",sans-serif'}}>Lädt hoch...</p>}
-              
-              <p style={{marginTop:12,fontSize:13,color:'#6B7280',fontFamily:'"Outfit",sans-serif'}}>Klick auf 📷 um Bild hochzuladen (max 5MB)</p>
-            </div>
-
-            <div style={{marginBottom:24}}>
-              <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:15,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Name *</label>
-              <input required type="text" value={formData.name} onChange={(e)=>setFormData({...formData,name:e.target.value})} style={{width:'100%',padding:'14px 18px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',boxSizing:'border-box'}}/>
-            </div>
-
-            <div style={{marginBottom:24}}>
-              <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:15,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Beruf / Service *</label>
-              <input required type="text" value={formData.job} onChange={(e)=>setFormData({...formData,job:e.target.value})} style={{width:'100%',padding:'14px 18px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',boxSizing:'border-box'}}/>
-            </div>
-
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:24,marginBottom:24}}>
-              <div>
-                <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:15,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Stadt *</label>
-                <input required type="text" value={formData.city} onChange={(e)=>setFormData({...formData,city:e.target.value})} style={{width:'100%',padding:'14px 18px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',boxSizing:'border-box'}}/>
-              </div>
-              <div>
-                <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:15,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Land *</label>
-                <input required type="text" value={formData.country} onChange={(e)=>setFormData({...formData,country:e.target.value})} style={{width:'100%',padding:'14px 18px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',boxSizing:'border-box'}}/>
-              </div>
-            </div>
-
-            <div style={{marginBottom:24}}>
-              <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:15,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Preis *</label>
-              <input required type="text" value={formData.price} onChange={(e)=>setFormData({...formData,price:e.target.value})} placeholder="z.B. 50 Euro/Std" style={{width:'100%',padding:'14px 18px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',boxSizing:'border-box'}}/>
-            </div>
-
-            <div style={{marginBottom:24}}>
-              <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:15,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Über mich</label>
-              <textarea rows={4} value={formData.bio} onChange={(e)=>setFormData({...formData,bio:e.target.value})} placeholder="Beschreibe deine Erfahrung und Qualifikationen..." style={{width:'100%',padding:'14px 18px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',resize:'vertical',boxSizing:'border-box'}}/>
-            </div>
-
-            <div style={{marginBottom:24}}>
-              <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:15,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Telefon</label>
-              <input type="tel" value={formData.phone} onChange={(e)=>setFormData({...formData,phone:e.target.value})} style={{width:'100%',padding:'14px 18px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',boxSizing:'border-box'}}/>
-            </div>
-
-            <div style={{marginBottom:24}}>
-              <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:15,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>WhatsApp</label>
-              <input type="text" value={formData.whatsapp} onChange={(e)=>setFormData({...formData,whatsapp:e.target.value})} style={{width:'100%',padding:'14px 18px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',boxSizing:'border-box'}}/>
-            </div>
-
-            <div style={{marginBottom:24}}>
-              <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:15,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Sprachen</label>
-              <input type="text" value={formData.languages} onChange={(e)=>setFormData({...formData,languages:e.target.value})} placeholder="Deutsch, Englisch, Französisch" style={{width:'100%',padding:'14px 18px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',boxSizing:'border-box'}}/>
-            </div>
-
-            <div style={{marginBottom:32}}>
-              <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:15,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Services</label>
-              <input type="text" value={formData.services} onChange={(e)=>setFormData({...formData,services:e.target.value})} placeholder="Reparatur, Installation, Beratung" style={{width:'100%',padding:'14px 18px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',boxSizing:'border-box'}}/>
-            </div>
-
-            <button type="submit" disabled={saving} style={{width:'100%',padding:18,background:saving?'#CBD5E0':'linear-gradient(135deg,#14B8A6 0%,#0D9488 100%)',color:'white',border:'none',borderRadius:16,fontSize:18,fontWeight:700,cursor:saving?'not-allowed':'pointer',fontFamily:'"Outfit",sans-serif',boxShadow:'0 8px 25px rgba(20,184,166,0.4)',transition:'all 0.3s'}}>
-              {saving ? 'Speichere...' : 'Profil speichern'}
-            </button>
-          </form>
+      <div style={styles.hero}>
+        <div style={styles.heroInner}>
+          <h1 style={styles.heroTitle}>Edit Profile</h1>
+          <p style={styles.heroSub}>Update your information and services</p>
         </div>
       </div>
 
-      <Footer/>
-      
-      <style>{`
-        @media (max-width: 768px) {
-          h1 { font-size: 28px !important; }
-          p { font-size: 15px !important; }
-          form { padding: 28px 20px !important; }
-          input, textarea { font-size: 14px !important; padding: 12px 16px !important; }
-          label { font-size: 14px !important; }
-          button[type="submit"] { padding: 16px !important; font-size: 16px !important; }
-          div[style*="gridTemplateColumns"] { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
+      <div style={styles.container}>
+        <form onSubmit={handleSubmit} style={styles.form}>
+          
+          <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>📍 Basic Info</h3>
+            <div style={styles.grid}>
+              <div>
+                <label style={styles.label}>Name *</label>
+                <input type="text" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} style={styles.input} />
+              </div>
+              <div>
+                <label style={styles.label}>Phone *</label>
+                <input type="tel" required value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} style={styles.input} />
+              </div>
+              <div>
+                <label style={styles.label}>Country *</label>
+                <select required value={formData.country} onChange={(e) => setFormData({...formData, country: e.target.value, city: ''})} style={styles.input}>
+                  {countries.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={styles.label}>City *</label>
+                <select required value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} style={styles.input}>
+                  <option value="">-- Select City --</option>
+                  {citiesByCountry[formData.country]?.map(city => <option key={city} value={city}>{city}</option>)}
+                </select>
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={styles.label}>About You *</label>
+                <textarea required value={formData.bio} onChange={(e) => setFormData({...formData, bio: e.target.value})} style={{...styles.input, minHeight: 100, resize: 'vertical'}} />
+              </div>
+            </div>
+          </div>
+
+          <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>💼 Service</h3>
+            <div style={styles.grid}>
+              <div>
+                <label style={styles.label}>Category *</label>
+                <select required value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value, subcategory: ''})} style={styles.input}>
+                  <option value="">-- Select Category --</option>
+                  {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                </select>
+              </div>
+              {formData.category && (
+                <div>
+                  <label style={styles.label}>Specialization *</label>
+                  <select required value={formData.subcategory} onChange={(e) => setFormData({...formData, subcategory: e.target.value})} style={styles.input}>
+                    <option value="">-- Select Specialization --</option>
+                    {subcategories[formData.category].map(sub => <option key={sub} value={sub}>{sub}</option>)}
+                  </select>
+                </div>
+              )}
+              <div>
+                <label style={styles.label}>Job Title *</label>
+                <input type="text" required value={formData.job} onChange={(e) => setFormData({...formData, job: e.target.value})} style={styles.input} />
+              </div>
+              <div>
+                <label style={styles.label}>Price *</label>
+                <input type="text" required value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} style={styles.input} />
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={styles.label}>Skills/Tags (comma-separated)</label>
+                <input type="text" value={formData.tags} onChange={(e) => setFormData({...formData, tags: e.target.value})} style={styles.input} placeholder="Thai Massage, Deep Tissue, Hot Stone" />
+              </div>
+            </div>
+          </div>
+
+          <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>📱 Contact</h3>
+            <div style={styles.grid}>
+              <div>
+                <label style={styles.label}>LINE ID</label>
+                <input type="text" value={formData.line_id} onChange={(e) => setFormData({...formData, line_id: e.target.value})} style={styles.input} />
+              </div>
+              <div>
+                <label style={styles.label}>Languages (comma-separated)</label>
+                <input type="text" value={formData.languages} onChange={(e) => setFormData({...formData, languages: e.target.value})} style={styles.input} placeholder="Thai, English, German" />
+              </div>
+            </div>
+          </div>
+
+          <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>⏰ Availability</h3>
+            <label style={styles.checkbox}>
+              <input type="checkbox" checked={formData.available} onChange={(e) => setFormData({...formData, available: e.target.checked})} />
+              <div>
+                <div style={styles.checkboxTitle}>I am currently available</div>
+                <div style={styles.checkboxSub}>Customers can book you immediately</div>
+              </div>
+            </label>
+          </div>
+
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button type="button" onClick={() => window.navigateTo('home')} style={styles.btnSecondary}>
+              Cancel
+            </button>
+            <button type="submit" disabled={saving} style={{...styles.btnPrimary, flex: 1, opacity: saving ? 0.6 : 1}}>
+              {saving ? 'Saving...' : '💾 Save Changes'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
+
+const styles = {
+  app: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh', paddingTop: 80 },
+  loading: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 },
+  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 100%)', padding: '40px 20px', marginBottom: 40 },
+  heroInner: { maxWidth: 800, margin: '0 auto', textAlign: 'center' },
+  heroTitle: { color: '#fff', fontSize: 42, fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.02em' },
+  heroSub: { color: '#d1fae5', fontSize: 16, margin: 0 },
+  container: { maxWidth: 800, margin: '0 auto', padding: '0 20px 60px' },
+  form: { display: 'flex', flexDirection: 'column', gap: 20 },
+  section: { background: 'white', padding: 24, borderRadius: 16, border: '1.5px solid #e5e7eb' },
+  sectionTitle: { margin: '0 0 20px 0', fontSize: 18, fontWeight: 700, color: '#1F2937' },
+  grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 },
+  label: { display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 },
+  input: { width: '100%', padding: '12px 14px', border: '2px solid #E5E7EB', borderRadius: 10, fontSize: 14, outline: 'none', fontFamily: '"Outfit", sans-serif', boxSizing: 'border-box', background: 'white' },
+  checkbox: { display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' },
+  checkboxTitle: { fontWeight: 600, color: '#1F2937', fontSize: 14 },
+  checkboxSub: { fontSize: 12, color: '#6B7280', marginTop: 2 },
+  btnPrimary: { padding: '14px 24px', background: 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)', color: 'white', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(20,184,166,0.3)' },
+  btnSecondary: { padding: '14px 24px', background: 'white', color: '#374151', border: '2px solid #E5E7EB', borderRadius: 12, fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' },
+  loginRequired: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 20 },
+  noProfile: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 20 }
+};
 
 export default EditProfilePage;

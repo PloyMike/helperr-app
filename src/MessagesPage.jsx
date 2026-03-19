@@ -2,137 +2,144 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabase';
 import { useAuth } from './AuthContext';
 import Header from './Header';
-import Footer from './Footer';
-import ChatModal from './ChatModal';
 
 function MessagesPage() {
   const { user, signIn } = useAuth();
-  const [conversations, setConversations] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedProfile, setSelectedProfile] = useState(null);
-  const [showChat, setShowChat] = useState(false);
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginLoading, setLoginLoading] = useState(false);
+  const [replyText, setReplyText] = useState({});
+  const [sending, setSending] = useState({});
 
-  const fetchConversations = useCallback(async () => {
-    if (!user) return;
-    
+  const fetchMessages = useCallback(async () => {
+    if (!user) {
+      setMessages([]);
+      setLoading(false);
+      return;
+    }
+
     try {
-      const { data: messages, error } = await supabase
+      const { data, error } = await supabase
         .from('messages')
         .select('*')
-        .or(`sender_email.eq.${user.email},receiver_email.eq.${user.email}`)
+        .eq('receiver_email', user.email)
         .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      const chatMap = {};
       
-      for (const msg of messages || []) {
-        let partnerId, partnerName, isMe;
-        
-        if (msg.sender_email === user.email) {
-          partnerId = msg.receiver_profile_id;
-          partnerName = msg.receiver_name;
-          isMe = true;
-        } else {
-          partnerId = msg.receiver_profile_id;
-          partnerName = msg.sender_name;
-          isMe = false;
-        }
-
-        if (!chatMap[partnerId]) {
-          chatMap[partnerId] = {
-            profileId: partnerId,
-            partnerName: partnerName,
-            lastMessage: msg.message,
-            lastMessageTime: msg.created_at,
-            unread: !msg.read && !isMe
-          };
-        } else if (new Date(msg.created_at) > new Date(chatMap[partnerId].lastMessageTime)) {
-          chatMap[partnerId].lastMessage = msg.message;
-          chatMap[partnerId].lastMessageTime = msg.created_at;
-          if (!msg.read && !isMe) {
-            chatMap[partnerId].unread = true;
-          }
-        }
-      }
-
-      const profileIds = Object.keys(chatMap);
-      if (profileIds.length > 0) {
-        const { data: profiles } = await supabase
-          .from('profiles')
-          .select('*')
-          .in('id', profileIds);
-
-        const conversationsArray = profileIds.map(id => ({
-          ...chatMap[id],
-          profile: profiles?.find(p => p.id === id)
-        })).filter(c => c.profile);
-
-        setConversations(conversationsArray);
-      } else {
-        setConversations([]);
-      }
+      if (error) throw error;
+      setMessages(data || []);
     } catch (error) {
-      console.error('Error fetching conversations:', error);
+      console.error('Error:', error);
     } finally {
       setLoading(false);
     }
   }, [user]);
 
   useEffect(() => {
-    fetchConversations();
-  }, [fetchConversations]);
+    fetchMessages();
+    if (user) {
+      const interval = setInterval(fetchMessages, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [fetchMessages, user]);
 
-  const openChat = async (conversation) => {
-    setSelectedProfile(conversation.profile);
-    setShowChat(true);
-    
-    if (conversation.unread) {
+  const markAsRead = async (messageId) => {
+    try {
       await supabase
         .from('messages')
         .update({ read: true })
-        .eq('receiver_email', user.email)
-        .eq('receiver_profile_id', conversation.profileId)
-        .eq('read', false);
+        .eq('id', messageId);
+      fetchMessages();
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const handleReply = async (message) => {
+    const text = replyText[message.id];
+    if (!text || !text.trim()) return;
+
+    setSending({ ...sending, [message.id]: true });
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .insert([{
+          sender_email: user.email,
+          receiver_email: message.sender_email,
+          message: text,
+          read: false
+        }]);
       
-      fetchConversations();
+      if (error) throw error;
+      
+      setReplyText({ ...replyText, [message.id]: '' });
+      alert('✅ Reply sent!');
+    } catch (error) {
+      alert('Error: ' + error.message);
+    } finally {
+      setSending({ ...sending, [message.id]: false });
+    }
+  };
+
+  const deleteMessage = async (messageId) => {
+    if (!window.confirm('Delete this message?')) return;
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .delete()
+        .eq('id', messageId);
+      
+      if (error) throw error;
+      fetchMessages();
+    } catch (error) {
+      alert('Error: ' + error.message);
     }
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoginLoading(true);
-    const { error } = await signIn(loginEmail, loginPassword);
-    if (error) {
-      alert('Login fehlgeschlagen: ' + error.message);
+    try {
+      const { error } = await signIn(loginEmail, loginPassword);
+      if (error) throw error;
+    } catch (error) {
+      alert('Login failed: ' + error.message);
+    } finally {
+      setLoginLoading(false);
     }
-    setLoginLoading(false);
   };
 
   if (!user) {
     return (
-      <div style={{minHeight:'100vh',backgroundColor:'#F9FAFB'}}>
+      <div style={styles.app}>
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-        <Header/>
-        <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',padding:'90px 20px 40px'}}>
-          <div style={{background:'white',padding:40,borderRadius:20,boxShadow:'0 8px 30px rgba(0,0,0,0.1)',maxWidth:400,width:'100%',fontFamily:'"Outfit",sans-serif'}}>
-            <h2 style={{fontSize:28,fontWeight:700,marginBottom:30,color:'#1F2937',textAlign:'center'}}>Login für Nachrichten</h2>
-            <form onSubmit={handleLogin}>
-              <div style={{marginBottom:20}}>
-                <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:14,color:'#1F2937'}}>Email</label>
-                <input type="email" required value={loginEmail} onChange={(e)=>setLoginEmail(e.target.value)} placeholder="deine@email.com" style={{width:'100%',padding:'12px 16px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',boxSizing:'border-box'}}/>
-              </div>
-              <div style={{marginBottom:24}}>
-                <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:14,color:'#1F2937'}}>Passwort</label>
-                <input type="password" required value={loginPassword} onChange={(e)=>setLoginPassword(e.target.value)} placeholder="Passwort" style={{width:'100%',padding:'12px 16px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',boxSizing:'border-box'}}/>
-              </div>
-              <button type="submit" disabled={loginLoading} style={{width:'100%',padding:16,background:loginLoading?'#CBD5E0':'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)',color:'white',border:'none',borderRadius:12,fontSize:16,fontWeight:700,cursor:loginLoading?'not-allowed':'pointer'}}>
-                {loginLoading ? 'Lädt...' : 'Einloggen'}
+        <Header />
+        <div style={styles.loginContainer}>
+          <div style={styles.loginCard}>
+            <div style={{ fontSize: 64, marginBottom: 20 }}>💬</div>
+            <h2 style={styles.loginTitle}>Login Required</h2>
+            <p style={styles.loginSub}>Please login to view your messages</p>
+            <form onSubmit={handleLogin} style={styles.loginForm}>
+              <input
+                type="email"
+                placeholder="Email"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                required
+                style={styles.input}
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                required
+                style={styles.input}
+              />
+              <button type="submit" disabled={loginLoading} style={styles.btnPrimary}>
+                {loginLoading ? 'Logging in...' : 'Login'}
               </button>
-              <p style={{textAlign:'center',marginTop:20,fontSize:14,color:'#6B7280'}}>Noch kein Account? <span onClick={()=>window.navigateTo('signup')} style={{color:'#14B8A6',fontWeight:600,cursor:'pointer',textDecoration:'underline'}}>Registrieren</span></p>
             </form>
           </div>
         </div>
@@ -140,361 +147,125 @@ function MessagesPage() {
     );
   }
 
-  return (
-    <div className="messages-container">
-      <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Header/>
-      
-      <div className="messages-wrapper">
-        <div className="hero-section">
-          <div className="hero-bg"></div>
-          <div className="hero-gradient"></div>
-          <div className="hero-content">
-            <h1 className="hero-title">Nachrichten</h1>
-            <p className="hero-subtitle">Alle deine Konversationen</p>
-          </div>
+  if (loading) {
+    return (
+      <div style={styles.app}>
+        <Header />
+        <div style={styles.loading}>
+          <div style={{ fontSize: 48 }}>💬</div>
+          <h2>Loading messages...</h2>
         </div>
+      </div>
+    );
+  }
 
-        <div className="conversations-container">
-          {loading ? (
-            <div className="loading-state">
-              <p>Lädt Nachrichten...</p>
-            </div>
-          ) : conversations.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-icon">💬</div>
-              <h2>Noch keine Nachrichten</h2>
-              <p>Starte eine Konversation mit einem Anbieter!</p>
-              <button onClick={()=>window.navigateTo('home')} className="browse-button">
-                Profile durchsuchen
-              </button>
-            </div>
-          ) : (
-            <div className="conversations-list">
-              {conversations.map((conv, i) => (
-                <div key={i} onClick={()=>openChat(conv)} className={`conversation-item ${conv.unread ? 'unread' : ''}`}>
-                  
-                  {conv.profile.image_url?
-                    <img src={conv.profile.image_url} alt={conv.profile.name} className="conversation-avatar"/>
-                    :
-                    <div className="conversation-avatar-placeholder">{conv.profile.name?.charAt(0)}</div>
-                  }
-                  
-                  <div className="conversation-content">
-                    <div className="conversation-header">
-                      <h3 className="conversation-name">{conv.profile.name}</h3>
-                      {conv.unread&&<span className="unread-badge">NEU</span>}
-                    </div>
-                    <p className="conversation-job">{conv.profile.job}</p>
-                    <p className="conversation-message">{conv.lastMessage.length>80?conv.lastMessage.substring(0,80)+'...':conv.lastMessage}</p>
-                  </div>
+  return (
+    <div style={styles.app}>
+      <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+      <Header />
 
-                  <div className="conversation-time">
-                    <p className="time-date">{new Date(conv.lastMessageTime).toLocaleDateString('de-DE',{day:'2-digit',month:'short'})}</p>
-                    <p className="time-hour">{new Date(conv.lastMessageTime).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'})}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+      <div style={styles.hero}>
+        <div style={styles.heroInner}>
+          <h1 style={styles.heroTitle}>Messages</h1>
+          <p style={styles.heroSub}>Stay connected with your customers</p>
         </div>
       </div>
 
-      <Footer/>
+      <div style={styles.container}>
+        {messages.length === 0 ? (
+          <div style={styles.empty}>
+            <div style={{ fontSize: 48 }}>📭</div>
+            <h3>No messages yet</h3>
+            <p>When customers contact you, their messages will appear here</p>
+          </div>
+        ) : (
+          <div style={styles.messagesList}>
+            {messages.map(msg => (
+              <div
+                key={msg.id}
+                style={{
+                  ...styles.messageCard,
+                  ...(msg.read ? {} : styles.messageCardUnread)
+                }}
+                onClick={() => !msg.read && markAsRead(msg.id)}
+              >
+                <div style={styles.messageHeader}>
+                  <div>
+                    <div style={styles.messageSender}>
+                      {msg.sender_email}
+                      {!msg.read && <span style={styles.unreadBadge}>New</span>}
+                    </div>
+                    <div style={styles.messageDate}>
+                      {new Date(msg.created_at).toLocaleDateString()} at{' '}
+                      {new Date(msg.created_at).toLocaleTimeString()}
+                    </div>
+                  </div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); deleteMessage(msg.id); }}
+                    style={styles.deleteBtn}
+                  >
+                    🗑️
+                  </button>
+                </div>
 
-      {showChat&&selectedProfile&&<ChatModal profile={selectedProfile} onClose={()=>{setShowChat(false);fetchConversations();}} currentUserEmail={user.email} currentUserName={user.user_metadata?.name || user.email}/>}
+                <div style={styles.messageContent}>
+                  {msg.message}
+                </div>
 
-      <style>{`
-        .messages-container {
-          min-height: 100vh;
-          background-color: #F9FAFB;
-        }
-        .messages-wrapper {
-          padding-top: 70px;
-        }
-        .hero-section {
-          position: relative;
-          overflow: hidden;
-          padding: 60px 20px;
-        }
-        .hero-bg {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background-image: url(https://images.unsplash.com/photo-1577563908411-5077b6dc7624?w=1600&q=80);
-          background-size: cover;
-          background-position: center;
-          opacity: 0.7;
-          z-index: 0;
-        }
-        .hero-gradient {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(250,250,250,0.9) 100%);
-          z-index: 1;
-        }
-        .hero-content {
-          max-width: 1200px;
-          margin: 0 auto;
-          position: relative;
-          z-index: 2;
-          color: #1F2937;
-          text-align: center;
-        }
-        .hero-title {
-          font-size: 48px;
-          font-weight: 800;
-          margin-bottom: 12px;
-          font-family: "Outfit", sans-serif;
-          letter-spacing: -1px;
-        }
-        .hero-subtitle {
-          font-size: 18px;
-          font-family: "Outfit", sans-serif;
-          font-weight: 400;
-        }
-        .conversations-container {
-          max-width: 900px;
-          margin: 40px auto;
-          padding: 0 20px;
-        }
-        .loading-state {
-          text-align: center;
-          padding: 60px;
-        }
-        .loading-state p {
-          font-size: 18px;
-          color: #6B7280;
-          font-family: "Outfit", sans-serif;
-        }
-        .empty-state {
-          text-align: center;
-          padding: 100px;
-          background-color: white;
-          border-radius: 20px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        }
-        .empty-icon {
-          font-size: 64px;
-          margin-bottom: 20px;
-        }
-        .empty-state h2 {
-          font-size: 24px;
-          font-weight: 700;
-          margin-bottom: 12px;
-          color: #1F2937;
-          font-family: "Outfit", sans-serif;
-        }
-        .empty-state p {
-          font-size: 16px;
-          color: #6B7280;
-          margin-bottom: 32px;
-          font-family: "Outfit", sans-serif;
-        }
-        .browse-button {
-          padding: 16px 32px;
-          background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%);
-          color: white;
-          border: none;
-          border-radius: 16px;
-          font-size: 16px;
-          font-weight: 700;
-          cursor: pointer;
-          font-family: "Outfit", sans-serif;
-          transition: all 0.3s;
-        }
-        .browse-button:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(20,184,166,0.3);
-        }
-        .conversations-list {
-          background-color: white;
-          border-radius: 20px;
-          padding: 32px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        }
-        .conversation-item {
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          padding: 20px;
-          background-color: #F9FAFB;
-          border-radius: 12px;
-          margin-bottom: 16px;
-          cursor: pointer;
-          transition: all 0.3s;
-          border: 2px solid transparent;
-        }
-        .conversation-item.unread {
-          background-color: #ECFDF5;
-          border: 2px solid #14B8A6;
-        }
-        .conversation-item:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        }
-        .conversation-avatar {
-          width: 60px;
-          height: 60px;
-          border-radius: 50%;
-          object-fit: cover;
-          border: 3px solid #14B8A6;
-          flex-shrink: 0;
-        }
-        .conversation-avatar-placeholder {
-          width: 60px;
-          height: 60px;
-          border-radius: 50%;
-          background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 24px;
-          font-weight: 700;
-          color: white;
-          font-family: "Outfit", sans-serif;
-          flex-shrink: 0;
-        }
-        .conversation-content {
-          flex: 1;
-          min-width: 0;
-        }
-        .conversation-header {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 6px;
-        }
-        .conversation-name {
-          font-size: 18px;
-          font-weight: 700;
-          color: #1F2937;
-          font-family: "Outfit", sans-serif;
-          margin: 0;
-        }
-        .unread-badge {
-          padding: 4px 10px;
-          background-color: #F97316;
-          color: white;
-          border-radius: 12px;
-          font-size: 11px;
-          font-weight: 700;
-          font-family: "Outfit", sans-serif;
-        }
-        .conversation-job {
-          font-size: 14px;
-          color: #6B7280;
-          font-family: "Outfit", sans-serif;
-          margin: 0;
-        }
-        .conversation-message {
-          font-size: 14px;
-          color: #4B5563;
-          font-family: "Outfit", sans-serif;
-          margin-top: 8px;
-          margin-bottom: 0;
-        }
-        .conversation-item.unread .conversation-message {
-          font-weight: 600;
-        }
-        .conversation-time {
-          text-align: right;
-          flex-shrink: 0;
-        }
-        .time-date {
-          font-size: 12px;
-          color: #9CA3AF;
-          font-family: "Outfit", sans-serif;
-          margin: 0 0 4px 0;
-        }
-        .time-hour {
-          font-size: 11px;
-          color: #9CA3AF;
-          font-family: "Outfit", sans-serif;
-          margin: 0;
-        }
-
-        /* MOBILE */
-        @media (max-width: 768px) {
-          .hero-section {
-            padding: 40px 16px !important;
-          }
-          .hero-title {
-            font-size: 28px !important;
-            margin-bottom: 8px !important;
-          }
-          .hero-subtitle {
-            font-size: 15px !important;
-          }
-          .conversations-container {
-            margin: 24px auto !important;
-            padding: 0 16px !important;
-          }
-          .empty-state {
-            padding: 60px 20px !important;
-          }
-          .empty-icon {
-            font-size: 48px !important;
-          }
-          .empty-state h2 {
-            font-size: 20px !important;
-          }
-          .empty-state p {
-            font-size: 14px !important;
-            margin-bottom: 24px !important;
-          }
-          .browse-button {
-            padding: 14px 24px !important;
-            font-size: 14px !important;
-          }
-          .conversations-list {
-            padding: 16px !important;
-          }
-          .conversation-item {
-            padding: 12px !important;
-            gap: 12px !important;
-            margin-bottom: 12px !important;
-          }
-          .conversation-avatar, .conversation-avatar-placeholder {
-            width: 50px !important;
-            height: 50px !important;
-            font-size: 20px !important;
-            border-width: 2px !important;
-          }
-          .conversation-name {
-            font-size: 16px !important;
-          }
-          .conversation-job {
-            font-size: 13px !important;
-          }
-          .conversation-message {
-            font-size: 13px !important;
-            margin-top: 6px !important;
-          }
-          .unread-badge {
-            padding: 3px 8px !important;
-            font-size: 10px !important;
-          }
-          .conversation-time {
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: flex-end !important;
-          }
-          .time-date {
-            font-size: 11px !important;
-          }
-          .time-hour {
-            font-size: 10px !important;
-          }
-        }
-      `}</style>
+                <div style={styles.replySection}>
+                  <input
+                    type="text"
+                    placeholder="Type your reply..."
+                    value={replyText[msg.id] || ''}
+                    onChange={(e) => setReplyText({ ...replyText, [msg.id]: e.target.value })}
+                    style={styles.replyInput}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleReply(msg); }}
+                    disabled={sending[msg.id] || !replyText[msg.id]?.trim()}
+                    style={styles.replyBtn}
+                  >
+                    {sending[msg.id] ? 'Sending...' : 'Send Reply'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
+
+const styles = {
+  app: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh', paddingTop: 80 },
+  loading: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 },
+  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 100%)', padding: '40px 20px', marginBottom: 40 },
+  heroInner: { maxWidth: 900, margin: '0 auto', textAlign: 'center' },
+  heroTitle: { color: '#fff', fontSize: 42, fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.02em' },
+  heroSub: { color: '#d1fae5', fontSize: 16, margin: 0 },
+  container: { maxWidth: 900, margin: '0 auto', padding: '0 20px 60px' },
+  messagesList: { display: 'flex', flexDirection: 'column', gap: 16 },
+  messageCard: { background: 'white', borderRadius: 16, padding: 20, border: '1.5px solid #e5e7eb', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', cursor: 'pointer', transition: 'all 0.2s' },
+  messageCardUnread: { borderColor: '#14B8A6', boxShadow: '0 2px 8px rgba(20,184,166,0.1)' },
+  messageHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
+  messageSender: { fontSize: 16, fontWeight: 700, color: '#111827', display: 'flex', alignItems: 'center', gap: 10 },
+  unreadBadge: { background: '#14B8A6', color: 'white', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10 },
+  messageDate: { fontSize: 13, color: '#6b7280', marginTop: 4 },
+  messageContent: { fontSize: 15, color: '#374151', lineHeight: 1.7, marginBottom: 16, padding: 16, background: '#f9fafb', borderRadius: 12 },
+  replySection: { display: 'flex', gap: 10 },
+  replyInput: { flex: 1, padding: '12px 14px', border: '2px solid #e5e7eb', borderRadius: 10, fontSize: 14, outline: 'none', fontFamily: '"Outfit", sans-serif' },
+  replyBtn: { padding: '12px 20px', background: '#14B8A6', color: 'white', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', whiteSpace: 'nowrap' },
+  deleteBtn: { background: '#fee2e2', border: 'none', padding: '8px 12px', borderRadius: 8, fontSize: 16, cursor: 'pointer' },
+  empty: { textAlign: 'center', padding: '60px 20px', background: 'white', borderRadius: 16, border: '1.5px solid #e5e7eb' },
+  loginContainer: { minHeight: 'calc(100vh - 80px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  loginCard: { background: 'white', borderRadius: 24, padding: '40px 32px', maxWidth: 400, width: '100%', textAlign: 'center', boxShadow: '0 20px 60px rgba(0,0,0,0.1)' },
+  loginTitle: { fontSize: 28, fontWeight: 800, color: '#1F2937', margin: '0 0 8px' },
+  loginSub: { color: '#6B7280', marginBottom: 24, fontSize: 15 },
+  loginForm: { display: 'flex', flexDirection: 'column', gap: 16 },
+  input: { width: '100%', padding: '14px 16px', border: '2px solid #E5E7EB', borderRadius: 12, fontSize: 15, outline: 'none', fontFamily: '"Outfit", sans-serif', boxSizing: 'border-box' },
+  btnPrimary: { padding: '14px 24px', background: 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)', color: 'white', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(20,184,166,0.3)' }
+};
 
 export default MessagesPage;
