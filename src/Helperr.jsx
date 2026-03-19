@@ -29,7 +29,17 @@ function Helperr() {
 
   const fetchProfiles = async () => {
     try {
-      const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('profiles').select(`
+    id, created_at, name, email, phone, bio,
+    country, city, latitude, longitude,
+    category, subcategory, job, price, tags,
+    line_id, languages,
+    available, verified,
+    rating, review_count, total_bookings, view_count,
+    image_url, photos, video_url,
+    facebook, instagram, whatsapp, telegram, tiktok,
+    flag
+  `).order('created_at', { ascending: false });
       if (error) throw error;
       setProfiles(data || []);
     } catch (error) {

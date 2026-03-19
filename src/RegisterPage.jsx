@@ -1,58 +1,60 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { supabase } from './supabase';
-import { useAuth } from './AuthContext';
-import Header from './Header';
-import Footer from './Footer';
 
 function RegisterPage() {
-  const { user, signIn, signUp } = useAuth();
-  const [showAuthForm, setShowAuthForm] = useState(true);
-  const [isLogin, setIsLogin] = useState(false);
-  const [authEmail, setAuthEmail] = useState('');
-  const [authPassword, setAuthPassword] = useState('');
-  const [authName, setAuthName] = useState('');
-  const [authLoading, setAuthLoading] = useState(false);
-  
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
+    email: '',
+    password: '',
     name: '',
+    country: 'Thailand',
+    category: '',
+    subcategory: '',
     job: '',
     city: '',
-    country: '',
-    price: '',
     bio: '',
+    price: '',
     phone: '',
-    email: '',
-    whatsapp: '',
-    languages: '',
-    services: ''
+    line_id: '',
+    available: true,
+    tags: '',
+    languages: 'Thai, English'
   });
-  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      setShowAuthForm(false);
-      setFormData(prev => ({ ...prev, email: user.email, name: user.user_metadata?.name || '' }));
-    }
-  }, [user]);
+  const subcategories = {
+    'Massage & Wellness': ['Traditional Thai Massage', 'Oil Massage', 'Foot Massage', 'Aromatherapy', 'Deep Tissue', 'Sports Massage'],
+    'Tours & Adventures': ['Island Tours', 'Snorkeling', 'Diving', 'Kayaking', 'Hiking', 'Food Tours', 'Cultural Tours'],
+    'Yoga & Fitness': ['Vinyasa Yoga', 'Yin Yoga', 'Hatha Yoga', 'Personal Training', 'Pilates', 'Beach Yoga'],
+    'Cooking Classes': ['Thai Cooking', 'Vegetarian Cooking', 'Street Food', 'Desserts', 'Market Tours'],
+    'Beauty & Spa': ['Manicure/Pedicure', 'Hair Styling', 'Facials', 'Makeup', 'Waxing'],
+    'Photography': ['Wedding', 'Portrait', 'Events', 'Product', 'Travel'],
+    'Teaching & Tutoring': ['English', 'Thai Language', 'Music', 'Art', 'Math/Science'],
+    'Home Services': ['Cleaning', 'Repairs', 'Gardening', 'Pet Care', 'Babysitting'],
+    'Transportation': ['Airport Transfer', 'Car Rental', 'Motorbike Rental', 'Private Driver'],
+    'Other': ['Custom Service']
+  };
 
-  const handleAuth = async (e) => {
-    e.preventDefault();
-    setAuthLoading(true);
-
-    if (isLogin) {
-      const { error } = await signIn(authEmail, authPassword);
-      if (error) {
-        alert('Login fehlgeschlagen: ' + error.message);
-      }
-    } else {
-      const { error } = await signUp(authEmail, authPassword, authName);
-      if (error) {
-        alert('Registrierung fehlgeschlagen: ' + error.message);
-      } else {
-        alert('✅ Account erstellt! Bitte bestätige deine Email und logge dich ein.');
-      }
-    }
-    setAuthLoading(false);
+  const categories = Object.keys(subcategories);
+  
+  const countries = ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore', 'Cambodia', 'Laos', 'Myanmar', 'Germany', 'Austria', 'Switzerland', 'France', 'Spain', 'Italy', 'Portugal'];
+  
+  const citiesByCountry = {
+    'Thailand': ['Bangkok', 'Phuket', 'Koh Samui', 'Chiang Mai', 'Pattaya', 'Hua Hin', 'Krabi', 'Koh Phangan'],
+    'Vietnam': ['Ho Chi Minh City', 'Hanoi', 'Da Nang', 'Hoi An', 'Nha Trang'],
+    'Indonesia': ['Bali', 'Jakarta', 'Yogyakarta', 'Lombok', 'Gili Islands'],
+    'Philippines': ['Manila', 'Cebu', 'Boracay', 'Palawan', 'Siargao'],
+    'Malaysia': ['Kuala Lumpur', 'Penang', 'Langkawi', 'Melaka', 'Kota Kinabalu'],
+    'Singapore': ['Singapore'],
+    'Cambodia': ['Phnom Penh', 'Siem Reap', 'Sihanoukville'],
+    'Laos': ['Vientiane', 'Luang Prabang', 'Vang Vieng'],
+    'Myanmar': ['Yangon', 'Mandalay', 'Bagan'],
+    'Germany': ['Berlin', 'Munich', 'Hamburg', 'Frankfurt', 'Cologne'],
+    'Austria': ['Vienna', 'Salzburg', 'Innsbruck', 'Graz'],
+    'Switzerland': ['Zurich', 'Geneva', 'Basel', 'Bern', 'Lucerne'],
+    'France': ['Paris', 'Lyon', 'Marseille', 'Nice', 'Bordeaux'],
+    'Spain': ['Madrid', 'Barcelona', 'Valencia', 'Seville', 'Malaga'],
+    'Italy': ['Rome', 'Milan', 'Florence', 'Venice', 'Naples'],
+    'Portugal': ['Lisbon', 'Porto', 'Faro', 'Coimbra']
   };
 
   const handleSubmit = async (e) => {
@@ -60,150 +62,118 @@ function RegisterPage() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.from('profiles').insert([{
-        ...formData,
-        email: user.email,
-        created_at: new Date().toISOString()
-      }]);
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+      });
 
-      if (error) throw error;
+      if (authError) throw authError;
 
-      alert('✅ Profil erfolgreich erstellt! Du bist jetzt ein Anbieter!');
-      window.navigateTo('home');
+      const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+      const languagesArray = formData.languages.split(',').map(lang => lang.trim()).filter(lang => lang.length > 0);
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert([{
+          id: authData.user.id,
+          name: formData.name,
+          country: formData.country,
+          category: formData.category,
+          subcategory: formData.subcategory,
+          job: formData.job,
+          city: formData.city,
+          bio: formData.bio,
+          price: formData.price,
+          phone: formData.phone,
+          line_id: formData.line_id,
+          available: formData.available,
+          tags: tagsArray,
+          languages: languagesArray,
+          verified: false,
+          rating: 0,
+          review_count: 0
+        }]);
+
+      if (profileError) throw profileError;
+
+      alert('✅ Registrierung erfolgreich! Bitte bestätige deine E-Mail.');
+      window.navigateTo('login');
     } catch (error) {
-      console.error('Error:', error);
-      alert('❌ Fehler: ' + error.message);
+      alert('Fehler: ' + error.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{minHeight:'100vh',backgroundColor:'#F9FAFB'}}>
+    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%)', padding: '40px 20px', fontFamily: '"Outfit", sans-serif' }}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Header/>
-      
-      <div style={{paddingTop:70}}>
-        <div style={{position:'relative',overflow:'hidden',padding:'60px 20px',background:'linear-gradient(135deg,rgba(20,184,166,0.1) 0%,rgba(13,148,136,0.1) 100%)'}}>
-          <h1 style={{fontSize:48,fontWeight:800,textAlign:'center',marginBottom:12,fontFamily:'"Outfit",sans-serif',color:'#1F2937'}}>Werde Anbieter</h1>
-          <p style={{fontSize:18,textAlign:'center',color:'#6B7280',fontFamily:'"Outfit",sans-serif'}}>Starte dein Business auf Helperr</p>
-        </div>
-
-        {showAuthForm ? (
-          <div style={{maxWidth:500,margin:'40px auto',padding:'0 20px'}}>
-            <div style={{backgroundColor:'white',borderRadius:20,padding:40,boxShadow:'0 8px 30px rgba(0,0,0,0.1)'}}>
-              <h2 style={{fontSize:24,fontWeight:700,marginBottom:24,color:'#1F2937',fontFamily:'"Outfit",sans-serif',textAlign:'center'}}>
-                {isLogin ? 'Login zum Fortfahren' : 'Account erstellen'}
-              </h2>
-
-              <form onSubmit={handleAuth}>
-                {!isLogin && (
-                  <div style={{marginBottom:20}}>
-                    <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:14,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Name</label>
-                    <input required type="text" value={authName} onChange={(e)=>setAuthName(e.target.value)} placeholder="Dein Name" style={{width:'100%',padding:'12px 16px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',boxSizing:'border-box'}}/>
-                  </div>
-                )}
-
-                <div style={{marginBottom:20}}>
-                  <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:14,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Email</label>
-                  <input required type="email" value={authEmail} onChange={(e)=>setAuthEmail(e.target.value)} placeholder="deine@email.com" style={{width:'100%',padding:'12px 16px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',boxSizing:'border-box'}}/>
-                </div>
-
-                <div style={{marginBottom:24}}>
-                  <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:14,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Passwort</label>
-                  <input required type="password" value={authPassword} onChange={(e)=>setAuthPassword(e.target.value)} placeholder="Mindestens 6 Zeichen" style={{width:'100%',padding:'12px 16px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',boxSizing:'border-box'}}/>
-                </div>
-
-                <button type="submit" disabled={authLoading} style={{width:'100%',padding:16,background:authLoading?'#CBD5E0':'linear-gradient(135deg,#14B8A6 0%,#0D9488 100%)',color:'white',border:'none',borderRadius:12,fontSize:16,fontWeight:700,cursor:authLoading?'not-allowed':'pointer',fontFamily:'"Outfit",sans-serif',marginBottom:16}}>
-                  {authLoading ? 'Lädt...' : (isLogin ? 'Einloggen' : 'Registrieren')}
-                </button>
-
-                <p style={{textAlign:'center',fontSize:14,color:'#6B7280',fontFamily:'"Outfit",sans-serif'}}>
-                  {isLogin ? 'Noch kein Account?' : 'Hast du schon einen Account?'}
-                  <button type="button" onClick={()=>setIsLogin(!isLogin)} style={{marginLeft:8,color:'#14B8A6',fontWeight:600,background:'none',border:'none',cursor:'pointer',textDecoration:'underline',fontFamily:'"Outfit",sans-serif'}}>
-                    {isLogin ? 'Registrieren' : 'Einloggen'}
-                  </button>
-                </p>
-              </form>
+      <div style={{ maxWidth: 600, margin: '0 auto', background: 'white', borderRadius: 24, padding: '40px 32px', boxShadow: '0 20px 60px rgba(0,0,0,0.1)' }}>
+        <h1 style={{ fontSize: 32, fontWeight: 800, color: '#1F2937', marginBottom: 8, textAlign: 'center' }}>Provider Registrierung</h1>
+        <p style={{ textAlign: 'center', color: '#6B7280', marginBottom: 32, fontSize: 15 }}>Erstelle dein Profil und starte dein Business auf Helperr</p>
+        
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          
+          {/* ACCOUNT */}
+          <div style={{ background: '#F9FAFB', padding: 20, borderRadius: 16 }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: 16, fontWeight: 700, color: '#1F2937' }}>📧 Account</h3>
+            <div style={{ display: 'grid', gap: 16 }}>
+              <div><label style={styles.label}>E-Mail *</label><input type="email" required value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} style={styles.input} placeholder="deine@email.com" /></div>
+              <div><label style={styles.label}>Passwort *</label><input type="password" required value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} style={styles.input} placeholder="Min. 6 Zeichen" minLength={6} /></div>
             </div>
           </div>
-        ) : (
-          <div style={{maxWidth:800,margin:'40px auto 80px',padding:'0 20px'}}>
-            <form onSubmit={handleSubmit} style={{backgroundColor:'white',borderRadius:20,padding:40,boxShadow:'0 8px 30px rgba(0,0,0,0.1)'}}>
-              
-              <div style={{marginBottom:24}}>
-                <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:15,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Name *</label>
-                <input required type="text" value={formData.name} onChange={(e)=>setFormData({...formData,name:e.target.value})} style={{width:'100%',padding:'14px 18px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',boxSizing:'border-box'}}/>
-              </div>
 
-              <div style={{marginBottom:24}}>
-                <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:15,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Service / Beruf *</label>
-                <input required type="text" value={formData.job} onChange={(e)=>setFormData({...formData,job:e.target.value})} placeholder="z.B. Elektriker, Maler, Reinigungskraft" style={{width:'100%',padding:'14px 18px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',boxSizing:'border-box'}}/>
-              </div>
-
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:24,marginBottom:24}}>
-                <div>
-                  <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:15,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Stadt *</label>
-                  <input required type="text" value={formData.city} onChange={(e)=>setFormData({...formData,city:e.target.value})} style={{width:'100%',padding:'14px 18px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',boxSizing:'border-box'}}/>
-                </div>
-                <div>
-                  <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:15,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Land *</label>
-                  <input required type="text" value={formData.country} onChange={(e)=>setFormData({...formData,country:e.target.value})} style={{width:'100%',padding:'14px 18px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',boxSizing:'border-box'}}/>
-                </div>
-              </div>
-
-              <div style={{marginBottom:24}}>
-                <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:15,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Preis *</label>
-                <input required type="text" value={formData.price} onChange={(e)=>setFormData({...formData,price:e.target.value})} placeholder="z.B. 50 Euro/Std" style={{width:'100%',padding:'14px 18px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',boxSizing:'border-box'}}/>
-              </div>
-
-              <div style={{marginBottom:24}}>
-                <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:15,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Über dich</label>
-                <textarea rows={4} value={formData.bio} onChange={(e)=>setFormData({...formData,bio:e.target.value})} placeholder="Beschreibe deine Erfahrung..." style={{width:'100%',padding:'14px 18px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',resize:'vertical',boxSizing:'border-box'}}/>
-              </div>
-
-              <div style={{marginBottom:24}}>
-                <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:15,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Telefon</label>
-                <input type="tel" value={formData.phone} onChange={(e)=>setFormData({...formData,phone:e.target.value})} style={{width:'100%',padding:'14px 18px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',boxSizing:'border-box'}}/>
-              </div>
-
-              <div style={{marginBottom:24}}>
-                <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:15,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>WhatsApp</label>
-                <input type="text" value={formData.whatsapp} onChange={(e)=>setFormData({...formData,whatsapp:e.target.value})} style={{width:'100%',padding:'14px 18px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',boxSizing:'border-box'}}/>
-              </div>
-
-              <div style={{marginBottom:24}}>
-                <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:15,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Sprachen</label>
-                <input type="text" value={formData.languages} onChange={(e)=>setFormData({...formData,languages:e.target.value})} placeholder="Deutsch, Englisch" style={{width:'100%',padding:'14px 18px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',boxSizing:'border-box'}}/>
-              </div>
-
-              <div style={{marginBottom:32}}>
-                <label style={{display:'block',marginBottom:8,fontWeight:600,fontSize:15,color:'#1F2937',fontFamily:'"Outfit",sans-serif'}}>Services</label>
-                <input type="text" value={formData.services} onChange={(e)=>setFormData({...formData,services:e.target.value})} placeholder="Installation, Reparatur, Beratung" style={{width:'100%',padding:'14px 18px',border:'1px solid #E5E7EB',borderRadius:12,fontSize:15,outline:'none',fontFamily:'"Outfit",sans-serif',boxSizing:'border-box'}}/>
-              </div>
-
-              <button type="submit" disabled={loading} style={{width:'100%',padding:18,background:loading?'#CBD5E0':'linear-gradient(135deg,#14B8A6 0%,#0D9488 100%)',color:'white',border:'none',borderRadius:16,fontSize:18,fontWeight:700,cursor:loading?'not-allowed':'pointer',fontFamily:'"Outfit",sans-serif',boxShadow:'0 8px 25px rgba(20,184,166,0.4)'}}>
-                {loading ? 'Erstellt Profil...' : 'Profil erstellen'}
-              </button>
-            </form>
+          {/* LOCATION */}
+          <div style={{ background: '#F9FAFB', padding: 20, borderRadius: 16 }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: 16, fontWeight: 700, color: '#1F2937' }}>📍 Standort</h3>
+            <div style={{ display: 'grid', gap: 16 }}>
+              <div><label style={styles.label}>Name *</label><input type="text" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} style={styles.input} placeholder="Ploy Siriwan" /></div>
+              <div><label style={styles.label}>Land *</label><select required value={formData.country} onChange={(e) => setFormData({...formData, country: e.target.value, city: ''})} style={styles.input}><option value="">-- Land wählen --</option>{countries.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+              {formData.country && <div><label style={styles.label}>Stadt *</label><select required value={formData.city} onChange={(e) => setFormData({...formData, city: e.target.value})} style={styles.input}><option value="">-- Stadt wählen --</option>{citiesByCountry[formData.country]?.map(city => <option key={city} value={city}>{city}</option>)}</select></div>}
+            </div>
           </div>
-        )}
+
+          {/* SERVICE */}
+          <div style={{ background: '#F9FAFB', padding: 20, borderRadius: 16 }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: 16, fontWeight: 700, color: '#1F2937' }}>💼 Service</h3>
+            <div style={{ display: 'grid', gap: 16 }}>
+              <div><label style={styles.label}>Kategorie *</label><select required value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value, subcategory: ''})} style={styles.input}><option value="">-- Kategorie --</option>{categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}</select></div>
+              {formData.category && <div><label style={styles.label}>Spezialisierung *</label><select required value={formData.subcategory} onChange={(e) => setFormData({...formData, subcategory: e.target.value})} style={styles.input}><option value="">-- Spezialisierung --</option>{subcategories[formData.category].map(sub => <option key={sub} value={sub}>{sub}</option>)}</select></div>}
+              <div><label style={styles.label}>Job Titel *</label><input type="text" required value={formData.job} onChange={(e) => setFormData({...formData, job: e.target.value})} style={styles.input} placeholder="Certified Massage Therapist" /></div>
+              <div><label style={styles.label}>Preis *</label><input type="text" required value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} style={styles.input} placeholder="฿500/hr oder €50/Stunde" /></div>
+              <div><label style={styles.label}>Skills/Tags</label><input type="text" value={formData.tags} onChange={(e) => setFormData({...formData, tags: e.target.value})} style={styles.input} placeholder="Thai Massage, Deep Tissue" /><p style={{ fontSize: 12, color: '#6B7280', marginTop: 6 }}>Komma-getrennt</p></div>
+              <div><label style={styles.label}>Über mich *</label><textarea required value={formData.bio} onChange={(e) => setFormData({...formData, bio: e.target.value})} style={{...styles.input, minHeight: 100, resize: 'vertical'}} placeholder="Beschreibe deine Erfahrung..." /></div>
+            </div>
+          </div>
+
+          {/* CONTACT */}
+          <div style={{ background: '#F9FAFB', padding: 20, borderRadius: 16 }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: 16, fontWeight: 700, color: '#1F2937' }}>📱 Kontakt</h3>
+            <div style={{ display: 'grid', gap: 16 }}>
+              <div><label style={styles.label}>Telefon *</label><input type="tel" required value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} style={styles.input} placeholder="+66 81 234 5678" /></div>
+              <div><label style={styles.label}>LINE ID</label><input type="text" value={formData.line_id} onChange={(e) => setFormData({...formData, line_id: e.target.value})} style={styles.input} placeholder="dein_line_name" /><p style={{ fontSize: 12, color: '#6B7280', marginTop: 6 }}>💬 Wichtig in Asien</p></div>
+              <div><label style={styles.label}>Sprachen</label><input type="text" value={formData.languages} onChange={(e) => setFormData({...formData, languages: e.target.value})} style={styles.input} placeholder="Thai, English, German" /></div>
+            </div>
+          </div>
+
+          {/* AVAILABILITY */}
+          <div style={{ background: '#F9FAFB', padding: 20, borderRadius: 16 }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: 16, fontWeight: 700, color: '#1F2937' }}>⏰ Verfügbarkeit</h3>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' }}><input type="checkbox" checked={formData.available} onChange={(e) => setFormData({...formData, available: e.target.checked})} style={{ width: 20, height: 20, cursor: 'pointer' }} /><div><div style={{ fontWeight: 600, color: '#1F2937', fontSize: 14 }}>Ich bin derzeit verfügbar</div><div style={{ fontSize: 12, color: '#6B7280', marginTop: 2 }}>Kunden können dich sofort buchen</div></div></label>
+          </div>
+
+          <button type="submit" disabled={loading} style={{ padding: '16px 24px', background: loading ? '#9CA3AF' : 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)', color: 'white', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', marginTop: 8, boxShadow: '0 4px 12px rgba(20,184,166,0.3)' }}>{loading ? 'Wird erstellt...' : '✨ Jetzt Registrieren'}</button>
+          
+          <p style={{ textAlign: 'center', color: '#6B7280', fontSize: 14, marginTop: 8 }}>Hast du schon einen Account? <span onClick={() => window.navigateTo('login')} style={{ color: '#14B8A6', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}>Einloggen</span></p>
+        </form>
       </div>
-
-      <Footer/>
-
-      <style>{`
-        @media (max-width: 768px) {
-          h1 { font-size: 28px !important; }
-          form { padding: 28px 20px !important; }
-          input, textarea { font-size: 14px !important; padding: 12px 16px !important; }
-          label { font-size: 14px !important; }
-          button { padding: 14px !important; font-size: 15px !important; }
-          div[style*="gridTemplateColumns"] { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </div>
   );
 }
+
+const styles = {
+  label: { display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 },
+  input: { width: '100%', padding: '12px 14px', border: '2px solid #E5E7EB', borderRadius: 10, fontSize: 14, outline: 'none', fontFamily: '"Outfit", sans-serif', boxSizing: 'border-box', background: 'white' }
+};
 
 export default RegisterPage;
