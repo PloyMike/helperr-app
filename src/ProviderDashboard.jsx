@@ -63,7 +63,7 @@ function ProviderDashboard() {
     return (
       <div style={styles.app}>
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-        <Header />
+        <Header transparent={true} />
         <div style={styles.loginRequired}>
           <div style={{ fontSize: 64 }}>🔐</div>
           <h2>Login Required</h2>
@@ -79,7 +79,7 @@ function ProviderDashboard() {
   if (loading) {
     return (
       <div style={styles.app}>
-        <Header />
+        <Header transparent={true} />
         <div style={styles.loading}>
           <div style={{ fontSize: 48 }}>📊</div>
           <h2>Loading dashboard...</h2>
@@ -91,7 +91,7 @@ function ProviderDashboard() {
   if (!profile) {
     return (
       <div style={styles.app}>
-        <Header />
+        <Header transparent={true} />
         <div style={styles.noProfile}>
           <div style={{ fontSize: 64 }}>👤</div>
           <h2>No Provider Profile Found</h2>
@@ -107,7 +107,7 @@ function ProviderDashboard() {
   return (
     <div style={styles.app}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Header />
+      <Header transparent={true} />
 
       <div style={styles.hero}>
         <div style={styles.heroInner}>
@@ -241,9 +241,9 @@ function ProviderDashboard() {
 }
 
 const styles = {
-  app: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh', paddingTop: 80 },
+  app: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh', paddingTop: 0 },
   loading: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 },
-  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 100%)', padding: '40px 20px', marginBottom: 40 },
+  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 100%)', padding: '120px 20px 40px', marginBottom: 40 },
   heroInner: { maxWidth: 1100, margin: '0 auto', textAlign: 'center' },
   heroTitle: { color: '#fff', fontSize: 42, fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.02em' },
   heroSub: { color: '#d1fae5', fontSize: 16, margin: 0 },
@@ -284,7 +284,7 @@ const styles = {
   
   loginRequired: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 20 },
   noProfile: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 20 },
-  btnPrimary: { padding: '14px 24px', background: 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)', color: 'white', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(20,184,166,0.3)' }
+  btnPrimary: { padding: '14px 24px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6,95,70,0.3)' }
 };
 
 export default ProviderDashboard;

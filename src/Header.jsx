@@ -2,13 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from './supabase';
 
-function Header() {
+function Header({ transparent = false }) {
   const { user, signOut } = useAuth();
   const [favorites, setFavorites] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [pendingBookings, setPendingBookings] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    if (transparent) {
+      const handleScroll = () => {
+        // Hero Höhe ist etwa 180px (120px padding-top + 60px content)
+        setScrolled(window.scrollY > 180);
+      };
+      window.addEventListener('scroll', handleScroll);
+      return () => window.removeEventListener('scroll', handleScroll);
+    }
+  }, [transparent]);
 
   useEffect(() => {
     const saved = localStorage.getItem('helperr_favorites');
@@ -78,35 +90,40 @@ function Header() {
     setMobileMenuOpen(false);
   };
 
+  const isTransparent = transparent && !scrolled;
+  const headerStyle = isTransparent ? styles.headerTransparent : styles.header;
+  const textColor = isTransparent ? '#ffffff' : '#374151';
+  const logoColor = isTransparent ? '#ffffff' : '#065f46';
+
   return (
-    <header style={styles.header}>
+    <header style={headerStyle}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
       <div style={styles.container}>
         
         {/* LOGO */}
         <div onClick={() => window.navigateTo('home')} style={styles.logo}>
-          <div style={styles.logoText}>Helperr</div>
+          <div style={{...styles.logoText, color: logoColor, textShadow: isTransparent ? '0 2px 4px rgba(0,0,0,0.2)' : 'none'}}>Helperr</div>
         </div>
 
         {/* DESKTOP NAVIGATION */}
         <nav style={styles.desktopNav} className="desktop-nav">
-          <button onClick={() => window.navigateTo('home')} style={styles.navBtn} onMouseOver={(e) => e.target.style.color = '#14B8A6'} onMouseOut={(e) => e.target.style.color = '#374151'}>
+          <button onClick={() => window.navigateTo('home')} style={{...styles.navBtn, color: textColor, textShadow: isTransparent ? '0 1px 2px rgba(0,0,0,0.3)' : 'none'}} onMouseOver={(e) => e.target.style.opacity = '0.8'} onMouseOut={(e) => e.target.style.opacity = '1'}>
             Home
           </button>
 
           {user && (
             <>
-              <button onClick={() => window.navigateTo('bookings')} style={styles.navBtnWithBadge} onMouseOver={(e) => e.target.style.color = '#14B8A6'} onMouseOut={(e) => e.target.style.color = '#374151'}>
+              <button onClick={() => window.navigateTo('bookings')} style={{...styles.navBtnWithBadge, color: textColor, textShadow: isTransparent ? '0 1px 2px rgba(0,0,0,0.3)' : 'none'}} onMouseOver={(e) => e.target.style.opacity = '0.8'} onMouseOut={(e) => e.target.style.opacity = '1'}>
                 Bookings
                 {pendingBookings > 0 && <span style={styles.badge}>{pendingBookings}</span>}
               </button>
 
-              <button onClick={() => window.navigateTo('messages')} style={styles.navBtnWithBadge} onMouseOver={(e) => e.target.style.color = '#14B8A6'} onMouseOut={(e) => e.target.style.color = '#374151'}>
+              <button onClick={() => window.navigateTo('messages')} style={{...styles.navBtnWithBadge, color: textColor, textShadow: isTransparent ? '0 1px 2px rgba(0,0,0,0.3)' : 'none'}} onMouseOver={(e) => e.target.style.opacity = '0.8'} onMouseOut={(e) => e.target.style.opacity = '1'}>
                 Messages
                 {unreadCount > 0 && <span style={styles.badge}>{unreadCount}</span>}
               </button>
 
-              <button onClick={() => window.navigateTo('favorites')} style={styles.navBtnWithBadge} onMouseOver={(e) => e.target.style.color = '#14B8A6'} onMouseOut={(e) => e.target.style.color = '#374151'}>
+              <button onClick={() => window.navigateTo('favorites')} style={{...styles.navBtnWithBadge, color: textColor, textShadow: isTransparent ? '0 1px 2px rgba(0,0,0,0.3)' : 'none'}} onMouseOver={(e) => e.target.style.opacity = '0.8'} onMouseOut={(e) => e.target.style.opacity = '1'}>
                 Favorites
                 {favorites.length > 0 && <span style={styles.badge}>{favorites.length}</span>}
               </button>
@@ -114,14 +131,14 @@ function Header() {
           )}
 
           {!user && (
-            <button onClick={() => window.navigateTo('register')} style={styles.navBtn} onMouseOver={(e) => e.target.style.color = '#14B8A6'} onMouseOut={(e) => e.target.style.color = '#374151'}>
+            <button onClick={() => window.navigateTo('register')} style={{...styles.navBtn, color: textColor, textShadow: isTransparent ? '0 1px 2px rgba(0,0,0,0.3)' : 'none'}} onMouseOver={(e) => e.target.style.opacity = '0.8'} onMouseOut={(e) => e.target.style.opacity = '1'}>
               Become a Provider
             </button>
           )}
 
           {user ? (
             <div style={{ position: 'relative' }}>
-              <button onClick={() => setDropdownOpen(!dropdownOpen)} style={styles.settingsBtn}>
+              <button onClick={() => setDropdownOpen(!dropdownOpen)} style={{...styles.settingsBtn, background: isTransparent ? 'rgba(255,255,255,0.2)' : '#F3F4F6', backdropFilter: isTransparent ? 'blur(10px)' : 'none'}}>
                 ⚙️
               </button>
               {dropdownOpen && (
@@ -140,14 +157,14 @@ function Header() {
               )}
             </div>
           ) : (
-            <button onClick={() => window.navigateTo('login')} style={styles.loginBtn}>
+            <button onClick={() => window.navigateTo('login')} style={{...styles.loginBtn, background: isTransparent ? 'rgba(255,255,255,0.2)' : '#065f46', backdropFilter: isTransparent ? 'blur(10px)' : 'none', border: isTransparent ? '1px solid rgba(255,255,255,0.3)' : 'none'}}>
               Login
             </button>
           )}
         </nav>
 
         {/* MOBILE MENU BUTTON */}
-        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={styles.mobileMenuBtn} className="mobile-menu-btn">
+        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{...styles.mobileMenuBtn, background: isTransparent ? 'rgba(255,255,255,0.2)' : '#F3F4F6', color: isTransparent ? '#fff' : '#374151', backdropFilter: isTransparent ? 'blur(10px)' : 'none'}} className="mobile-menu-btn">
           {mobileMenuOpen ? '✕' : '☰'}
         </button>
       </div>
@@ -207,20 +224,21 @@ function Header() {
 }
 
 const styles = {
-  header: { position: 'fixed', top: 0, left: 0, right: 0, background: 'white', padding: '16px 20px', boxShadow: '0 2px 10px rgba(0,0,0,0.08)', zIndex: 1000, fontFamily: '"Outfit", sans-serif' },
+  header: { position: 'fixed', top: 0, left: 0, right: 0, background: 'white', padding: '16px 20px', boxShadow: '0 2px 10px rgba(0,0,0,0.08)', zIndex: 1000, fontFamily: '"Outfit", sans-serif', transition: 'all 0.3s ease' },
+  headerTransparent: { position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)', padding: '16px 20px', boxShadow: 'none', zIndex: 1000, fontFamily: '"Outfit", sans-serif', borderBottom: '1px solid rgba(255,255,255,0.1)', transition: 'all 0.3s ease' },
   container: { maxWidth: 1400, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
   logo: { display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' },
-  logoText: { fontSize: 32, fontWeight: 800, color: '#14B8A6', letterSpacing: '-1px' },
+  logoText: { fontSize: 32, fontWeight: 800, letterSpacing: '-1px', transition: 'all 0.3s ease' },
   desktopNav: { display: 'flex', alignItems: 'center', gap: 32 },
-  navBtn: { background: 'none', border: 'none', color: '#374151', fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.2s' },
-  navBtnWithBadge: { position: 'relative', background: 'none', border: 'none', color: '#374151', fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.2s' },
+  navBtn: { background: 'none', border: 'none', fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.2s' },
+  navBtnWithBadge: { position: 'relative', background: 'none', border: 'none', fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.2s' },
   badge: { position: 'absolute', top: -8, right: -12, background: '#F97316', color: 'white', fontSize: 11, fontWeight: 700, padding: '2px 6px', borderRadius: 10, minWidth: 18, textAlign: 'center' },
-  settingsBtn: { background: '#F3F4F6', border: 'none', width: 40, height: 40, borderRadius: '50%', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' },
-  loginBtn: { background: '#14B8A6', color: 'white', border: 'none', padding: '10px 24px', borderRadius: 8, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.2s' },
+  settingsBtn: { border: 'none', width: 40, height: 40, borderRadius: '50%', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' },
+  loginBtn: { color: 'white', border: 'none', padding: '10px 24px', borderRadius: 8, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.3s' },
   dropdown: { position: 'absolute', top: 50, right: 0, background: 'white', borderRadius: 12, boxShadow: '0 10px 30px rgba(0,0,0,0.15)', minWidth: 180, overflow: 'hidden', zIndex: 1001 },
   dropdownItem: { width: '100%', padding: '12px 20px', background: 'none', border: 'none', textAlign: 'left', fontSize: 14, fontWeight: 500, color: '#374151', cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'background 0.2s' },
   divider: { height: 1, background: '#F3F4F6', margin: '4px 0' },
-  mobileMenuBtn: { background: '#F3F4F6', border: 'none', width: 40, height: 40, borderRadius: 8, fontSize: 20, cursor: 'pointer', fontWeight: 600, color: '#374151' },
+  mobileMenuBtn: { border: 'none', width: 40, height: 40, borderRadius: 8, fontSize: 20, cursor: 'pointer', fontWeight: 600, transition: 'all 0.3s' },
   mobileMenu: { background: 'white', borderTop: '1px solid #F3F4F6', padding: '12px 0' },
   mobileMenuItem: { width: '100%', padding: '14px 20px', background: 'none', border: 'none', textAlign: 'left', fontSize: 15, fontWeight: 500, color: '#374151', cursor: 'pointer', fontFamily: '"Outfit", sans-serif', display: 'block' },
   mobileDivider: { height: 1, background: '#F3F4F6', margin: '8px 20px' }

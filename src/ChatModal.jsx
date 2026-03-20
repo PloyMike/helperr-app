@@ -124,7 +124,7 @@ function ChatModal({ profile, onClose, currentUserEmail, currentUserName }) {
         }
         .chat-header {
           padding: 20px 24px;
-          background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%);
+          background: linear-gradient(135deg, #065f46 0%, #047857 100%);
           border-radius: 20px 20px 0 0;
           display: flex;
           justify-content: space-between;
@@ -171,7 +171,7 @@ function ChatModal({ profile, onClose, currentUserEmail, currentUserName }) {
         }
         .message.sent {
           align-self: flex-end;
-          background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%);
+          background: linear-gradient(135deg, #065f46 0%, #047857 100%);
           color: white;
         }
         .message.received {
@@ -206,7 +206,7 @@ function ChatModal({ profile, onClose, currentUserEmail, currentUserName }) {
         }
         .send-button {
           padding: 12px 24px;
-          background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%);
+          background: linear-gradient(135deg, #065f46 0%, #047857 100%);
           color: white;
           border: none;
           border-radius: 12px;

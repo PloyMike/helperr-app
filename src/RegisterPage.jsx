@@ -217,6 +217,10 @@ function RegisterPage() {
             {loading ? 'Creating...' : '✨ Register Now'}
           </button>
 
+          <button onClick={() => window.navigateTo('home')} style={styles.backBtn}>
+            ← Back to Home
+          </button>
+
           <p style={styles.footer}>
             Already have an account?{' '}
             <span onClick={() => window.navigateTo('login')} style={styles.link}>Login</span>
@@ -228,6 +232,7 @@ function RegisterPage() {
 }
 
 const styles = {
+  backBtn: { width: '100%', padding: '12px', background: 'white', color: '#065f46', border: '2px solid #065f46', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', marginBottom: 16 },
   container: { minHeight: '100vh', background: 'linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%)', padding: '40px 20px', fontFamily: '"Outfit", sans-serif' },
   card: { maxWidth: 600, margin: '0 auto', background: 'white', borderRadius: 24, padding: '40px 32px', boxShadow: '0 20px 60px rgba(0,0,0,0.1)' },
   title: { fontSize: 32, fontWeight: 800, color: '#1F2937', marginBottom: 8, textAlign: 'center' },
@@ -241,9 +246,9 @@ const styles = {
   checkbox: { display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' },
   checkboxTitle: { fontWeight: 600, color: '#1F2937', fontSize: 14 },
   checkboxSub: { fontSize: 12, color: '#6B7280', marginTop: 2 },
-  btnPrimary: { padding: '16px 24px', background: 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)', color: 'white', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', marginTop: 8, boxShadow: '0 4px 12px rgba(20,184,166,0.3)' },
+  btnPrimary: { padding: '16px 24px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', marginTop: 8, boxShadow: '0 4px 12px rgba(6,95,70,0.3)' },
   footer: { textAlign: 'center', color: '#6B7280', fontSize: 14, marginTop: 8 },
-  link: { color: '#14B8A6', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }
+  link: { color: '#065f46', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }
 };
 
 export default RegisterPage;

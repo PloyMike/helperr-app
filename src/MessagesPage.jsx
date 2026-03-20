@@ -114,7 +114,7 @@ function MessagesPage() {
     return (
       <div style={styles.app}>
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-        <Header />
+        <Header transparent={true} />
         <div style={styles.loginContainer}>
           <div style={styles.loginCard}>
             <div style={{ fontSize: 64, marginBottom: 20 }}>💬</div>
@@ -150,7 +150,7 @@ function MessagesPage() {
   if (loading) {
     return (
       <div style={styles.app}>
-        <Header />
+        <Header transparent={true} />
         <div style={styles.loading}>
           <div style={{ fontSize: 48 }}>💬</div>
           <h2>Loading messages...</h2>
@@ -162,7 +162,7 @@ function MessagesPage() {
   return (
     <div style={styles.app}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Header />
+      <Header transparent={true} />
 
       <div style={styles.hero}>
         <div style={styles.heroInner}>
@@ -239,9 +239,9 @@ function MessagesPage() {
 }
 
 const styles = {
-  app: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh', paddingTop: 80 },
+  app: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh', paddingTop: 0 },
   loading: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 },
-  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 100%)', padding: '40px 20px', marginBottom: 40 },
+  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 100%)', padding: '120px 20px 40px', marginBottom: 40 },
   heroInner: { maxWidth: 900, margin: '0 auto', textAlign: 'center' },
   heroTitle: { color: '#fff', fontSize: 42, fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.02em' },
   heroSub: { color: '#d1fae5', fontSize: 16, margin: 0 },

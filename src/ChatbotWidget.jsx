@@ -1,22 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 const FAQ_RESPONSES = {
-  'buchen': 'Um zu buchen:\n1. Suche einen Provider über die Startseite\n2. Klick auf sein Profil\n3. Klick "Jetzt buchen"\n4. Wähle Datum und Zeit\n5. Bestätige die Buchung! ✅',
-  'provider': 'Um Provider zu werden:\n1. Klick im Header auf "Anbieter werden"\n2. Registriere dich oder logge dich ein\n3. Fülle dein Provider-Profil aus\n4. Fertig! Jetzt können Kunden dich buchen! 🚀',
-  'kosten': 'Helperr ist komplett KOSTENLOS! 🎉\n- Für Kunden: 0€\n- Für Provider: 0€\n- Keine versteckten Gebühren!',
-  'städte': 'Verfügbare Städte:\n🇹🇭 Bangkok, Phuket, Koh Samui, Chiang Mai\n🇩🇪 Berlin, München, Hamburg, Köln\n🇦🇹 Wien, Salzburg\n🇨🇭 Zürich, Bern\n+ viele mehr!',
-  'kontakt': 'Du kannst uns erreichen unter:\n📧 helperrapp@gmail.com\n\nWir antworten innerhalb von 24 Stunden!',
-  'bewertung': 'Nach einer Buchung kannst du den Provider bewerten:\n⭐ 1-5 Sterne\n💬 Schreibe eine Bewertung\nSo hilfst du anderen Kunden!',
-  'nachrichten': 'Du kannst Provider direkt kontaktieren:\n1. Gehe zu "Nachrichten" im Header\n2. Wähle einen Chat oder starte einen neuen\n3. Schreibe deine Frage! 💬',
-  'favoriten': 'Speichere deine Lieblings-Provider:\n❤️ Klick das Herz-Icon auf dem Profil\n📋 Finde sie unter "Favoriten" im Header',
-  'zahlung': 'Zahlung läuft direkt zwischen dir und dem Provider.\nHelperr nimmt keine Provision! 💰',
-  'hilfe': 'Ich kann dir helfen mit:\n• Buchungen\n• Provider werden\n• Kosten & Preise\n• Verfügbare Städte\n• Nachrichten\n• Favoriten\n\nStell mir eine Frage! 😊'
+  'book': 'To book a service:\n1. Search for a provider on the homepage\n2. Click on their profile\n3. Click "Book Now"\n4. Select date and time\n5. Confirm your booking! ✅',
+  'provider': 'To become a provider:\n1. Click "Become a Provider" in the header\n2. Register or login\n3. Fill out your provider profile\n4. Done! Customers can now book you! 🚀',
+  'cost': 'Helperr is completely FREE! 🎉\n- For customers: $0\n- For providers: $0\n- No hidden fees!',
+  'cities': 'Available cities:\n🇹🇭 Bangkok, Phuket, Koh Samui, Chiang Mai\n🇻🇳 Ho Chi Minh, Hanoi\n🇮🇩 Bali, Jakarta\n🇵🇭 Manila, Cebu\n+ many more!',
+  'contact': 'You can reach us at:\n📧 helperrapp@gmail.com\n\nWe respond within 24 hours!',
+  'review': 'After a booking you can rate the provider:\n⭐ 1-5 stars\n💬 Write a review\nHelp other customers!',
+  'message': 'You can contact providers directly:\n1. Go to "Messages" in the header\n2. Select a chat or start a new one\n3. Write your question! 💬',
+  'favorites': 'Save your favorite providers:\n❤️ Click the heart icon on the profile\n📋 Find them under "Favorites" in the header',
+  'payment': 'Payment is handled directly between you and the provider.\nHelperr takes no commission! 💰',
+  'help': 'I can help you with:\n• Bookings\n• Becoming a provider\n• Costs & pricing\n• Available cities\n• Messages\n• Favorites\n\nAsk me a question! 😊'
 };
 
 function ChatbotWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'Hi! 👋 Ich bin dein Helperr-Assistent.\n\nIch kann dir helfen mit:\n• Buchungen\n• Provider werden\n• Kosten & Preise\n• Verfügbare Städte\n\nWas möchtest du wissen?' }
+    { role: 'assistant', content: 'Hi! 👋 I\'m your Helperr assistant.\n\nI can help you with:\n• Bookings\n• Becoming a provider\n• Costs & pricing\n• Available cities\n\nWhat would you like to know?' }
   ]);
   const [input, setInput] = useState('');
   const messagesEndRef = useRef(null);
@@ -32,96 +32,76 @@ function ChatbotWidget() {
   const findBestMatch = (userInput) => {
     const input = userInput.toLowerCase();
     
-    // Keyword matching
-    if (input.includes('buch') || input.includes('reserv') || input.includes('termin')) {
-      return FAQ_RESPONSES.buchen;
+    const keywords = {
+      'book': ['book', 'booking', 'reserve', 'appointment', 'schedule'],
+      'provider': ['provider', 'become', 'join', 'register', 'seller'],
+      'cost': ['cost', 'price', 'fee', 'expensive', 'charge', 'pay'],
+      'cities': ['city', 'cities', 'location', 'where', 'available'],
+      'contact': ['contact', 'email', 'support', 'help desk'],
+      'review': ['review', 'rating', 'rate', 'feedback', 'star'],
+      'message': ['message', 'chat', 'talk', 'contact provider'],
+      'favorites': ['favorite', 'save', 'bookmark', 'heart'],
+      'payment': ['payment', 'pay', 'money', 'transaction'],
+      'help': ['help', 'what can you', 'how do', 'assist']
+    };
+
+    for (const [key, words] of Object.entries(keywords)) {
+      if (words.some(word => input.includes(word))) {
+        return FAQ_RESPONSES[key];
+      }
     }
-    if (input.includes('anbieter') || input.includes('provider') || input.includes('dienstleister')) {
-      return FAQ_RESPONSES.provider;
-    }
-    if (input.includes('kost') || input.includes('preis') || input.includes('gebühr') || input.includes('zahlen')) {
-      return FAQ_RESPONSES.kosten;
-    }
-    if (input.includes('stadt') || input.includes('städte') || input.includes('ort') || input.includes('wo')) {
-      return FAQ_RESPONSES.städte;
-    }
-    if (input.includes('kontakt') || input.includes('email') || input.includes('erreichen')) {
-      return FAQ_RESPONSES.kontakt;
-    }
-    if (input.includes('bewert') || input.includes('rating') || input.includes('sterne')) {
-      return FAQ_RESPONSES.bewertung;
-    }
-    if (input.includes('nachricht') || input.includes('chat') || input.includes('schreiben')) {
-      return FAQ_RESPONSES.nachrichten;
-    }
-    if (input.includes('favorit') || input.includes('speichern') || input.includes('merken')) {
-      return FAQ_RESPONSES.favoriten;
-    }
-    if (input.includes('bezahl') || input.includes('zahlung') || input.includes('provision')) {
-      return FAQ_RESPONSES.zahlung;
-    }
-    if (input.includes('hilfe') || input.includes('help') || input.includes('hallo') || input.includes('hi')) {
-      return FAQ_RESPONSES.hilfe;
-    }
-    
-    return 'Entschuldigung, das habe ich nicht ganz verstanden. 🤔\n\nIch kann dir helfen mit:\n• Buchungen\n• Provider werden\n• Kosten & Preise\n• Städte\n• Nachrichten\n• Favoriten\n\nOder schreib uns: helperrapp@gmail.com';
+
+    return 'I\'m not sure about that. Try asking about:\n• Bookings\n• Becoming a provider\n• Costs\n• Available cities\n• Contact\n\nOr type "help" for all options! 😊';
   };
 
-  const sendMessage = () => {
+  const handleSend = () => {
     if (!input.trim()) return;
 
-    const userMessage = input.trim();
-    setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    const userMessage = { role: 'user', content: input };
+    setMessages(prev => [...prev, userMessage]);
 
     setTimeout(() => {
-      const response = findBestMatch(userMessage);
-      setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+      const response = findBestMatch(input);
+      const botMessage = { role: 'assistant', content: response };
+      setMessages(prev => [...prev, botMessage]);
     }, 500);
+
+    setInput('');
   };
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      sendMessage();
+      handleSend();
     }
   };
 
-  const quickActions = [
-    { label: '📅 Wie buche ich?', query: 'Wie buche ich einen Service?' },
-    { label: '🚀 Provider werden', query: 'Wie werde ich Provider?' },
-    { label: '💰 Kosten', query: 'Was kostet Helperr?' },
-    { label: '📍 Städte', query: 'Welche Städte gibt es?' }
-  ];
-
   return (
     <>
-      <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      
-      {/* FLOATING BUTTON */}
+      {/* CHAT BUTTON */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
           style={{
             position: 'fixed',
-            bottom: 30,
-            right: 30,
+            bottom: 24,
+            right: 24,
             width: 60,
             height: 60,
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)',
+            background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)',
             border: 'none',
-            boxShadow: '0 4px 20px rgba(20, 184, 166, 0.4)',
+            boxShadow: '0 4px 20px rgba(6,95,70,0.3)',
             cursor: 'pointer',
+            fontSize: 28,
+            zIndex: 999,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: 28,
-            zIndex: 9999,
-            transition: 'all 0.3s',
+            transition: 'all 0.3s'
           }}
-          onMouseOver={(e) => e.target.style.transform = 'scale(1.1)'}
-          onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
+          onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+          onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
         >
           💬
         </button>
@@ -129,34 +109,42 @@ function ChatbotWidget() {
 
       {/* CHAT WINDOW */}
       {isOpen && (
-        <div style={{
-          position: 'fixed',
-          bottom: 30,
-          right: 30,
-          width: 380,
-          height: 550,
-          background: 'white',
-          borderRadius: 20,
-          boxShadow: '0 8px 40px rgba(0, 0, 0, 0.15)',
-          display: 'flex',
-          flexDirection: 'column',
-          zIndex: 9999,
-          overflow: 'hidden',
-          fontFamily: '"Outfit", sans-serif'
-        }}>
-          
-          {/* HEADER */}
-          <div style={{
-            background: 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)',
-            padding: '20px',
-            color: 'white',
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            right: 24,
+            width: 380,
+            maxWidth: 'calc(100vw - 48px)',
+            height: 500,
+            maxHeight: 'calc(100vh - 100px)',
+            background: 'white',
+            borderRadius: 20,
+            boxShadow: '0 10px 40px rgba(0,0,0,0.15)',
+            zIndex: 999,
             display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            <div>
-              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Helperr Support</h3>
-              <p style={{ margin: '4px 0 0 0', fontSize: 13, opacity: 0.9 }}>Sofortige Antworten</p>
+            flexDirection: 'column',
+            fontFamily: '"Outfit", sans-serif',
+            overflow: 'hidden'
+          }}
+        >
+          {/* HEADER */}
+          <div
+            style={{
+              background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)',
+              color: 'white',
+              padding: 16,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ fontSize: 24 }}>💬</div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 16 }}>Helperr Assistant</div>
+                <div style={{ fontSize: 12, opacity: 0.9 }}>Online</div>
+              </div>
             </div>
             <button
               onClick={() => setIsOpen(false)}
@@ -164,14 +152,12 @@ function ChatbotWidget() {
                 background: 'rgba(255,255,255,0.2)',
                 border: 'none',
                 color: 'white',
-                fontSize: 24,
                 width: 32,
                 height: 32,
                 borderRadius: '50%',
                 cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
+                fontSize: 18,
+                fontWeight: 700
               }}
             >
               ✕
@@ -179,118 +165,86 @@ function ChatbotWidget() {
           </div>
 
           {/* MESSAGES */}
-          <div style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: 20,
-            background: '#F9FAFB'
-          }}>
+          <div
+            style={{
+              flex: 1,
+              overflowY: 'auto',
+              padding: 16,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 12,
+              background: '#F9FAFB'
+            }}
+          >
             {messages.map((msg, idx) => (
               <div
                 key={idx}
                 style={{
-                  marginBottom: 16,
-                  display: 'flex',
-                  justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start'
+                  alignSelf: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                  maxWidth: '75%'
                 }}
               >
-                <div style={{
-                  maxWidth: '75%',
-                  padding: '12px 16px',
-                  borderRadius: 16,
-                  background: msg.role === 'user' ? '#14B8A6' : 'white',
-                  color: msg.role === 'user' ? 'white' : '#374151',
-                  fontSize: 14,
-                  lineHeight: 1.5,
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                  whiteSpace: 'pre-wrap'
-                }}>
+                <div
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: 12,
+                    background: msg.role === 'user' ? '#065f46' : 'white',
+                    color: msg.role === 'user' ? 'white' : '#374151',
+                    fontSize: 14,
+                    lineHeight: 1.6,
+                    whiteSpace: 'pre-line',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+                  }}
+                >
                   {msg.content}
                 </div>
               </div>
             ))}
-            
-            {/* QUICK ACTIONS */}
-            {messages.length === 1 && (
-              <div style={{ marginTop: 16 }}>
-                <p style={{ fontSize: 12, color: '#6B7280', marginBottom: 12 }}>Schnellauswahl:</p>
-                <div style={{ display: 'grid', gap: 8 }}>
-                  {quickActions.map((action, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        setMessages(prev => [...prev, { role: 'user', content: action.query }]);
-                        setTimeout(() => {
-                          const response = findBestMatch(action.query);
-                          setMessages(prev => [...prev, { role: 'assistant', content: response }]);
-                        }, 500);
-                      }}
-                      style={{
-                        padding: '10px 14px',
-                        background: 'white',
-                        border: '1px solid #E5E7EB',
-                        borderRadius: 12,
-                        fontSize: 13,
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        transition: 'all 0.2s',
-                        fontFamily: '"Outfit", sans-serif',
-                        fontWeight: 500,
-                        color: '#374151'
-                      }}
-                      onMouseOver={(e) => {
-                        e.target.style.background = '#F3F4F6';
-                        e.target.style.borderColor = '#14B8A6';
-                      }}
-                      onMouseOut={(e) => {
-                        e.target.style.background = 'white';
-                        e.target.style.borderColor = '#E5E7EB';
-                      }}
-                    >
-                      {action.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            
             <div ref={messagesEndRef} />
           </div>
 
           {/* INPUT */}
-          <div style={{
-            padding: 16,
-            borderTop: '1px solid #E5E7EB',
-            background: 'white'
-          }}>
+          <div style={{ padding: 16, borderTop: '1px solid #E5E7EB', background: 'white' }}>
             <div style={{ display: 'flex', gap: 8 }}>
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Schreib eine Nachricht..."
+                placeholder="Ask me anything..."
                 style={{
                   flex: 1,
-                  padding: '12px 16px',
-                  border: '1px solid #E5E7EB',
+                  padding: '10px 14px',
+                  border: '2px solid #E5E7EB',
                   borderRadius: 12,
                   fontSize: 14,
                   outline: 'none',
                   fontFamily: '"Outfit", sans-serif'
                 }}
+                onFocus={(e) => {
+                  if (e.target) {
+                    e.target.style.borderColor = '#065f46';
+                  }
+                }}
+                onBlur={(e) => {
+                  if (e.target) {
+                    e.target.style.borderColor = '#E5E7EB';
+                  }
+                }}
               />
               <button
-                onClick={sendMessage}
+                onClick={handleSend}
                 disabled={!input.trim()}
                 style={{
-                  padding: '12px 20px',
-                  background: input.trim() ? 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)' : '#E5E7EB',
-                  color: 'white',
+                  padding: '10px 16px',
+                  background: input.trim() ? 'linear-gradient(135deg, #065f46 0%, #047857 100%)' : '#E5E7EB',
+                  color: input.trim() ? 'white' : '#9CA3AF',
                   border: 'none',
                   borderRadius: 12,
-                  fontSize: 20,
                   cursor: input.trim() ? 'pointer' : 'not-allowed',
+                  fontSize: 18,
+                  fontWeight: 600,
+                  fontFamily: '"Outfit", sans-serif',
                   transition: 'all 0.2s'
                 }}
               >
@@ -300,17 +254,6 @@ function ChatbotWidget() {
           </div>
         </div>
       )}
-
-      <style>{`
-        @media (max-width: 768px) {
-          div[style*="width: 380px"] {
-            width: calc(100vw - 40px) !important;
-            height: calc(100vh - 100px) !important;
-            bottom: 20px !important;
-            right: 20px !important;
-          }
-        }
-      `}</style>
     </>
   );
 }

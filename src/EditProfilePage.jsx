@@ -7,6 +7,7 @@ function EditProfilePage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [profile, setProfile] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -21,7 +22,8 @@ function EditProfilePage() {
     tags: '',
     languages: '',
     line_id: '',
-    available: true
+    available: true,
+    image_url: ''
   });
 
   const subcategories = {
@@ -80,7 +82,8 @@ function EditProfilePage() {
           tags: data.tags?.join(', ') || '',
           languages: data.languages?.join(', ') || '',
           line_id: data.line_id || '',
-          available: data.available !== false
+          available: data.available !== false,
+          image_url: data.image_url || ''
         });
       }
     } catch (error) {
@@ -93,6 +96,35 @@ function EditProfilePage() {
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('profile-images')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('profile-images')
+        .getPublicUrl(filePath);
+
+      setFormData({ ...formData, image_url: publicUrl });
+      alert('✅ Image uploaded! Click "Save Changes" to update your profile.');
+    } catch (error) {
+      alert('Error uploading image: ' + error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -117,7 +149,8 @@ function EditProfilePage() {
           tags: tagsArray,
           languages: languagesArray,
           line_id: formData.line_id,
-          available: formData.available
+          available: formData.available,
+          image_url: formData.image_url
         })
         .eq('email', user.email);
 
@@ -135,7 +168,7 @@ function EditProfilePage() {
   if (!user) {
     return (
       <div style={styles.app}>
-        <Header />
+        <Header transparent={true} />
         <div style={styles.loginRequired}>
           <div style={{ fontSize: 64 }}>🔐</div>
           <h2>Login Required</h2>
@@ -151,7 +184,7 @@ function EditProfilePage() {
   if (loading) {
     return (
       <div style={styles.app}>
-        <Header />
+        <Header transparent={true} />
         <div style={styles.loading}>
           <div style={{ fontSize: 48 }}>✏️</div>
           <h2>Loading profile...</h2>
@@ -163,7 +196,7 @@ function EditProfilePage() {
   if (!profile) {
     return (
       <div style={styles.app}>
-        <Header />
+        <Header transparent={true} />
         <div style={styles.noProfile}>
           <div style={{ fontSize: 64 }}>👤</div>
           <h2>No Profile Found</h2>
@@ -179,7 +212,7 @@ function EditProfilePage() {
   return (
     <div style={styles.app}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Header />
+      <Header transparent={true} />
 
       <div style={styles.hero}>
         <div style={styles.heroInner}>
@@ -191,6 +224,36 @@ function EditProfilePage() {
       <div style={styles.container}>
         <form onSubmit={handleSubmit} style={styles.form}>
           
+          {/* PROFILE IMAGE */}
+          <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>📸 Profile Image</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+              {formData.image_url && formData.image_url.startsWith('http') ? (
+                <img src={formData.image_url} alt="Profile" style={{ width: 100, height: 100, borderRadius: 16, objectFit: 'cover' }} />
+              ) : (
+                <div style={{ width: 100, height: 100, background: '#ecfdf5', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48 }}>
+                  {formData.image_url || '👤'}
+                </div>
+              )}
+              <div style={{ flex: 1 }}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={uploading}
+                  style={{ display: 'none' }}
+                  id="image-upload"
+                />
+                <label htmlFor="image-upload" style={{...styles.uploadBtn, opacity: uploading ? 0.6 : 1, cursor: uploading ? 'not-allowed' : 'pointer'}}>
+                  {uploading ? '📤 Uploading...' : '📷 Upload New Photo'}
+                </label>
+                <p style={{ fontSize: 12, color: '#6b7280', marginTop: 8 }}>
+                  JPG, PNG or GIF (max 5MB)
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div style={styles.section}>
             <h3 style={styles.sectionTitle}>📍 Basic Info</h3>
             <div style={styles.grid}>
@@ -285,7 +348,7 @@ function EditProfilePage() {
             <button type="button" onClick={() => window.navigateTo('home')} style={styles.btnSecondary}>
               Cancel
             </button>
-            <button type="submit" disabled={saving} style={{...styles.btnPrimary, flex: 1, opacity: saving ? 0.6 : 1}}>
+            <button type="submit" disabled={saving || uploading} style={{...styles.btnPrimary, flex: 1, opacity: (saving || uploading) ? 0.6 : 1}}>
               {saving ? 'Saving...' : '💾 Save Changes'}
             </button>
           </div>
@@ -296,9 +359,9 @@ function EditProfilePage() {
 }
 
 const styles = {
-  app: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh', paddingTop: 80 },
+  app: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh', paddingTop: 0 },
   loading: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 },
-  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 100%)', padding: '40px 20px', marginBottom: 40 },
+  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 100%)', padding: '120px 20px 40px', marginBottom: 40 },
   heroInner: { maxWidth: 800, margin: '0 auto', textAlign: 'center' },
   heroTitle: { color: '#fff', fontSize: 42, fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.02em' },
   heroSub: { color: '#d1fae5', fontSize: 16, margin: 0 },
@@ -309,10 +372,11 @@ const styles = {
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 },
   label: { display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 },
   input: { width: '100%', padding: '12px 14px', border: '2px solid #E5E7EB', borderRadius: 10, fontSize: 14, outline: 'none', fontFamily: '"Outfit", sans-serif', boxSizing: 'border-box', background: 'white' },
+  uploadBtn: { display: 'inline-block', padding: '12px 20px', background: '#f3f4f6', color: '#374151', border: '2px solid #e5e7eb', borderRadius: 10, fontSize: 14, fontWeight: 600, fontFamily: '"Outfit", sans-serif', textAlign: 'center' },
   checkbox: { display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' },
   checkboxTitle: { fontWeight: 600, color: '#1F2937', fontSize: 14 },
   checkboxSub: { fontSize: 12, color: '#6B7280', marginTop: 2 },
-  btnPrimary: { padding: '14px 24px', background: 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)', color: 'white', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(20,184,166,0.3)' },
+  btnPrimary: { padding: '14px 24px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6,95,70,0.3)' },
   btnSecondary: { padding: '14px 24px', background: 'white', color: '#374151', border: '2px solid #E5E7EB', borderRadius: 12, fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' },
   loginRequired: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 20 },
   noProfile: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 20 }
