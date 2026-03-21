@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { supabase } from './supabase';
-import PaymentSelection from './PaymentSelection';
 
 function BookingCalendar({ profile, onClose }) {
   const [step, setStep] = useState(1);
@@ -12,8 +11,7 @@ function BookingCalendar({ profile, onClose }) {
     phone: '',
     message: ''
   });
-  const [bookingData, setBookingData] = useState(null);
-  const [bookingId, setBookingId] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const getAvailableDates = () => {
     const dates = [];
@@ -27,7 +25,7 @@ function BookingCalendar({ profile, onClose }) {
   };
 
   const formatDate = (date) => {
-    return date.toLocaleDateString('de-DE', { 
+    return date.toLocaleDateString('en-US', { 
       weekday: 'short', 
       day: '2-digit', 
       month: 'short' 
@@ -35,7 +33,7 @@ function BookingCalendar({ profile, onClose }) {
   };
 
   const formatDateFull = (date) => {
-    return date.toLocaleDateString('de-DE', { 
+    return date.toLocaleDateString('en-US', { 
       weekday: 'long', 
       day: '2-digit', 
       month: 'long',
@@ -47,619 +45,270 @@ function BookingCalendar({ profile, onClose }) {
     return date.toISOString().split('T')[0];
   };
 
-  // VOLLER 24-STUNDEN-TAG MIT ZEITBEREICHEN
-  const timeSlots = [
-    { value: '00:00', label: '00:00 - 01:00' },
-    { value: '01:00', label: '01:00 - 02:00' },
-    { value: '02:00', label: '02:00 - 03:00' },
-    { value: '03:00', label: '03:00 - 04:00' },
-    { value: '04:00', label: '04:00 - 05:00' },
-    { value: '05:00', label: '05:00 - 06:00' },
-    { value: '06:00', label: '06:00 - 07:00' },
-    { value: '07:00', label: '07:00 - 08:00' },
-    { value: '08:00', label: '08:00 - 09:00' },
-    { value: '09:00', label: '09:00 - 10:00' },
-    { value: '10:00', label: '10:00 - 11:00' },
-    { value: '11:00', label: '11:00 - 12:00' },
-    { value: '12:00', label: '12:00 - 13:00' },
-    { value: '13:00', label: '13:00 - 14:00' },
-    { value: '14:00', label: '14:00 - 15:00' },
-    { value: '15:00', label: '15:00 - 16:00' },
-    { value: '16:00', label: '16:00 - 17:00' },
-    { value: '17:00', label: '17:00 - 18:00' },
-    { value: '18:00', label: '18:00 - 19:00' },
-    { value: '19:00', label: '19:00 - 20:00' },
-    { value: '20:00', label: '20:00 - 21:00' },
-    { value: '21:00', label: '21:00 - 22:00' },
-    { value: '22:00', label: '22:00 - 23:00' },
-    { value: '23:00', label: '23:00 - 00:00' }
-  ];
+  // 24-hour time slots
+  const timeSlots = Array.from({ length: 24 }, (_, i) => {
+    const start = i.toString().padStart(2, '0') + ':00';
+    const end = ((i + 1) % 24).toString().padStart(2, '0') + ':00';
+    return `${start} - ${end}`;
+  });
 
-  const handleContinueToPayment = () => {
-    if (!formData.name || !formData.email) {
-      alert('Bitte Name und E-Mail ausfüllen!');
-      return;
-    }
-    setBookingData({
-      profile_id: profile.id,
-      profile_name: profile.name,
-      customer_name: formData.name,
-      customer_email: formData.email,
-      customer_phone: formData.phone,
-      booking_date: selectedDate,
-      time_slot: selectedTimeSlot,
-      message: formData.message,
-      total_price: profile.price,
-      status: 'pending'
-    });
-    setStep(4);
-  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
 
-  const handlePaymentSuccess = async () => {
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('bookings')
         .insert([{
-          profile_id: bookingData.profile_id,
-          customer_name: bookingData.customer_name,
-          customer_email: bookingData.customer_email,
-          customer_phone: bookingData.customer_phone,
-          booking_date: bookingData.booking_date,
-          time_slot: bookingData.time_slot,
-          message: bookingData.message,
-          total_price: bookingData.total_price,
+          profile_id: profile.id,
+          customer_name: formData.name,
+          customer_email: formData.email,
+          customer_phone: formData.phone,
+          booking_date: selectedDate,
+          time_slot: selectedTimeSlot,
+          message: formData.message,
+          total_price: profile.price,
           status: 'pending'
-        }])
-        .select();
+        }]);
+
       if (error) throw error;
-      setBookingId(data[0].id);
-      setStep(5);
+
+      alert('✅ Booking request sent successfully! The provider will confirm shortly.');
+      onClose();
     } catch (error) {
-      alert('Fehler: ' + error.message);
+      alert('Error: ' + error.message);
+    } finally {
+      setSubmitting(false);
     }
-  };
-
-  const handlePaymentCancel = () => {
-    setStep(3);
-  };
-
-  const getSelectedDateObj = () => {
-    return selectedDate ? new Date(selectedDate + 'T00:00:00') : null;
-  };
-
-  const getSelectedTimeSlot = () => {
-    return timeSlots.find(slot => slot.value === selectedTimeSlot);
   };
 
   return (
-    <div>
+    <div style={styles.overlay}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      
-      {step === 4 && bookingData && (
-        <PaymentSelection 
-          booking={bookingData}
-          onSuccess={handlePaymentSuccess}
-          onCancel={handlePaymentCancel}
-        />
-      )}
-      
-      {step !== 4 && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.7)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 1000,
-          padding: 20,
-          fontFamily: '"Outfit", sans-serif'
-        }}>
-          <div style={{
-            backgroundColor: 'white',
-            borderRadius: 24,
-            maxWidth: 700,
-            width: '100%',
-            maxHeight: '90vh',
-            overflow: 'auto',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)'
-          }}>
-            
-            {/* HEADER */}
-            <div style={{
-              padding: '24px 32px',
-              borderBottom: '1px solid #F3F4F6',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              background: 'linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%)'
-            }}>
-              <div>
-                <h2 style={{
-                  margin: 0,
-                  fontSize: 24,
-                  fontWeight: 800,
-                  color: '#1F2937'
-                }}>
-                  {step === 1 ? '📅 Datum wählen' : 
-                   step === 2 ? '⏰ Uhrzeit wählen' : 
-                   step === 3 ? '📋 Deine Daten' : 
-                   '✅ Bestätigung'}
-                </h2>
-                <p style={{
-                  margin: '4px 0 0 0',
-                  fontSize: 14,
-                  color: '#6B7280'
-                }}>
-                  Buchung für {profile.name}
-                </p>
-              </div>
-              <button
-                onClick={onClose}
-                style={{
-                  background: '#F3F4F6',
-                  border: 'none',
-                  width: 36,
-                  height: 36,
-                  borderRadius: '50%',
-                  fontSize: 20,
-                  cursor: 'pointer',
-                  color: '#6B7280',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.2s'
-                }}
-                onMouseOver={(e) => {
-                  e.target.style.background = '#E5E7EB';
-                  e.target.style.color = '#1F2937';
-                }}
-                onMouseOut={(e) => {
-                  e.target.style.background = '#F3F4F6';
-                  e.target.style.color = '#6B7280';
-                }}
-              >
-                ✕
-              </button>
-            </div>
+      <div style={styles.modal}>
+        {/* HEADER */}
+        <div style={styles.header}>
+          <div>
+            <h2 style={styles.title}>Book {profile.name}</h2>
+            <p style={styles.subtitle}>{profile.subcategory} · {profile.price}</p>
+          </div>
+          <button onClick={onClose} style={styles.closeBtn}>✕</button>
+        </div>
 
-            {/* PROGRESS INDICATOR */}
-            <div style={{
-              display: 'flex',
-              padding: '16px 32px',
-              gap: 8,
-              background: '#F9FAFB'
-            }}>
-              {[1, 2, 3].map(num => (
-                <div
-                  key={num}
-                  style={{
-                    flex: 1,
-                    height: 4,
-                    borderRadius: 4,
-                    background: step >= num ? '#14B8A6' : '#E5E7EB',
-                    transition: 'all 0.3s'
-                  }}
-                />
-              ))}
-            </div>
-
-            <div style={{ padding: 32 }}>
-              
-              {/* STEP 1: DATE SELECTION */}
-              {step === 1 && (
-                <div>
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-                    gap: 12
-                  }}>
-                    {getAvailableDates().slice(0, 15).map(date => {
-                      const dateISO = formatDateISO(date);
-                      const isSelected = selectedDate === dateISO;
-                      
-                      return (
-                        <button
-                          key={dateISO}
-                          onClick={() => {
-                            setSelectedDate(dateISO);
-                            setStep(2);
-                          }}
-                          style={{
-                            padding: '16px 12px',
-                            background: isSelected ? 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)' : 'white',
-                            border: isSelected ? 'none' : '2px solid #E5E7EB',
-                            borderRadius: 16,
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            color: isSelected ? 'white' : '#374151',
-                            fontFamily: '"Outfit", sans-serif',
-                            fontWeight: 600,
-                            fontSize: 13,
-                            textAlign: 'center'
-                          }}
-                          onMouseOver={(e) => {
-                            if (!isSelected) {
-                              e.target.style.borderColor = '#14B8A6';
-                              e.target.style.transform = 'translateY(-2px)';
-                              e.target.style.boxShadow = '0 4px 12px rgba(20,184,166,0.2)';
-                            }
-                          }}
-                          onMouseOut={(e) => {
-                            if (!isSelected) {
-                              e.target.style.borderColor = '#E5E7EB';
-                              e.target.style.transform = 'translateY(0)';
-                              e.target.style.boxShadow = 'none';
-                            }
-                          }}
-                        >
-                          {formatDate(date)}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 2: TIME SLOT SELECTION - KOMPAKT WIE DATUM */}
-              {step === 2 && (
-                <div>
-                  <button
-                    onClick={() => setStep(1)}
-                    style={{
-                      background: '#F3F4F6',
-                      border: 'none',
-                      padding: '8px 16px',
-                      borderRadius: 8,
-                      cursor: 'pointer',
-                      marginBottom: 24,
-                      fontSize: 14,
-                      fontWeight: 600,
-                      color: '#374151',
-                      fontFamily: '"Outfit", sans-serif'
-                    }}
-                  >
-                    ← Zurück
-                  </button>
-
-                  <div style={{
-                    background: '#F9FAFB',
-                    padding: 16,
-                    borderRadius: 12,
-                    marginBottom: 24
-                  }}>
-                    <p style={{ margin: 0, fontSize: 14, color: '#6B7280' }}>
-                      Ausgewähltes Datum:
-                    </p>
-                    <p style={{
-                      margin: '4px 0 0 0',
-                      fontSize: 18,
-                      fontWeight: 700,
-                      color: '#1F2937'
-                    }}>
-                      {getSelectedDateObj() && formatDateFull(getSelectedDateObj())}
-                    </p>
-                  </div>
-
-                  <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-                    gap: 12
-                  }}>
-                    {timeSlots.map(slot => {
-                      const isSelected = selectedTimeSlot === slot.value;
-                      
-                      return (
-                        <button
-                          key={slot.value}
-                          onClick={() => {
-                            setSelectedTimeSlot(slot.value);
-                            setStep(3);
-                          }}
-                          style={{
-                            padding: '16px 12px',
-                            background: isSelected ? 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)' : 'white',
-                            border: isSelected ? 'none' : '2px solid #E5E7EB',
-                            borderRadius: 16,
-                            cursor: 'pointer',
-                            transition: 'all 0.2s',
-                            color: isSelected ? 'white' : '#374151',
-                            fontFamily: '"Outfit", sans-serif',
-                            fontWeight: 600,
-                            fontSize: 13,
-                            textAlign: 'center'
-                          }}
-                          onMouseOver={(e) => {
-                            if (!isSelected) {
-                              e.target.style.borderColor = '#14B8A6';
-                              e.target.style.transform = 'translateY(-2px)';
-                              e.target.style.boxShadow = '0 4px 12px rgba(20,184,166,0.2)';
-                            }
-                          }}
-                          onMouseOut={(e) => {
-                            if (!isSelected) {
-                              e.target.style.borderColor = '#E5E7EB';
-                              e.target.style.transform = 'translateY(0)';
-                              e.target.style.boxShadow = 'none';
-                            }
-                          }}
-                        >
-                          {slot.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 3: CONTACT FORM */}
-              {step === 3 && (
-                <div>
-                  <button
-                    onClick={() => setStep(2)}
-                    style={{
-                      background: '#F3F4F6',
-                      border: 'none',
-                      padding: '8px 16px',
-                      borderRadius: 8,
-                      cursor: 'pointer',
-                      marginBottom: 24,
-                      fontSize: 14,
-                      fontWeight: 600,
-                      color: '#374151',
-                      fontFamily: '"Outfit", sans-serif'
-                    }}
-                  >
-                    ← Zurück
-                  </button>
-
-                  <div style={{
-                    background: '#F9FAFB',
-                    padding: 20,
-                    borderRadius: 12,
-                    marginBottom: 24
-                  }}>
-                    <h3 style={{
-                      margin: '0 0 12px 0',
-                      fontSize: 16,
-                      fontWeight: 700,
-                      color: '#1F2937'
-                    }}>
-                      Deine Buchung
-                    </h3>
-                    <div style={{ display: 'grid', gap: 8 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: '#6B7280', fontSize: 14 }}>Datum:</span>
-                        <span style={{ fontWeight: 600, color: '#374151', fontSize: 14 }}>
-                          {getSelectedDateObj() && formatDate(getSelectedDateObj())}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: '#6B7280', fontSize: 14 }}>Zeit:</span>
-                        <span style={{ fontWeight: 600, color: '#374151', fontSize: 14 }}>
-                          {getSelectedTimeSlot()?.label}
-                        </span>
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: '#6B7280', fontSize: 14 }}>Preis:</span>
-                        <span style={{ fontWeight: 700, color: '#14B8A6', fontSize: 16 }}>
-                          {profile.price}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'grid', gap: 16 }}>
-                    <div>
-                      <label style={{
-                        display: 'block',
-                        marginBottom: 8,
-                        fontSize: 14,
-                        fontWeight: 600,
-                        color: '#374151'
-                      }}>
-                        Name *
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="Dein vollständiger Name"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        required
-                        style={{
-                          width: '100%',
-                          padding: '14px 16px',
-                          border: '2px solid #E5E7EB',
-                          borderRadius: 12,
-                          fontSize: 15,
-                          outline: 'none',
-                          fontFamily: '"Outfit", sans-serif',
-                          boxSizing: 'border-box',
-                          transition: 'all 0.2s'
-                        }}
-                        onFocus={(e) => e.target.style.borderColor = '#14B8A6'}
-                        onBlur={(e) => e.target.style.borderColor = '#E5E7EB'}
-                      />
-                    </div>
-
-                    <div>
-                      <label style={{
-                        display: 'block',
-                        marginBottom: 8,
-                        fontSize: 14,
-                        fontWeight: 600,
-                        color: '#374151'
-                      }}>
-                        E-Mail *
-                      </label>
-                      <input
-                        type="email"
-                        placeholder="deine@email.com"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        required
-                        style={{
-                          width: '100%',
-                          padding: '14px 16px',
-                          border: '2px solid #E5E7EB',
-                          borderRadius: 12,
-                          fontSize: 15,
-                          outline: 'none',
-                          fontFamily: '"Outfit", sans-serif',
-                          boxSizing: 'border-box',
-                          transition: 'all 0.2s'
-                        }}
-                        onFocus={(e) => e.target.style.borderColor = '#14B8A6'}
-                        onBlur={(e) => e.target.style.borderColor = '#E5E7EB'}
-                      />
-                    </div>
-
-                    <div>
-                      <label style={{
-                        display: 'block',
-                        marginBottom: 8,
-                        fontSize: 14,
-                        fontWeight: 600,
-                        color: '#374151'
-                      }}>
-                        Telefon (optional)
-                      </label>
-                      <input
-                        type="tel"
-                        placeholder="+49 123 456789"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        style={{
-                          width: '100%',
-                          padding: '14px 16px',
-                          border: '2px solid #E5E7EB',
-                          borderRadius: 12,
-                          fontSize: 15,
-                          outline: 'none',
-                          fontFamily: '"Outfit", sans-serif',
-                          boxSizing: 'border-box',
-                          transition: 'all 0.2s'
-                        }}
-                        onFocus={(e) => e.target.style.borderColor = '#14B8A6'}
-                        onBlur={(e) => e.target.style.borderColor = '#E5E7EB'}
-                      />
-                    </div>
-
-                    <div>
-                      <label style={{
-                        display: 'block',
-                        marginBottom: 8,
-                        fontSize: 14,
-                        fontWeight: 600,
-                        color: '#374151'
-                      }}>
-                        Nachricht (optional)
-                      </label>
-                      <textarea
-                        placeholder="Besondere Wünsche oder Anfragen..."
-                        value={formData.message}
-                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                        rows={4}
-                        style={{
-                          width: '100%',
-                          padding: '14px 16px',
-                          border: '2px solid #E5E7EB',
-                          borderRadius: 12,
-                          fontSize: 15,
-                          outline: 'none',
-                          fontFamily: '"Outfit", sans-serif',
-                          resize: 'vertical',
-                          boxSizing: 'border-box',
-                          transition: 'all 0.2s'
-                        }}
-                        onFocus={(e) => e.target.style.borderColor = '#14B8A6'}
-                        onBlur={(e) => e.target.style.borderColor = '#E5E7EB'}
-                      />
-                    </div>
-
-                    <button
-                      onClick={handleContinueToPayment}
-                      style={{
-                        padding: '16px 24px',
-                        background: 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: 12,
-                        fontSize: 16,
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        marginTop: 8,
-                        fontFamily: '"Outfit", sans-serif',
-                        boxShadow: '0 4px 12px rgba(20,184,166,0.3)',
-                        transition: 'all 0.2s'
-                      }}
-                      onMouseOver={(e) => {
-                        e.target.style.transform = 'translateY(-2px)';
-                        e.target.style.boxShadow = '0 6px 20px rgba(20,184,166,0.4)';
-                      }}
-                      onMouseOut={(e) => {
-                        e.target.style.transform = 'translateY(0)';
-                        e.target.style.boxShadow = '0 4px 12px rgba(20,184,166,0.3)';
-                      }}
-                    >
-                      Weiter zur Zahlung →
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* STEP 5: SUCCESS */}
-              {step === 5 && (
-                <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                  <div style={{
-                    fontSize: 80,
-                    marginBottom: 24
-                  }}>
-                    ✅
-                  </div>
-                  <h2 style={{
-                    fontSize: 28,
-                    fontWeight: 800,
-                    color: '#1F2937',
-                    margin: '0 0 12px 0'
-                  }}>
-                    Buchung bestätigt!
-                  </h2>
-                  <p style={{
-                    fontSize: 16,
-                    color: '#6B7280',
-                    marginBottom: 24
-                  }}>
-                    Deine Buchungs-ID: <strong>{bookingId?.substring(0, 8)}</strong>
-                  </p>
-                  <button
-                    onClick={onClose}
-                    style={{
-                      padding: '16px 32px',
-                      background: 'linear-gradient(135deg, #14B8A6 0%, #0D9488 100%)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: 12,
-                      fontSize: 16,
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      fontFamily: '"Outfit", sans-serif',
-                      boxShadow: '0 4px 12px rgba(20,184,166,0.3)'
-                    }}
-                  >
-                    Schließen
-                  </button>
-                </div>
-              )}
-            </div>
+        {/* PROGRESS */}
+        <div style={styles.progress}>
+          <div style={{...styles.progressStep, ...(step >= 1 ? styles.progressStepActive : {})}}>
+            <div style={styles.progressNumber}>1</div>
+            <span style={styles.progressLabel}>Date</span>
+          </div>
+          <div style={styles.progressLine} />
+          <div style={{...styles.progressStep, ...(step >= 2 ? styles.progressStepActive : {})}}>
+            <div style={styles.progressNumber}>2</div>
+            <span style={styles.progressLabel}>Time</span>
+          </div>
+          <div style={styles.progressLine} />
+          <div style={{...styles.progressStep, ...(step >= 3 ? styles.progressStepActive : {})}}>
+            <div style={styles.progressNumber}>3</div>
+            <span style={styles.progressLabel}>Details</span>
           </div>
         </div>
-      )}
+
+        <div style={styles.content}>
+          {/* STEP 1: DATE */}
+          {step === 1 && (
+            <div>
+              <h3 style={styles.stepTitle}>Select a Date</h3>
+              <div style={styles.dateGrid}>
+                {getAvailableDates().map(date => {
+                  const dateISO = formatDateISO(date);
+                  const isSelected = selectedDate === dateISO;
+                  return (
+                    <button
+                      key={dateISO}
+                      onClick={() => setSelectedDate(dateISO)}
+                      style={{
+                        ...styles.dateBtn,
+                        ...(isSelected ? styles.dateBtnActive : {})
+                      }}
+                    >
+                      <div style={styles.dateDay}>{formatDate(date).split(',')[0]}</div>
+                      <div style={styles.dateNumber}>{date.getDate()}</div>
+                      <div style={styles.dateMonth}>{formatDate(date).split(' ')[1]}</div>
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                onClick={() => setStep(2)}
+                disabled={!selectedDate}
+                style={{
+                  ...styles.btnNext,
+                  opacity: !selectedDate ? 0.5 : 1,
+                  cursor: !selectedDate ? 'not-allowed' : 'pointer'
+                }}
+              >
+                Continue to Time Selection →
+              </button>
+            </div>
+          )}
+
+          {/* STEP 2: TIME */}
+          {step === 2 && (
+            <div>
+              <h3 style={styles.stepTitle}>Select Time Slot</h3>
+              <p style={styles.selectedInfo}>📅 {formatDateFull(new Date(selectedDate))}</p>
+              <div style={styles.timeGrid}>
+                {timeSlots.map(slot => {
+                  const isSelected = selectedTimeSlot === slot;
+                  return (
+                    <button
+                      key={slot}
+                      onClick={() => setSelectedTimeSlot(slot)}
+                      style={{
+                        ...styles.timeBtn,
+                        ...(isSelected ? styles.timeBtnActive : {})
+                      }}
+                    >
+                      {slot}
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={styles.btnGroup}>
+                <button onClick={() => setStep(1)} style={styles.btnBack}>
+                  ← Back
+                </button>
+                <button
+                  onClick={() => setStep(3)}
+                  disabled={!selectedTimeSlot}
+                  style={{
+                    ...styles.btnNext,
+                    flex: 1,
+                    opacity: !selectedTimeSlot ? 0.5 : 1,
+                    cursor: !selectedTimeSlot ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  Continue to Details →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3: DETAILS */}
+          {step === 3 && (
+            <form onSubmit={handleSubmit}>
+              <h3 style={styles.stepTitle}>Your Details</h3>
+              <div style={styles.summary}>
+                <p>📅 {formatDateFull(new Date(selectedDate))}</p>
+                <p>🕐 {selectedTimeSlot}</p>
+                <p>💰 {profile.price}</p>
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Your Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  style={styles.input}
+                  placeholder="John Doe"
+                />
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Email *</label>
+                <input
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  style={styles.input}
+                  placeholder="john@example.com"
+                />
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Phone *</label>
+                <input
+                  type="tel"
+                  required
+                  value={formData.phone}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  style={styles.input}
+                  placeholder="+66 123 456 789"
+                />
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Message (Optional)</label>
+                <textarea
+                  value={formData.message}
+                  onChange={(e) => setFormData({...formData, message: e.target.value})}
+                  style={styles.textarea}
+                  placeholder="Any special requests or questions..."
+                  rows={3}
+                />
+              </div>
+
+              <div style={styles.btnGroup}>
+                <button type="button" onClick={() => setStep(2)} style={styles.btnBack}>
+                  ← Back
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  style={{
+                    ...styles.btnSubmit,
+                    flex: 1,
+                    opacity: submitting ? 0.6 : 1
+                  }}
+                >
+                  {submitting ? 'Sending...' : '📨 Send Booking Request'}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
+
+const styles = {
+  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, fontFamily: '"Outfit", sans-serif' },
+  modal: { background: 'white', borderRadius: 20, width: '100%', maxWidth: 700, maxHeight: '90vh', overflowY: 'auto' },
+  header: { background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', padding: 24, borderRadius: '20px 20px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
+  title: { margin: 0, fontSize: 24, fontWeight: 800, color: 'white' },
+  subtitle: { margin: '4px 0 0', fontSize: 14, color: '#d1fae5' },
+  closeBtn: { background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', width: 36, height: 36, borderRadius: '50%', cursor: 'pointer', fontSize: 18, fontWeight: 700 },
+  progress: { display: 'flex', alignItems: 'center', padding: '24px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb' },
+  progressStep: { display: 'flex', alignItems: 'center', gap: 8 },
+  progressStepActive: { color: '#065f46' },
+  progressNumber: { width: 32, height: 32, borderRadius: '50%', background: '#e5e7eb', color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700 },
+  progressLabel: { fontSize: 13, fontWeight: 600, color: '#6b7280' },
+  progressLine: { flex: 1, height: 2, background: '#e5e7eb', margin: '0 12px' },
+  content: { padding: 24 },
+  stepTitle: { margin: '0 0 20px', fontSize: 20, fontWeight: 700, color: '#111827' },
+  dateGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 10, marginBottom: 20 },
+  dateBtn: { padding: '12px 8px', border: '2px solid #e5e7eb', borderRadius: 12, background: 'white', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' },
+  dateBtnActive: { borderColor: '#065f46', background: '#ecfdf5' },
+  dateDay: { fontSize: 11, color: '#6b7280', fontWeight: 600 },
+  dateNumber: { fontSize: 20, fontWeight: 800, color: '#111827', margin: '4px 0' },
+  dateMonth: { fontSize: 11, color: '#6b7280', fontWeight: 600 },
+  timeGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 10, marginBottom: 20, maxHeight: 400, overflowY: 'auto' },
+  timeBtn: { padding: '12px', border: '2px solid #e5e7eb', borderRadius: 10, background: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 600, color: '#374151', transition: 'all 0.2s' },
+  timeBtnActive: { borderColor: '#065f46', background: '#ecfdf5', color: '#065f46' },
+  selectedInfo: { background: '#ecfdf5', padding: 12, borderRadius: 10, fontSize: 14, color: '#065f46', fontWeight: 600, marginBottom: 16 },
+  summary: { background: '#f9fafb', padding: 16, borderRadius: 12, marginBottom: 20, fontSize: 14, color: '#374151' },
+  formGroup: { marginBottom: 16 },
+  label: { display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 },
+  input: { width: '100%', padding: '12px 14px', border: '2px solid #e5e7eb', borderRadius: 10, fontSize: 14, outline: 'none', fontFamily: '"Outfit", sans-serif', boxSizing: 'border-box' },
+  textarea: { width: '100%', padding: '12px 14px', border: '2px solid #e5e7eb', borderRadius: 10, fontSize: 14, outline: 'none', fontFamily: '"Outfit", sans-serif', resize: 'vertical', boxSizing: 'border-box' },
+  btnGroup: { display: 'flex', gap: 12, marginTop: 20 },
+  btnBack: { padding: '14px 24px', background: 'white', color: '#374151', border: '2px solid #e5e7eb', borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' },
+  btnNext: { padding: '14px 24px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', width: '100%' },
+  btnSubmit: { padding: '14px 24px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' }
+};
 
 export default BookingCalendar;

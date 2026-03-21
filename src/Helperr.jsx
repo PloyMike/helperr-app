@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabase';
 import Header from './Header';
+import ReviewsSection from './ReviewsSection';
+import BookingCalendar from './BookingCalendar';
 
 function Helperr() {
   const [profiles, setProfiles] = useState([]);
@@ -9,6 +11,7 @@ function Helperr() {
   const [category, setCategory] = useState('All');
   const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [selected, setSelected] = useState(null);
+  const [showBooking, setShowBooking] = useState(false);
 
   const CATEGORIES = ['All', 'Massage & Wellness', 'Tours & Adventures', 'Yoga & Fitness', 'Cooking Classes', 'Diving & Water Sports', 'Photography'];
 
@@ -18,11 +21,7 @@ function Helperr() {
 
   const fetchProfiles = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
+      const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
       if (error) throw error;
       setProfiles(data || []);
     } catch (error) {
@@ -32,23 +31,20 @@ function Helperr() {
     }
   };
 
-  const filtered = profiles.filter(p => {
-    const matchSearch = !search || 
-      p.name?.toLowerCase().includes(search.toLowerCase()) ||
-      p.job?.toLowerCase().includes(search.toLowerCase()) ||
-      p.tags?.some(t => t.toLowerCase().includes(search.toLowerCase()));
-    const matchCat = category === 'All' || p.category === category;
-    const matchAvail = !onlyAvailable || p.available;
-    return matchSearch && matchCat && matchAvail;
+  const filteredProfiles = profiles.filter(profile => {
+    const matchesSearch = !search || 
+      profile.name?.toLowerCase().includes(search.toLowerCase()) || 
+      profile.job?.toLowerCase().includes(search.toLowerCase()) || 
+      profile.city?.toLowerCase().includes(search.toLowerCase());
+    
+    const matchesCat = category === 'All' || profile.category === category;
+    const matchesAvail = !onlyAvailable || profile.available;
+    
+    return matchesSearch && matchesCat && matchesAvail;
   });
 
   if (loading) {
-    return (
-      <div style={styles.loading}>
-        <div style={{ fontSize: 48 }}>🔍</div>
-        <h2>Loading experts...</h2>
-      </div>
-    );
+    return <div style={styles.loading}><div style={{ fontSize: 48 }}>🔍</div><h2>Loading experts...</h2></div>;
   }
 
   return (
@@ -59,11 +55,9 @@ function Helperr() {
       {/* HERO */}
       <div style={styles.hero}>
         <div style={styles.heroInner}>
-          <p style={styles.heroEyebrow}>🌴 Koh Samui, Thailand</p>
           <h1 style={styles.heroTitle}>Find Local Experts</h1>
           <p style={styles.heroSub}>Book verified local guides, instructors & service providers</p>
 
-          {/* Search */}
           <div style={styles.searchWrap}>
             <span style={{ fontSize: 18 }}>🔍</span>
             <input
@@ -109,12 +103,12 @@ function Helperr() {
       {/* RESULTS */}
       <div style={styles.results}>
         <p style={styles.resultCount}>
-          {filtered.length} expert{filtered.length !== 1 ? 's' : ''} found
+          {filteredProfiles.length} expert{filteredProfiles.length !== 1 ? 's' : ''} found
           {category !== 'All' ? ` in "${category}"` : ''}
           {search ? ` matching "${search}"` : ''}
         </p>
 
-        {filtered.length === 0 ? (
+        {filteredProfiles.length === 0 ? (
           <div style={styles.empty}>
             <div style={{ fontSize: 48 }}>🔎</div>
             <h3>No results found</h3>
@@ -128,7 +122,7 @@ function Helperr() {
           </div>
         ) : (
           <div style={styles.grid}>
-            {filtered.map(p => (
+            {filteredProfiles.map(p => (
               <div key={p.id} onClick={() => setSelected(p)} style={styles.card}>
                 <div style={styles.cardTop}>
                   {p.image_url && p.image_url.startsWith('http') ? (
@@ -185,10 +179,10 @@ function Helperr() {
             <div style={{ padding: 24 }}>
               <div style={{ display: 'flex', gap: 16, marginBottom: 20 }}>
                 {selected.image_url && selected.image_url.startsWith('http') ? (
-                <img src={selected.image_url} alt={selected.name} style={{ width: 64, height: 64, borderRadius: 16, objectFit: 'cover' }} />
-              ) : (
-                <div style={{ fontSize: 64 }}>{selected.image_url || '👤'}</div>
-              )}
+                  <img src={selected.image_url} alt={selected.name} style={{ width: 64, height: 64, borderRadius: 16, objectFit: 'cover' }} />
+                ) : (
+                  <div style={{ fontSize: 64 }}>{selected.image_url || '👤'}</div>
+                )}
                 <div>
                   <h2 style={{ margin: 0, fontSize: 24 }}>{selected.name}</h2>
                   <p style={{ color: '#6b7280', margin: '4px 0' }}>{selected.subcategory}</p>
@@ -208,13 +202,33 @@ function Helperr() {
                   ))}
                 </div>
               </div>
+
+              {/* BOOK NOW BUTTON */}
+              <button 
+                onClick={() => setShowBooking(true)} 
+                style={styles.bookBtn}
+              >
+                📅 Book Now
+              </button>
+
               <div style={{ marginTop: 20, padding: 16, background: '#f9fafb', borderRadius: 12 }}>
                 <p style={{ margin: 0, fontSize: 14 }}>📞 {selected.phone}</p>
                 {selected.line_id && <p style={{ margin: '8px 0 0', fontSize: 14 }}>💬 LINE: {selected.line_id}</p>}
               </div>
+
+              {/* REVIEWS SECTION */}
+              <ReviewsSection profileId={selected.id} onReviewAdded={() => fetchProfiles()} />
             </div>
           </div>
         </div>
+      )}
+
+      {/* BOOKING CALENDAR */}
+      {showBooking && selected && (
+        <BookingCalendar 
+          profile={selected} 
+          onClose={() => setShowBooking(false)} 
+        />
       )}
     </div>
   );
@@ -223,9 +237,8 @@ function Helperr() {
 const styles = {
   app: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh' },
   loading: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 },
-  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 100%)', padding: '48px 20px 64px', clipPath: 'ellipse(120% 100% at 50% 0%)' },
+  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 100%)', padding: '100px 20px 64px', clipPath: 'ellipse(120% 100% at 50% 0%)' },
   heroInner: { maxWidth: 700, margin: '0 auto', textAlign: 'center' },
-  heroEyebrow: { color: '#a7f3d0', fontSize: 14, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', margin: '0 0 12px' },
   heroTitle: { color: '#fff', fontSize: 52, fontWeight: 800, margin: '0 0 12px', letterSpacing: '-0.02em' },
   heroSub: { color: '#d1fae5', fontSize: 16, margin: '0 0 32px', lineHeight: 1.6 },
   searchWrap: { background: '#fff', borderRadius: 16, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 10, boxShadow: '0 20px 40px rgba(0,0,0,0.15)' },
@@ -254,7 +267,8 @@ const styles = {
   btnPrimary: { background: '#065f46', color: '#fff', border: 'none', borderRadius: 10, padding: '11px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' },
   modalBackdrop: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
   modal: { background: '#fff', borderRadius: 20, width: '100%', maxWidth: 600, maxHeight: '90vh', overflowY: 'auto', position: 'relative' },
-  closeBtn: { position: 'absolute', top: 16, right: 16, background: '#f3f4f6', border: 'none', borderRadius: 10, width: 36, height: 36, cursor: 'pointer', fontSize: 14 }
+  closeBtn: { position: 'absolute', top: 16, right: 16, background: '#f3f4f6', border: 'none', borderRadius: 10, width: 36, height: 36, cursor: 'pointer', fontSize: 14 },
+  bookBtn: { width: '100%', padding: '16px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', marginTop: 20, boxShadow: '0 4px 12px rgba(6,95,70,0.3)' }
 };
 
 export default Helperr;
