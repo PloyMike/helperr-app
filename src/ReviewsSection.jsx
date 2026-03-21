@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabase';
-import { useAuth } from './AuthContext';
 
 function ReviewsSection({ profileId, onReviewAdded }) {
-  const { user } = useAuth();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -14,11 +12,7 @@ function ReviewsSection({ profileId, onReviewAdded }) {
   });
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchReviews();
-  }, [profileId]);
-
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('reviews')
@@ -33,22 +27,30 @@ function ReviewsSection({ profileId, onReviewAdded }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [profileId]);
+
+  useEffect(() => {
+    fetchReviews();
+  }, [fetchReviews]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
 
     try {
+      const reviewData = {
+        profile_id: profileId,
+        author_name: formData.author_name,
+        rating: formData.rating,
+        review_text: formData.review_text,
+        review_date: new Date().toISOString().split('T')[0]
+      };
+
       const { error } = await supabase
         .from('reviews')
-        .insert([{
-          profile_id: profileId,
-          author_name: formData.author_name,
-          rating: formData.rating,
-          review_text: formData.review_text,
-          review_date: new Date().toISOString().split('T')[0]
-        }]);
+        .insert([reviewData])
+        .select()
+        .single();
 
       if (error) throw error;
 
@@ -61,6 +63,16 @@ function ReviewsSection({ profileId, onReviewAdded }) {
           review_count: reviews.length + 1 
         })
         .eq('id', profileId);
+
+      // Get provider info and send email
+      const { data: provider } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', profileId)
+        .single();
+
+      if (provider) {
+      }
 
       alert('✅ Review submitted successfully!');
       setShowForm(false);
@@ -91,7 +103,6 @@ function ReviewsSection({ profileId, onReviewAdded }) {
         )}
       </div>
 
-      {/* REVIEW FORM */}
       {showForm && (
         <form onSubmit={handleSubmit} style={styles.form}>
           <div style={styles.formHeader}>
@@ -156,7 +167,6 @@ function ReviewsSection({ profileId, onReviewAdded }) {
         </form>
       )}
 
-      {/* REVIEWS LIST */}
       {reviews.length === 0 ? (
         <div style={styles.empty}>
           <div style={{ fontSize: 48 }}>⭐</div>

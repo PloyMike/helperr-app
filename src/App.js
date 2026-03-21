@@ -5,7 +5,6 @@ import ProfilDetail from './ProfilDetail';
 import MyBookings from './MyBookings';
 import Favorites from './Favorites';
 import RegisterPage from './RegisterPage';
-import AdminDashboard from './AdminDashboard';
 import LoginPage from './LoginPage';
 import SignupPage from './SignupPage';
 import MessagesPage from './MessagesPage';

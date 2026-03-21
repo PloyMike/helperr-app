@@ -25,27 +25,17 @@ function BookingCalendar({ profile, onClose }) {
   };
 
   const formatDate = (date) => {
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'short', 
-      day: '2-digit', 
-      month: 'short' 
-    });
+    return date.toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short' });
   };
 
   const formatDateFull = (date) => {
-    return date.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      day: '2-digit', 
-      month: 'long',
-      year: 'numeric'
-    });
+    return date.toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
   };
 
   const formatDateISO = (date) => {
     return date.toISOString().split('T')[0];
   };
 
-  // 24-hour time slots
   const timeSlots = Array.from({ length: 24 }, (_, i) => {
     const start = i.toString().padStart(2, '0') + ':00';
     const end = ((i + 1) % 24).toString().padStart(2, '0') + ':00';
@@ -57,23 +47,20 @@ function BookingCalendar({ profile, onClose }) {
     setSubmitting(true);
 
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .insert([{
-          profile_id: profile.id,
-          customer_name: formData.name,
-          customer_email: formData.email,
-          customer_phone: formData.phone,
-          booking_date: selectedDate,
-          time_slot: selectedTimeSlot,
-          message: formData.message,
-          total_price: profile.price,
-          status: 'pending'
-        }]);
+      const { error } = await supabase.from('bookings').insert([{
+        profile_id: profile.id,
+        customer_name: formData.name,
+        customer_email: formData.email,
+        customer_phone: formData.phone,
+        booking_date: selectedDate,
+        time_slot: selectedTimeSlot,
+        message: formData.message,
+        total_price: profile.price,
+        status: 'pending'
+      }]);
 
       if (error) throw error;
-
-      alert('✅ Booking request sent successfully! The provider will confirm shortly.');
+      alert('✅ Booking request sent successfully!');
       onClose();
     } catch (error) {
       alert('Error: ' + error.message);
@@ -86,7 +73,6 @@ function BookingCalendar({ profile, onClose }) {
     <div style={styles.overlay}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
       <div style={styles.modal}>
-        {/* HEADER */}
         <div style={styles.header}>
           <div>
             <h2 style={styles.title}>Book {profile.name}</h2>
@@ -94,8 +80,6 @@ function BookingCalendar({ profile, onClose }) {
           </div>
           <button onClick={onClose} style={styles.closeBtn}>✕</button>
         </div>
-
-        {/* PROGRESS */}
         <div style={styles.progress}>
           <div style={{...styles.progressStep, ...(step >= 1 ? styles.progressStepActive : {})}}>
             <div style={styles.progressNumber}>1</div>
@@ -112,9 +96,7 @@ function BookingCalendar({ profile, onClose }) {
             <span style={styles.progressLabel}>Details</span>
           </div>
         </div>
-
         <div style={styles.content}>
-          {/* STEP 1: DATE */}
           {step === 1 && (
             <div>
               <h3 style={styles.stepTitle}>Select a Date</h3>
@@ -123,14 +105,7 @@ function BookingCalendar({ profile, onClose }) {
                   const dateISO = formatDateISO(date);
                   const isSelected = selectedDate === dateISO;
                   return (
-                    <button
-                      key={dateISO}
-                      onClick={() => setSelectedDate(dateISO)}
-                      style={{
-                        ...styles.dateBtn,
-                        ...(isSelected ? styles.dateBtnActive : {})
-                      }}
-                    >
+                    <button key={dateISO} onClick={() => setSelectedDate(dateISO)} style={{...styles.dateBtn, ...(isSelected ? styles.dateBtnActive : {})}}>
                       <div style={styles.dateDay}>{formatDate(date).split(',')[0]}</div>
                       <div style={styles.dateNumber}>{date.getDate()}</div>
                       <div style={styles.dateMonth}>{formatDate(date).split(' ')[1]}</div>
@@ -138,21 +113,11 @@ function BookingCalendar({ profile, onClose }) {
                   );
                 })}
               </div>
-              <button
-                onClick={() => setStep(2)}
-                disabled={!selectedDate}
-                style={{
-                  ...styles.btnNext,
-                  opacity: !selectedDate ? 0.5 : 1,
-                  cursor: !selectedDate ? 'not-allowed' : 'pointer'
-                }}
-              >
+              <button onClick={() => setStep(2)} disabled={!selectedDate} style={{...styles.btnNext, opacity: !selectedDate ? 0.5 : 1, cursor: !selectedDate ? 'not-allowed' : 'pointer'}}>
                 Continue to Time Selection →
               </button>
             </div>
           )}
-
-          {/* STEP 2: TIME */}
           {step === 2 && (
             <div>
               <h3 style={styles.stepTitle}>Select Time Slot</h3>
@@ -161,40 +126,20 @@ function BookingCalendar({ profile, onClose }) {
                 {timeSlots.map(slot => {
                   const isSelected = selectedTimeSlot === slot;
                   return (
-                    <button
-                      key={slot}
-                      onClick={() => setSelectedTimeSlot(slot)}
-                      style={{
-                        ...styles.timeBtn,
-                        ...(isSelected ? styles.timeBtnActive : {})
-                      }}
-                    >
+                    <button key={slot} onClick={() => setSelectedTimeSlot(slot)} style={{...styles.timeBtn, ...(isSelected ? styles.timeBtnActive : {})}}>
                       {slot}
                     </button>
                   );
                 })}
               </div>
               <div style={styles.btnGroup}>
-                <button onClick={() => setStep(1)} style={styles.btnBack}>
-                  ← Back
-                </button>
-                <button
-                  onClick={() => setStep(3)}
-                  disabled={!selectedTimeSlot}
-                  style={{
-                    ...styles.btnNext,
-                    flex: 1,
-                    opacity: !selectedTimeSlot ? 0.5 : 1,
-                    cursor: !selectedTimeSlot ? 'not-allowed' : 'pointer'
-                  }}
-                >
+                <button onClick={() => setStep(1)} style={styles.btnBack}>← Back</button>
+                <button onClick={() => setStep(3)} disabled={!selectedTimeSlot} style={{...styles.btnNext, flex: 1, opacity: !selectedTimeSlot ? 0.5 : 1, cursor: !selectedTimeSlot ? 'not-allowed' : 'pointer'}}>
                   Continue to Details →
                 </button>
               </div>
             </div>
           )}
-
-          {/* STEP 3: DETAILS */}
           {step === 3 && (
             <form onSubmit={handleSubmit}>
               <h3 style={styles.stepTitle}>Your Details</h3>
@@ -203,67 +148,25 @@ function BookingCalendar({ profile, onClose }) {
                 <p>🕐 {selectedTimeSlot}</p>
                 <p>💰 {profile.price}</p>
               </div>
-
               <div style={styles.formGroup}>
                 <label style={styles.label}>Your Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  style={styles.input}
-                  placeholder="John Doe"
-                />
+                <input type="text" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} style={styles.input} placeholder="John Doe" />
               </div>
-
               <div style={styles.formGroup}>
                 <label style={styles.label}>Email *</label>
-                <input
-                  type="email"
-                  required
-                  value={formData.email}
-                  onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  style={styles.input}
-                  placeholder="john@example.com"
-                />
+                <input type="email" required value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} style={styles.input} placeholder="john@example.com" />
               </div>
-
               <div style={styles.formGroup}>
                 <label style={styles.label}>Phone *</label>
-                <input
-                  type="tel"
-                  required
-                  value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  style={styles.input}
-                  placeholder="+66 123 456 789"
-                />
+                <input type="tel" required value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} style={styles.input} placeholder="+66 123 456 789" />
               </div>
-
               <div style={styles.formGroup}>
                 <label style={styles.label}>Message (Optional)</label>
-                <textarea
-                  value={formData.message}
-                  onChange={(e) => setFormData({...formData, message: e.target.value})}
-                  style={styles.textarea}
-                  placeholder="Any special requests or questions..."
-                  rows={3}
-                />
+                <textarea value={formData.message} onChange={(e) => setFormData({...formData, message: e.target.value})} style={styles.textarea} placeholder="Any special requests..." rows={3} />
               </div>
-
               <div style={styles.btnGroup}>
-                <button type="button" onClick={() => setStep(2)} style={styles.btnBack}>
-                  ← Back
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  style={{
-                    ...styles.btnSubmit,
-                    flex: 1,
-                    opacity: submitting ? 0.6 : 1
-                  }}
-                >
+                <button type="button" onClick={() => setStep(2)} style={styles.btnBack}>← Back</button>
+                <button type="submit" disabled={submitting} style={{...styles.btnSubmit, flex: 1, opacity: submitting ? 0.6 : 1}}>
                   {submitting ? 'Sending...' : '📨 Send Booking Request'}
                 </button>
               </div>
