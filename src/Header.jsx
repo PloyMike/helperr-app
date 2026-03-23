@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from './supabase';
 
-function Header({ transparent = false }) {
+function Header({ transparent = false, variant = 'default' }) {
   const { user, signOut } = useAuth();
   const [favorites, setFavorites] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -10,17 +10,32 @@ function Header({ transparent = false }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
 
   useEffect(() => {
     if (transparent) {
       const handleScroll = () => {
-        // Hero Höhe ist etwa 180px (120px padding-top + 60px content)
         setScrolled(window.scrollY > 180);
       };
       window.addEventListener('scroll', handleScroll);
       return () => window.removeEventListener('scroll', handleScroll);
     }
   }, [transparent]);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('image_url, name')
+          .eq('email', user.email)
+          .single();
+        
+        if (data) setUserProfile(data);
+      }
+    };
+    fetchUserProfile();
+  }, [user]);
 
   useEffect(() => {
     const saved = localStorage.getItem('helperr_favorites');
@@ -91,9 +106,22 @@ function Header({ transparent = false }) {
   };
 
   const isTransparent = transparent && !scrolled;
-  const headerStyle = isTransparent ? styles.headerTransparent : styles.header;
-  const textColor = isTransparent ? '#ffffff' : '#374151';
-  const logoColor = isTransparent ? '#ffffff' : '#065f46';
+  
+  let headerStyle, textColor, logoColor;
+  
+  if (variant === 'green') {
+    headerStyle = styles.headerGreen;
+    textColor = '#ffffff';
+    logoColor = '#ffffff';
+  } else if (isTransparent) {
+    headerStyle = styles.headerTransparent;
+    textColor = '#ffffff';
+    logoColor = '#ffffff';
+  } else {
+    headerStyle = styles.header;
+    textColor = '#374151';
+    logoColor = '#065f46';
+  }
 
   return (
     <header style={headerStyle}>
@@ -102,28 +130,28 @@ function Header({ transparent = false }) {
         
         {/* LOGO */}
         <div onClick={() => window.navigateTo('home')} style={styles.logo}>
-          <div style={{...styles.logoText, color: logoColor, textShadow: isTransparent ? '0 2px 4px rgba(0,0,0,0.2)' : 'none'}}>Helperr</div>
+          <div style={{...styles.logoText, color: logoColor, textShadow: (isTransparent || variant === 'green') ? '0 2px 4px rgba(0,0,0,0.2)' : 'none'}}>Helperr</div>
         </div>
 
         {/* DESKTOP NAVIGATION */}
         <nav style={styles.desktopNav} className="desktop-nav">
-          <button onClick={() => window.navigateTo('home')} style={{...styles.navBtn, color: textColor, textShadow: isTransparent ? '0 1px 2px rgba(0,0,0,0.3)' : 'none'}} onMouseOver={(e) => e.target.style.opacity = '0.8'} onMouseOut={(e) => e.target.style.opacity = '1'}>
+          <button onClick={() => window.navigateTo('home')} style={{...styles.navBtn, color: textColor, textShadow: (isTransparent || variant === 'green') ? '0 1px 2px rgba(0,0,0,0.3)' : 'none'}} onMouseOver={(e) => e.target.style.opacity = '0.8'} onMouseOut={(e) => e.target.style.opacity = '1'}>
             Home
           </button>
 
           {user && (
             <>
-              <button onClick={() => window.navigateTo('bookings')} style={{...styles.navBtnWithBadge, color: textColor, textShadow: isTransparent ? '0 1px 2px rgba(0,0,0,0.3)' : 'none'}} onMouseOver={(e) => e.target.style.opacity = '0.8'} onMouseOut={(e) => e.target.style.opacity = '1'}>
+              <button onClick={() => window.navigateTo('bookings')} style={{...styles.navBtnWithBadge, color: textColor, textShadow: (isTransparent || variant === 'green') ? '0 1px 2px rgba(0,0,0,0.3)' : 'none'}} onMouseOver={(e) => e.target.style.opacity = '0.8'} onMouseOut={(e) => e.target.style.opacity = '1'}>
                 Bookings
                 {pendingBookings > 0 && <span style={styles.badge}>{pendingBookings}</span>}
               </button>
 
-              <button onClick={() => window.navigateTo('messages')} style={{...styles.navBtnWithBadge, color: textColor, textShadow: isTransparent ? '0 1px 2px rgba(0,0,0,0.3)' : 'none'}} onMouseOver={(e) => e.target.style.opacity = '0.8'} onMouseOut={(e) => e.target.style.opacity = '1'}>
+              <button onClick={() => window.navigateTo('messages')} style={{...styles.navBtnWithBadge, color: textColor, textShadow: (isTransparent || variant === 'green') ? '0 1px 2px rgba(0,0,0,0.3)' : 'none'}} onMouseOver={(e) => e.target.style.opacity = '0.8'} onMouseOut={(e) => e.target.style.opacity = '1'}>
                 Messages
                 {unreadCount > 0 && <span style={styles.badge}>{unreadCount}</span>}
               </button>
 
-              <button onClick={() => window.navigateTo('favorites')} style={{...styles.navBtnWithBadge, color: textColor, textShadow: isTransparent ? '0 1px 2px rgba(0,0,0,0.3)' : 'none'}} onMouseOver={(e) => e.target.style.opacity = '0.8'} onMouseOut={(e) => e.target.style.opacity = '1'}>
+              <button onClick={() => window.navigateTo('favorites')} style={{...styles.navBtnWithBadge, color: textColor, textShadow: (isTransparent || variant === 'green') ? '0 1px 2px rgba(0,0,0,0.3)' : 'none'}} onMouseOver={(e) => e.target.style.opacity = '0.8'} onMouseOut={(e) => e.target.style.opacity = '1'}>
                 Favorites
                 {favorites.length > 0 && <span style={styles.badge}>{favorites.length}</span>}
               </button>
@@ -131,15 +159,21 @@ function Header({ transparent = false }) {
           )}
 
           {!user && (
-            <button onClick={() => window.navigateTo('register')} style={{...styles.navBtn, color: textColor, textShadow: isTransparent ? '0 1px 2px rgba(0,0,0,0.3)' : 'none'}} onMouseOver={(e) => e.target.style.opacity = '0.8'} onMouseOut={(e) => e.target.style.opacity = '1'}>
+            <button onClick={() => window.navigateTo('register')} style={{...styles.navBtn, color: textColor, textShadow: (isTransparent || variant === 'green') ? '0 1px 2px rgba(0,0,0,0.3)' : 'none'}} onMouseOver={(e) => e.target.style.opacity = '0.8'} onMouseOut={(e) => e.target.style.opacity = '1'}>
               Become a Provider
             </button>
           )}
 
           {user ? (
             <div style={{ position: 'relative' }}>
-              <button onClick={() => setDropdownOpen(!dropdownOpen)} style={{...styles.settingsBtn, background: isTransparent ? 'rgba(255,255,255,0.2)' : '#F3F4F6', backdropFilter: isTransparent ? 'blur(10px)' : 'none'}}>
-                ⚙️
+              <button onClick={() => setDropdownOpen(!dropdownOpen)} style={styles.profileBtn}>
+                {userProfile?.image_url && userProfile.image_url.startsWith('http') ? (
+                  <img src={userProfile.image_url} alt="Profile" style={styles.profileImage} />
+                ) : (
+                  <div style={styles.profilePlaceholder}>
+                    {userProfile?.name?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
+                  </div>
+                )}
               </button>
               {dropdownOpen && (
                 <div style={styles.dropdown}>
@@ -157,14 +191,14 @@ function Header({ transparent = false }) {
               )}
             </div>
           ) : (
-            <button onClick={() => window.navigateTo('login')} style={{...styles.loginBtn, background: isTransparent ? 'rgba(255,255,255,0.2)' : '#065f46', backdropFilter: isTransparent ? 'blur(10px)' : 'none', border: isTransparent ? '1px solid rgba(255,255,255,0.3)' : 'none'}}>
+            <button onClick={() => window.navigateTo('login')} style={{...styles.loginBtn, background: (isTransparent || variant === 'green') ? 'rgba(255,255,255,0.2)' : '#065f46', backdropFilter: (isTransparent || variant === 'green') ? 'blur(10px)' : 'none', border: (isTransparent || variant === 'green') ? '1px solid rgba(255,255,255,0.3)' : 'none'}}>
               Login
             </button>
           )}
         </nav>
 
         {/* MOBILE MENU BUTTON */}
-        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{...styles.mobileMenuBtn, background: isTransparent ? 'rgba(255,255,255,0.2)' : '#F3F4F6', color: isTransparent ? '#fff' : '#374151', backdropFilter: isTransparent ? 'blur(10px)' : 'none'}} className="mobile-menu-btn">
+        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} style={{...styles.mobileMenuBtn, background: (isTransparent || variant === 'green') ? 'rgba(255,255,255,0.2)' : '#F3F4F6', color: (isTransparent || variant === 'green') ? '#fff' : '#374151', backdropFilter: (isTransparent || variant === 'green') ? 'blur(10px)' : 'none'}} className="mobile-menu-btn">
           {mobileMenuOpen ? '✕' : '☰'}
         </button>
       </div>
@@ -226,6 +260,7 @@ function Header({ transparent = false }) {
 const styles = {
   header: { position: 'fixed', top: 0, left: 0, right: 0, background: 'white', padding: '16px 20px', boxShadow: '0 2px 10px rgba(0,0,0,0.08)', zIndex: 1000, fontFamily: '"Outfit", sans-serif', transition: 'all 0.3s ease' },
   headerTransparent: { position: 'fixed', top: 0, left: 0, right: 0, background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(10px)', padding: '16px 20px', boxShadow: 'none', zIndex: 1000, fontFamily: '"Outfit", sans-serif', borderBottom: '1px solid rgba(255,255,255,0.1)', transition: 'all 0.3s ease' },
+  headerGreen: { position: 'fixed', top: 0, left: 0, right: 0, background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', padding: '16px 20px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)', zIndex: 1000, fontFamily: '"Outfit", sans-serif', transition: 'all 0.3s ease' },
   container: { maxWidth: 1400, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
   logo: { display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' },
   logoText: { fontSize: 32, fontWeight: 800, letterSpacing: '-1px', transition: 'all 0.3s ease' },
@@ -233,7 +268,9 @@ const styles = {
   navBtn: { background: 'none', border: 'none', fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.2s' },
   navBtnWithBadge: { position: 'relative', background: 'none', border: 'none', fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.2s' },
   badge: { position: 'absolute', top: -8, right: -12, background: '#F97316', color: 'white', fontSize: 11, fontWeight: 700, padding: '2px 6px', borderRadius: 10, minWidth: 18, textAlign: 'center' },
-  settingsBtn: { border: 'none', width: 40, height: 40, borderRadius: '50%', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.3s' },
+  profileBtn: { border: 'none', width: 40, height: 40, borderRadius: '50%', cursor: 'pointer', padding: 0, overflow: 'hidden', background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  profileImage: { width: '100%', height: '100%', objectFit: 'cover' },
+  profilePlaceholder: { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', fontSize: 16, fontWeight: 700 },
   loginBtn: { color: 'white', border: 'none', padding: '10px 24px', borderRadius: 8, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.3s' },
   dropdown: { position: 'absolute', top: 50, right: 0, background: 'white', borderRadius: 12, boxShadow: '0 10px 30px rgba(0,0,0,0.15)', minWidth: 180, overflow: 'hidden', zIndex: 1001 },
   dropdownItem: { width: '100%', padding: '12px 20px', background: 'none', border: 'none', textAlign: 'left', fontSize: 14, fontWeight: 500, color: '#374151', cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'background 0.2s' },

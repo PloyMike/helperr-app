@@ -43,6 +43,11 @@ function Helperr() {
     return matchesSearch && matchesCat && matchesAvail;
   });
 
+  const handleMessageProvider = (email) => {
+    localStorage.setItem('helperr_message_to', email);
+    window.navigateTo('messages');
+  };
+
   if (loading) {
     return <div style={styles.loading}><div style={{ fontSize: 48 }}>🔍</div><h2>Loading experts...</h2></div>;
   }
@@ -203,17 +208,43 @@ function Helperr() {
                 </div>
               </div>
 
-              {/* BOOK NOW BUTTON */}
-              <button 
-                onClick={() => setShowBooking(true)} 
-                style={styles.bookBtn}
-              >
-                📅 Book Now
-              </button>
-
-              <div style={{ marginTop: 20, padding: 16, background: '#f9fafb', borderRadius: 12 }}>
-                <p style={{ margin: 0, fontSize: 14 }}>📞 {selected.phone}</p>
-                {selected.line_id && <p style={{ margin: '8px 0 0', fontSize: 14 }}>💬 LINE: {selected.line_id}</p>}
+              {/* CONTACT & BOOK BUTTONS */}
+              <div style={{ display: 'flex', gap: 12, marginTop: 20 }}>
+                <button 
+                  onClick={() => handleMessageProvider(selected.email)} 
+                  style={{
+                    flex: 1,
+                    padding: '16px',
+                    background: 'white',
+                    color: '#065f46',
+                    border: '2px solid #065f46',
+                    borderRadius: 12,
+                    fontSize: 16,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    fontFamily: '"Outfit", sans-serif'
+                  }}
+                >
+                  💬 Message Provider
+                </button>
+                <button 
+                  onClick={() => setShowBooking(true)} 
+                  style={{
+                    flex: 1,
+                    padding: '16px',
+                    background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: 12,
+                    fontSize: 16,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    fontFamily: '"Outfit", sans-serif',
+                    boxShadow: '0 4px 12px rgba(6,95,70,0.3)'
+                  }}
+                >
+                  📅 Book Now
+                </button>
               </div>
 
               {/* REVIEWS SECTION */}
@@ -265,10 +296,9 @@ const styles = {
   tag: { background: '#f3f4f6', color: '#374151', fontSize: 12, padding: '4px 10px', borderRadius: 20, fontWeight: 500 },
   empty: { textAlign: 'center', padding: '60px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 },
   btnPrimary: { background: '#065f46', color: '#fff', border: 'none', borderRadius: 10, padding: '11px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' },
-  modalBackdrop: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  modalBackdrop: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
   modal: { background: '#fff', borderRadius: 20, width: '100%', maxWidth: 600, maxHeight: '90vh', overflowY: 'auto', position: 'relative' },
-  closeBtn: { position: 'absolute', top: 16, right: 16, background: '#f3f4f6', border: 'none', borderRadius: 10, width: 36, height: 36, cursor: 'pointer', fontSize: 14 },
-  bookBtn: { width: '100%', padding: '16px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', marginTop: 20, boxShadow: '0 4px 12px rgba(6,95,70,0.3)' }
+  closeBtn: { position: 'absolute', top: 16, right: 16, background: '#f3f4f6', border: 'none', borderRadius: 10, width: 36, height: 36, cursor: 'pointer', fontSize: 14 }
 };
 
 export default Helperr;

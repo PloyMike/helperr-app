@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabase';
 
 function BookingCalendar({ profile, onClose }) {
   const [step, setStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
+  const [bookedSlots, setBookedSlots] = useState([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -41,6 +43,34 @@ function BookingCalendar({ profile, onClose }) {
     const end = ((i + 1) % 24).toString().padStart(2, '0') + ':00';
     return `${start} - ${end}`;
   });
+
+  const fetchBookedSlots = useCallback(async (date) => {
+    setLoadingSlots(true);
+    try {
+      const { data, error } = await supabase
+        .from('bookings')
+        .select('time_slot')
+        .eq('profile_id', profile.id)
+        .eq('booking_date', date)
+        .in('status', ['pending', 'confirmed']);
+
+      if (error) throw error;
+      
+      const slots = data.map(booking => booking.time_slot);
+      setBookedSlots(slots);
+    } catch (error) {
+      console.error('Error loading booked slots:', error);
+      setBookedSlots([]);
+    } finally {
+      setLoadingSlots(false);
+    }
+  }, [profile.id]);
+
+  useEffect(() => {
+    if (selectedDate) {
+      fetchBookedSlots(selectedDate);
+    }
+  }, [selectedDate, fetchBookedSlots]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -122,16 +152,43 @@ function BookingCalendar({ profile, onClose }) {
             <div>
               <h3 style={styles.stepTitle}>Select Time Slot</h3>
               <p style={styles.selectedInfo}>📅 {formatDateFull(new Date(selectedDate))}</p>
-              <div style={styles.timeGrid}>
-                {timeSlots.map(slot => {
-                  const isSelected = selectedTimeSlot === slot;
-                  return (
-                    <button key={slot} onClick={() => setSelectedTimeSlot(slot)} style={{...styles.timeBtn, ...(isSelected ? styles.timeBtnActive : {})}}>
-                      {slot}
-                    </button>
-                  );
-                })}
-              </div>
+              
+              {loadingSlots ? (
+                <div style={styles.loadingSlots}>
+                  <div style={{ fontSize: 24 }}>⏳</div>
+                  <p>Checking availability...</p>
+                </div>
+              ) : (
+                <>
+                  {bookedSlots.length > 0 && (
+                    <div style={styles.infoBox}>
+                      ℹ️ {bookedSlots.length} slot{bookedSlots.length > 1 ? 's' : ''} already booked on this day
+                    </div>
+                  )}
+                  <div style={styles.timeGrid}>
+                    {timeSlots.map(slot => {
+                      const isBooked = bookedSlots.includes(slot);
+                      const isSelected = selectedTimeSlot === slot;
+                      return (
+                        <button
+                          key={slot}
+                          onClick={() => !isBooked && setSelectedTimeSlot(slot)}
+                          disabled={isBooked}
+                          style={{
+                            ...styles.timeBtn,
+                            ...(isSelected ? styles.timeBtnActive : {}),
+                            ...(isBooked ? styles.timeBtnBooked : {})
+                          }}
+                        >
+                          {slot}
+                          {isBooked && <div style={styles.bookedLabel}>Booked</div>}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+              
               <div style={styles.btnGroup}>
                 <button onClick={() => setStep(1)} style={styles.btnBack}>← Back</button>
                 <button onClick={() => setStep(3)} disabled={!selectedTimeSlot} style={{...styles.btnNext, flex: 1, opacity: !selectedTimeSlot ? 0.5 : 1, cursor: !selectedTimeSlot ? 'not-allowed' : 'pointer'}}>
@@ -179,7 +236,7 @@ function BookingCalendar({ profile, onClose }) {
 }
 
 const styles = {
-  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, fontFamily: '"Outfit", sans-serif' },
+  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, fontFamily: '"Outfit", sans-serif' },
   modal: { background: 'white', borderRadius: 20, width: '100%', maxWidth: 700, maxHeight: '90vh', overflowY: 'auto' },
   header: { background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', padding: 24, borderRadius: '20px 20px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
   title: { margin: 0, fontSize: 24, fontWeight: 800, color: 'white' },
@@ -200,9 +257,13 @@ const styles = {
   dateNumber: { fontSize: 20, fontWeight: 800, color: '#111827', margin: '4px 0' },
   dateMonth: { fontSize: 11, color: '#6b7280', fontWeight: 600 },
   timeGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 10, marginBottom: 20, maxHeight: 400, overflowY: 'auto' },
-  timeBtn: { padding: '12px', border: '2px solid #e5e7eb', borderRadius: 10, background: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 600, color: '#374151', transition: 'all 0.2s' },
+  timeBtn: { padding: '12px', border: '2px solid #e5e7eb', borderRadius: 10, background: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 600, color: '#374151', transition: 'all 0.2s', position: 'relative' },
   timeBtnActive: { borderColor: '#065f46', background: '#ecfdf5', color: '#065f46' },
+  timeBtnBooked: { background: '#fee2e2', borderColor: '#fecaca', color: '#991b1b', cursor: 'not-allowed', opacity: 0.6 },
+  bookedLabel: { fontSize: 10, color: '#dc2626', fontWeight: 700, marginTop: 4 },
   selectedInfo: { background: '#ecfdf5', padding: 12, borderRadius: 10, fontSize: 14, color: '#065f46', fontWeight: 600, marginBottom: 16 },
+  infoBox: { background: '#fffbeb', padding: 12, borderRadius: 10, fontSize: 13, color: '#92400e', marginBottom: 16, fontWeight: 500 },
+  loadingSlots: { textAlign: 'center', padding: 40, color: '#6b7280' },
   summary: { background: '#f9fafb', padding: 16, borderRadius: 12, marginBottom: 20, fontSize: 14, color: '#374151' },
   formGroup: { marginBottom: 16 },
   label: { display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 },
