@@ -1,19 +1,59 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabase';
+import { useAuth } from './AuthContext';
 
 function BookingCalendar({ profile, onClose }) {
+  
+  const containsForbiddenContent = (text) => {
+    const forbiddenPatterns = [
+      /\b\d{10,}\b/,
+      /\+?\d[\d\s\-()]{8,}/,
+      /\b0\d{9}\b/,
+      /@/,
+      /\[at\]/i,
+      /\.com\b/i,
+      /\.net\b/i,
+      /\.org\b/i,
+      /\.de\b/i,
+      /\.co\b/i,
+      /whatsapp/i,
+      /line\s*id/i,
+      /telegram/i,
+      /facebook/i,
+      /instagram/i,
+      /wechat/i,
+      /viber/i,
+      /signal/i
+    ];
+
+    return forbiddenPatterns.some(pattern => pattern.test(text));
+  };
+
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
   const [bookedSlots, setBookedSlots] = useState([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    message: ''
-  });
+  const [userProfile, setUserProfile] = useState(null);
+  const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // Fetch user profile data
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('name, email, phone')
+          .eq('email', user.email)
+          .single();
+        
+        setUserProfile(data || { name: '', email: user.email, phone: '' });
+      }
+    };
+    fetchUserProfile();
+  }, [user]);
 
   const getAvailableDates = () => {
     const dates = [];
@@ -74,17 +114,29 @@ function BookingCalendar({ profile, onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check message for forbidden content
+    if (message && containsForbiddenContent(message)) {
+      alert('⚠️ Your message contains phone numbers, emails, or external contact methods which are not allowed. Please use our platform messaging for all communication.');
+      return;
+    }
+    
+    if (!user) {
+      alert('Please login to make a booking');
+      return;
+    }
+
     setSubmitting(true);
 
     try {
       const { error } = await supabase.from('bookings').insert([{
         profile_id: profile.id,
-        customer_name: formData.name,
-        customer_email: formData.email,
-        customer_phone: formData.phone,
+        customer_name: userProfile?.name || 'Customer',
+        customer_email: userProfile?.email || user.email,
+        customer_phone: userProfile?.phone || '',
         booking_date: selectedDate,
         time_slot: selectedTimeSlot,
-        message: formData.message,
+        message: message,
         total_price: profile.price,
         status: 'pending'
       }]);
@@ -123,7 +175,7 @@ function BookingCalendar({ profile, onClose }) {
           <div style={styles.progressLine} />
           <div style={{...styles.progressStep, ...(step >= 3 ? styles.progressStepActive : {})}}>
             <div style={styles.progressNumber}>3</div>
-            <span style={styles.progressLabel}>Details</span>
+            <span style={styles.progressLabel}>Confirm</span>
           </div>
         </div>
         <div style={styles.content}>
@@ -192,39 +244,61 @@ function BookingCalendar({ profile, onClose }) {
               <div style={styles.btnGroup}>
                 <button onClick={() => setStep(1)} style={styles.btnBack}>← Back</button>
                 <button onClick={() => setStep(3)} disabled={!selectedTimeSlot} style={{...styles.btnNext, flex: 1, opacity: !selectedTimeSlot ? 0.5 : 1, cursor: !selectedTimeSlot ? 'not-allowed' : 'pointer'}}>
-                  Continue to Details →
+                  Continue to Confirm →
                 </button>
               </div>
             </div>
           )}
           {step === 3 && (
             <form onSubmit={handleSubmit}>
-              <h3 style={styles.stepTitle}>Your Details</h3>
+              <h3 style={styles.stepTitle}>Confirm Booking</h3>
+              
               <div style={styles.summary}>
-                <p>📅 {formatDateFull(new Date(selectedDate))}</p>
-                <p>🕐 {selectedTimeSlot}</p>
-                <p>💰 {profile.price}</p>
+                <div style={styles.summaryRow}>
+                  <span style={styles.summaryLabel}>Provider:</span>
+                  <span style={styles.summaryValue}>{profile.name}</span>
+                </div>
+                <div style={styles.summaryRow}>
+                  <span style={styles.summaryLabel}>Service:</span>
+                  <span style={styles.summaryValue}>{profile.subcategory}</span>
+                </div>
+                <div style={styles.summaryRow}>
+                  <span style={styles.summaryLabel}>Date:</span>
+                  <span style={styles.summaryValue}>{formatDateFull(new Date(selectedDate))}</span>
+                </div>
+                <div style={styles.summaryRow}>
+                  <span style={styles.summaryLabel}>Time:</span>
+                  <span style={styles.summaryValue}>{selectedTimeSlot}</span>
+                </div>
+                <div style={styles.summaryRow}>
+                  <span style={styles.summaryLabel}>Price:</span>
+                  <span style={styles.summaryValue}>{profile.price}</span>
+                </div>
+                <div style={{...styles.summaryRow, borderTop: '1px solid #e5e7eb', paddingTop: 12, marginTop: 12}}>
+                  <span style={styles.summaryLabel}>Your Name:</span>
+                  <span style={styles.summaryValue}>{userProfile?.name || 'Not set'}</span>
+                </div>
+                <div style={styles.summaryRow}>
+                  <span style={styles.summaryLabel}>Your Email:</span>
+                  <span style={styles.summaryValue}>{userProfile?.email || user?.email}</span>
+                </div>
               </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Your Name *</label>
-                <input type="text" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} style={styles.input} placeholder="John Doe" />
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Email *</label>
-                <input type="email" required value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} style={styles.input} placeholder="john@example.com" />
-              </div>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Phone *</label>
-                <input type="tel" required value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} style={styles.input} placeholder="+66 123 456 789" />
-              </div>
+
               <div style={styles.formGroup}>
                 <label style={styles.label}>Message (Optional)</label>
-                <textarea value={formData.message} onChange={(e) => setFormData({...formData, message: e.target.value})} style={styles.textarea} placeholder="Any special requests..." rows={3} />
+                <textarea 
+                  value={message} 
+                  onChange={(e) => setMessage(e.target.value)} 
+                  style={styles.textarea} 
+                  placeholder="Any special requests or notes for the provider..." 
+                  rows={3} 
+                />
               </div>
+
               <div style={styles.btnGroup}>
                 <button type="button" onClick={() => setStep(2)} style={styles.btnBack}>← Back</button>
                 <button type="submit" disabled={submitting} style={{...styles.btnSubmit, flex: 1, opacity: submitting ? 0.6 : 1}}>
-                  {submitting ? 'Sending...' : '📨 Send Booking Request'}
+                  {submitting ? 'Sending...' : '✅ Confirm Booking'}
                 </button>
               </div>
             </form>
@@ -264,10 +338,12 @@ const styles = {
   selectedInfo: { background: '#ecfdf5', padding: 12, borderRadius: 10, fontSize: 14, color: '#065f46', fontWeight: 600, marginBottom: 16 },
   infoBox: { background: '#fffbeb', padding: 12, borderRadius: 10, fontSize: 13, color: '#92400e', marginBottom: 16, fontWeight: 500 },
   loadingSlots: { textAlign: 'center', padding: 40, color: '#6b7280' },
-  summary: { background: '#f9fafb', padding: 16, borderRadius: 12, marginBottom: 20, fontSize: 14, color: '#374151' },
+  summary: { background: '#f9fafb', padding: 20, borderRadius: 12, marginBottom: 20 },
+  summaryRow: { display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 14 },
+  summaryLabel: { color: '#6b7280', fontWeight: 600 },
+  summaryValue: { color: '#111827', fontWeight: 600, textAlign: 'right' },
   formGroup: { marginBottom: 16 },
   label: { display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 },
-  input: { width: '100%', padding: '12px 14px', border: '2px solid #e5e7eb', borderRadius: 10, fontSize: 14, outline: 'none', fontFamily: '"Outfit", sans-serif', boxSizing: 'border-box' },
   textarea: { width: '100%', padding: '12px 14px', border: '2px solid #e5e7eb', borderRadius: 10, fontSize: 14, outline: 'none', fontFamily: '"Outfit", sans-serif', resize: 'vertical', boxSizing: 'border-box' },
   btnGroup: { display: 'flex', gap: 12, marginTop: 20 },
   btnBack: { padding: '14px 24px', background: 'white', color: '#374151', border: '2px solid #e5e7eb', borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' },
