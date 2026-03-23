@@ -79,7 +79,11 @@ function Helperr() {
     const matchesSearch = !search || 
       profile.name?.toLowerCase().includes(search.toLowerCase()) || 
       profile.job?.toLowerCase().includes(search.toLowerCase()) || 
-      profile.city?.toLowerCase().includes(search.toLowerCase());
+      profile.city?.toLowerCase().includes(search.toLowerCase()) ||
+      profile.category?.toLowerCase().includes(search.toLowerCase()) ||
+      profile.subcategory?.toLowerCase().includes(search.toLowerCase()) ||
+      profile.tags?.some(tag => tag.toLowerCase().includes(search.toLowerCase())) ||
+      profile.bio?.toLowerCase().includes(search.toLowerCase());
     
     const matchesCat = category === 'All' || profile.category === category;
     const matchesAvail = !onlyAvailable || profile.available;
@@ -122,7 +126,7 @@ function Helperr() {
               style={styles.searchInput}
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search by name, skill, or keyword..."
+              placeholder="Search by name, location, skills, category, service..."
             />
             {search && (
               <button onClick={() => setSearch('')} style={styles.clearBtn}>✕</button>
@@ -158,11 +162,7 @@ function Helperr() {
       </div>
 
       <div style={styles.results}>
-        <p style={styles.resultCount}>
-          {filteredProfiles.length} expert{filteredProfiles.length !== 1 ? 's' : ''} found
-          {category !== 'All' ? ` in "${category}"` : ''}
-          {search ? ` matching "${search}"` : ''}
-        </p>
+        
 
         {filteredProfiles.length === 0 ? (
           <div style={styles.empty}>
@@ -308,7 +308,7 @@ function DistanceRow({ title, profiles, onSelect }) {
 
   const scroll = (direction) => {
     if (scrollRef.current) {
-      const scrollAmount = 350;
+      const scrollAmount = 400;
       scrollRef.current.scrollBy({
         left: direction === 'left' ? -scrollAmount : scrollAmount,
         behavior: 'smooth'
@@ -319,7 +319,7 @@ function DistanceRow({ title, profiles, onSelect }) {
   return (
     <div style={styles.distanceRow}>
       <div style={styles.rowHeader}>
-        <h3 style={styles.rowTitle}>📍 {title}</h3>
+        <div style={styles.rowTitleBadge}>{title}</div>
         <div style={styles.rowNav}>
           <button onClick={() => scroll('left')} style={styles.navBtn}>←</button>
           <button onClick={() => scroll('right')} style={styles.navBtn}>→</button>
@@ -359,15 +359,18 @@ function DistanceRow({ title, profiles, onSelect }) {
                 </div>
               </div>
             </div>
+            
+            <p style={styles.cardBio}>{p.bio?.slice(0, 80)}...</p>
+            
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
-              {p.tags?.slice(0, 3).map(tag => (
+              {p.tags?.slice(0, 4).map(tag => (
                 <span key={tag} style={styles.tag}>{tag}</span>
               ))}
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, paddingTop: 14, borderTop: '1px solid #f3f4f6' }}>
               <span style={styles.locationBadge}>📍 {p.city}</span>
               {p.distance < 999 && (
-                <span style={{ fontSize: 12, color: '#065f46', fontWeight: 600 }}>
+                <span style={{ fontSize: 13, color: '#065f46', fontWeight: 700 }}>
                   {p.distance.toFixed(1)} km
                 </span>
               )}
@@ -396,21 +399,31 @@ const styles = {
   availToggle: { marginLeft: 'auto', fontSize: 13, color: '#6b7280', cursor: 'pointer', display: 'flex', alignItems: 'center' },
   results: { maxWidth: 1400, margin: '0 auto', padding: '24px 20px 60px' },
   resultCount: { color: '#6b7280', fontSize: 14, marginBottom: 20 },
-  distanceRow: { marginBottom: 48 },
-  rowHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  rowTitle: { margin: 0, fontSize: 20, fontWeight: 700, color: '#374151' },
+  distanceRow: { marginBottom: 40 },
+  rowHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
+  rowTitleBadge: { 
+    fontSize: 12, 
+    fontWeight: 600, 
+    color: '#065f46', 
+    background: '#ecfdf5', 
+    padding: '6px 14px', 
+    borderRadius: 20,
+    letterSpacing: '0.02em',
+    textTransform: 'uppercase'
+  },
   rowNav: { display: 'flex', gap: 8 },
-  navBtn: { width: 40, height: 40, borderRadius: '50%', border: '2px solid #e5e7eb', background: 'white', cursor: 'pointer', fontSize: 18, fontWeight: 700, color: '#374151', transition: 'all 0.2s' },
+  navBtn: { width: 36, height: 36, borderRadius: '50%', border: '1.5px solid #e5e7eb', background: 'white', cursor: 'pointer', fontSize: 16, fontWeight: 700, color: '#6b7280', transition: 'all 0.2s' },
   slider: { display: 'flex', gap: 16, overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none', paddingBottom: 8 },
-  card: { minWidth: 320, maxWidth: 320, background: '#fff', borderRadius: 16, padding: 20, cursor: 'pointer', border: '1.5px solid #e5e7eb', transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' },
-  cardTop: { display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 12 },
-  cardAvatar: { width: 52, height: 52, background: '#ecfdf5', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, objectFit: 'cover', flexShrink: 0 },
-  cardName: { margin: 0, fontSize: 16, fontWeight: 700, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  card: { minWidth: 380, maxWidth: 380, background: '#fff', borderRadius: 16, padding: 24, cursor: 'pointer', border: '1.5px solid #e5e7eb', transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' },
+  cardTop: { display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 14 },
+  cardAvatar: { width: 80, height: 80, background: '#ecfdf5', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, objectFit: 'cover', flexShrink: 0 },
+  cardName: { margin: 0, fontSize: 17, fontWeight: 700, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   cardSub: { margin: '4px 0 0', fontSize: 13, color: '#6b7280' },
-  price: { fontSize: 15, fontWeight: 700, color: '#065f46' },
-  locationBadge: { fontSize: 12, color: '#6b7280', background: '#f3f4f6', borderRadius: 8, padding: '4px 8px' },
+  cardBio: { fontSize: 13, color: '#6b7280', lineHeight: 1.5, margin: 0 },
+  price: { fontSize: 16, fontWeight: 700, color: '#065f46' },
+  locationBadge: { fontSize: 12, color: '#6b7280', background: '#f3f4f6', borderRadius: 8, padding: '4px 10px', fontWeight: 500 },
   verified: { background: '#d1fae5', color: '#065f46', fontSize: 10, fontWeight: 700, padding: '1px 5px', borderRadius: 10, flexShrink: 0 },
-  tag: { background: '#f3f4f6', color: '#374151', fontSize: 12, padding: '4px 10px', borderRadius: 20, fontWeight: 500 },
+  tag: { background: '#f3f4f6', color: '#374151', fontSize: 11, padding: '4px 10px', borderRadius: 20, fontWeight: 500 },
   empty: { textAlign: 'center', padding: '60px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 },
   btnPrimary: { background: '#065f46', color: '#fff', border: 'none', borderRadius: 10, padding: '11px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' },
   modalBackdrop: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
