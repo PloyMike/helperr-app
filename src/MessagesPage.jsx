@@ -1,390 +1,411 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabase';
-import { useAuth } from './AuthContext';
 import Header from './Header';
 
 function MessagesPage() {
-  const { user } = useAuth();
+  const [conversations, setConversations] = useState([]);
+  const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [userEmail, setUserEmail] = useState('');
   const [loading, setLoading] = useState(true);
-  const [replyText, setReplyText] = useState({});
-  const [sending, setSending] = useState({});
-  const [showNewMessage, setShowNewMessage] = useState(false);
-  const [newMessage, setNewMessage] = useState({ to: '', toName: '', text: '' });
+  const [sending, setSending] = useState(false);
 
-  // Check localStorage for provider to message
-  useEffect(() => {
-    const loadProvider = async () => {
-      const providerEmail = localStorage.getItem('helperr_message_to');
-      if (providerEmail) {
-        // Get provider name from profiles
-        const { data } = await supabase
-          .from('profiles')
-          .select('name')
-          .eq('email', providerEmail)
-          .single();
-        
-        setNewMessage({ 
-          to: providerEmail, 
-          toName: data?.name || 'Provider',
-          text: '' 
-        });
-        setShowNewMessage(true);
-        localStorage.removeItem('helperr_message_to');
-      }
-    };
-    loadProvider();
-  }, []);
-
-  const fetchMessages = useCallback(async () => {
+  const checkUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      setLoading(false);
+      window.location.href = '/';
       return;
     }
+    setUserEmail(user.email);
+  };
 
+  const fetchConversations = useCallback(async () => {
+    if (!userEmail) return;
+    
     try {
       const { data, error } = await supabase
         .from('messages')
         .select('*')
-        .or(`sender_email.eq.${user.email},receiver_email.eq.${user.email}`)
+        .or(`sender_email.eq.${userEmail},receiver_email.eq.${userEmail}`)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setMessages(data || []);
+
+      const convMap = {};
+      data?.forEach(msg => {
+        const otherEmail = msg.sender_email === userEmail ? msg.receiver_email : msg.sender_email;
+        if (!convMap[otherEmail]) {
+          convMap[otherEmail] = {
+            email: otherEmail,
+            lastMessage: msg.message,
+            timestamp: msg.created_at,
+            unread: msg.receiver_email === userEmail && !msg.read
+          };
+        }
+      });
+
+      const convList = Object.values(convMap);
+      
+      // Fetch provider names
+      const emails = convList.map(c => c.email);
+      if (emails.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('email, name, image_url')
+          .in('email', emails);
+
+        convList.forEach(conv => {
+          const profile = profiles?.find(p => p.email === conv.email);
+          conv.name = profile?.name || conv.email;
+          conv.image = profile?.image_url || '👤';
+        });
+      }
+
+      setConversations(convList);
+      
+      // Check if there's a message_to in localStorage (from "Message Provider" button)
+      const messageTo = localStorage.getItem('helperr_message_to');
+      if (messageTo) {
+        localStorage.removeItem('helperr_message_to');
+        
+        // Find or create conversation
+        let conv = convList.find(c => c.email === messageTo);
+        if (!conv) {
+          // Fetch provider profile
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('email, name, image_url')
+            .eq('email', messageTo)
+            .single();
+          
+          if (profile) {
+            conv = {
+              email: profile.email,
+              name: profile.name || profile.email,
+              image: profile.image_url || '👤',
+              lastMessage: 'Start a conversation...',
+              timestamp: new Date().toISOString(),
+              unread: false
+            };
+            setConversations([conv, ...convList]);
+          }
+        }
+        
+        if (conv) {
+          setSelectedConversation(conv);
+        }
+      }
     } catch (error) {
       console.error('Error:', error);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [userEmail]);
 
-  useEffect(() => {
-    fetchMessages();
-    const interval = setInterval(fetchMessages, 5000);
-    return () => clearInterval(interval);
-  }, [fetchMessages]);
-
-  const containsForbiddenContent = (text) => {
-    const forbiddenPatterns = [
-      /\b\d{10,}\b/,
-      /\+?\d[\d\s\-()]{8,}/,
-      /\b0\d{9}\b/,
-      /@/,
-      /\[at\]/i,
-      /\.com\b/i,
-      /\.net\b/i,
-      /\.org\b/i,
-      /\.de\b/i,
-      /\.co\b/i,
-      /whatsapp/i,
-      /line\s*id/i,
-      /telegram/i,
-      /facebook/i,
-      /instagram/i,
-      /wechat/i,
-      /viber/i,
-      /signal/i
-    ];
-
-    return forbiddenPatterns.some(pattern => pattern.test(text));
-  };
-
-  const handleSendNewMessage = async () => {
-    if (!newMessage.text.trim() || !newMessage.to.trim()) return;
-
-    if (containsForbiddenContent(newMessage.text)) {
-      alert('⚠️ Your message contains phone numbers, emails, or external contact methods which are not allowed. Please use our platform for all communication.');
-      return;
-    }
-
-    setSending({ ...sending, new: true });
-
-    try {
-      const { error } = await supabase.from('messages').insert([{
-        sender_email: user.email,
-        receiver_email: newMessage.to,
-        message: newMessage.text,
-        read: false
-      }]);
-
-      if (error) throw error;
-
-      alert('✅ Message sent successfully!');
-      setNewMessage({ to: '', toName: '', text: '' });
-      setShowNewMessage(false);
-      fetchMessages();
-    } catch (error) {
-      alert('Error: ' + error.message);
-    } finally {
-      setSending({ ...sending, new: false });
-    }
-  };
-
-  const handleReply = async (msgId, receiverEmail) => {
-    const text = replyText[msgId] || '';
+  const fetchMessages = useCallback(async (otherEmail) => {
+    if (!userEmail) return;
     
-    if (!text.trim()) return;
-
-    if (containsForbiddenContent(text)) {
-      alert('⚠️ Your message contains phone numbers, emails, or external contact methods which are not allowed. Please use our platform for all communication.');
-      return;
-    }
-
-    setSending({ ...sending, [msgId]: true });
-
     try {
-      const { error } = await supabase.from('messages').insert([{
-        sender_email: user.email,
-        receiver_email: receiverEmail,
-        message: text,
-        read: false
-      }]);
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .or(`and(sender_email.eq.${userEmail},receiver_email.eq.${otherEmail}),and(sender_email.eq.${otherEmail},receiver_email.eq.${userEmail})`)
+        .order('created_at', { ascending: true });
 
       if (error) throw error;
 
-      setReplyText({ ...replyText, [msgId]: '' });
-      fetchMessages();
-    } catch (error) {
-      alert('Error: ' + error.message);
-    } finally {
-      setSending({ ...sending, [msgId]: false });
-    }
-  };
+      setMessages(data || []);
 
-  const handleMarkAsRead = async (msgId) => {
-    try {
-      const { error } = await supabase
+      // Mark as read
+      await supabase
         .from('messages')
         .update({ read: true })
-        .eq('id', msgId);
-
-      if (error) throw error;
-      fetchMessages();
+        .eq('receiver_email', userEmail)
+        .eq('sender_email', otherEmail);
     } catch (error) {
       console.error('Error:', error);
     }
+  }, [userEmail]);
+
+  useEffect(() => {
+    checkUser();
+  }, []);
+
+  useEffect(() => {
+    if (userEmail) {
+      fetchConversations();
+      const interval = setInterval(fetchConversations, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [userEmail, fetchConversations]);
+
+  useEffect(() => {
+    if (selectedConversation) {
+      fetchMessages(selectedConversation.email);
+      const interval = setInterval(() => fetchMessages(selectedConversation.email), 3000);
+      return () => clearInterval(interval);
+    }
+  }, [selectedConversation, fetchMessages]);
+
+  const contentFilter = (text) => {
+    const forbidden = [
+      /\d{3}[-.\s]?\d{3}[-.\s]?\d{4}/,
+      /\d{10}/,
+      /\+\d{1,3}[-.\s]?\d{1,14}/,
+      /@/,
+      /\.com|\.net|\.org/i,
+      /whatsapp|line|telegram|facebook|instagram|wechat|viber|signal/i
+    ];
+    return forbidden.some(pattern => pattern.test(text));
   };
 
-  const handleDelete = async (msgId) => {
-    if (!window.confirm('Delete this message?')) return;
+  const sendMessage = async (e) => {
+    e.preventDefault();
+    if (!newMessage.trim() || !selectedConversation) return;
 
+    if (contentFilter(newMessage)) {
+      alert('❌ Please keep communication on the platform. Contact details are not allowed.');
+      return;
+    }
+
+    setSending(true);
     try {
-      const { error } = await supabase
-        .from('messages')
-        .delete()
-        .eq('id', msgId);
+      const { error } = await supabase.from('messages').insert({
+        sender_email: userEmail,
+        receiver_email: selectedConversation.email,
+        message: newMessage.trim(),
+        read: false
+      });
 
       if (error) throw error;
-      fetchMessages();
+
+      setNewMessage('');
+      fetchMessages(selectedConversation.email);
+      fetchConversations();
     } catch (error) {
-      alert('Error: ' + error.message);
+      console.error('Error:', error);
+      alert('Error sending message');
+    } finally {
+      setSending(false);
     }
   };
 
-  if (!user) {
-    return (
-      <div style={styles.app}>
-        <Header transparent={true} />
-        <div style={styles.loginRequired}>
-          <div style={{ fontSize: 64 }}>🔐</div>
-          <h2>Login Required</h2>
-          <p>Please login to view your messages</p>
-          <button onClick={() => window.navigateTo('login')} style={styles.btnPrimary}>
-            Login
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const formatTime = (timestamp) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diff = now - date;
+    
+    if (diff < 60000) return 'Just now';
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+    if (diff < 86400000) return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    if (diff < 604800000) return date.toLocaleDateString('en-US', { weekday: 'short' });
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
 
   if (loading) {
     return (
-      <div style={styles.app}>
-        <Header transparent={true} />
-        <div style={styles.loading}>
-          <div style={{ fontSize: 48 }}>💬</div>
-          <h2>Loading messages...</h2>
-        </div>
+      <div style={styles.page}>
+        <Header />
+        <div style={styles.loading}>Loading messages...</div>
       </div>
     );
   }
 
-  const receivedMessages = messages.filter(m => m.receiver_email === user.email);
-  const sentMessages = messages.filter(m => m.sender_email === user.email);
-
   return (
-    <div style={styles.app}>
+    <div style={styles.page}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Header transparent={true} />
-
-      <div style={styles.hero}>
-        <div style={styles.heroInner}>
-          <h1 style={styles.heroTitle}>Messages</h1>
-          <p style={styles.heroSub}>Communicate safely through our platform</p>
-        </div>
-      </div>
-
+      <Header />
+      
       <div style={styles.container}>
-        
-        {/* NEW MESSAGE FORM */}
-        {showNewMessage && (
-          <div style={styles.newMessageCard}>
-            <div style={styles.newMessageHeader}>
-              <h3 style={styles.newMessageTitle}>Message to {newMessage.toName}</h3>
-              <button onClick={() => setShowNewMessage(false)} style={styles.btnCloseNew}>✕</button>
+        {/* Conversations List */}
+        <div style={styles.sidebar}>
+          <h2 style={styles.sidebarTitle}>Messages</h2>
+          
+          {conversations.length === 0 ? (
+            <div style={styles.emptyState}>
+              <div style={{ fontSize: 48 }}>💬</div>
+              <p>No messages yet</p>
             </div>
-            
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Message *</label>
-              <textarea
-                value={newMessage.text}
-                onChange={(e) => setNewMessage({ ...newMessage, text: e.target.value })}
-                style={styles.textarea}
-                placeholder="Type your message... (No phone numbers or emails allowed)"
-                rows={4}
-              />
-            </div>
-
-            <button
-              onClick={handleSendNewMessage}
-              disabled={!newMessage.text.trim() || sending.new}
-              style={{
-                ...styles.btnSend,
-                opacity: (!newMessage.text.trim() || sending.new) ? 0.5 : 1
-              }}
-            >
-              {sending.new ? 'Sending...' : '📤 Send Message'}
-            </button>
-          </div>
-        )}
-
-        <div style={styles.tabs}>
-          <div style={styles.tab}>
-            📥 Received ({receivedMessages.length})
-          </div>
-        </div>
-
-        {receivedMessages.length === 0 ? (
-          <div style={styles.empty}>
-            <div style={{ fontSize: 48 }}>📭</div>
-            <h3>No messages yet</h3>
-            <p>When providers or customers message you, they'll appear here</p>
-          </div>
-        ) : (
-          <div style={styles.messagesList}>
-            {receivedMessages.map(msg => (
-              <div key={msg.id} style={styles.messageCard}>
-                <div style={styles.messageHeader}>
-                  <div>
-                    <div style={styles.messageFrom}>From: {msg.sender_email.split('@')[0]}</div>
-                    <div style={styles.messageDate}>
-                      {new Date(msg.created_at).toLocaleString()}
-                    </div>
+          ) : (
+            <div style={styles.conversationList}>
+              {conversations.map(conv => (
+                <div
+                  key={conv.email}
+                  onClick={() => setSelectedConversation(conv)}
+                  style={{
+                    ...styles.conversationItem,
+                    ...(selectedConversation?.email === conv.email ? styles.conversationItemActive : {})
+                  }}
+                >
+                  <div style={styles.avatar}>
+                    {conv.image && conv.image.startsWith('http') ? (
+                      <img src={conv.image} alt={conv.name} style={styles.avatarImage} />
+                    ) : (
+                      <span style={{ fontSize: 24 }}>{conv.image}</span>
+                    )}
                   </div>
-                  {!msg.read && <span style={styles.unreadBadge}>New</span>}
-                </div>
-
-                <p style={styles.messageText}>{msg.message}</p>
-
-                <div style={styles.messageActions}>
-                  {!msg.read && (
-                    <button onClick={() => handleMarkAsRead(msg.id)} style={styles.btnMark}>
-                      ✓ Mark as Read
-                    </button>
-                  )}
-                  <button onClick={() => handleDelete(msg.id)} style={styles.btnDelete}>
-                    🗑️ Delete
-                  </button>
-                </div>
-
-                <div style={styles.replyBox}>
-                  <textarea
-                    value={replyText[msg.id] || ''}
-                    onChange={(e) => setReplyText({ ...replyText, [msg.id]: e.target.value })}
-                    style={styles.replyInput}
-                    placeholder="Type your reply... (No phone numbers or emails allowed)"
-                    rows={2}
-                  />
-                  <button
-                    onClick={() => handleReply(msg.id, msg.sender_email)}
-                    disabled={!replyText[msg.id]?.trim() || sending[msg.id]}
-                    style={{
-                      ...styles.btnReply,
-                      opacity: (!replyText[msg.id]?.trim() || sending[msg.id]) ? 0.5 : 1
-                    }}
-                  >
-                    {sending[msg.id] ? 'Sending...' : '📤 Send Reply'}
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {sentMessages.length > 0 && (
-          <>
-            <div style={styles.tabs}>
-              <div style={styles.tab}>
-                📤 Sent ({sentMessages.length})
-              </div>
-            </div>
-
-            <div style={styles.messagesList}>
-              {sentMessages.map(msg => (
-                <div key={msg.id} style={styles.messageCard}>
-                  <div style={styles.messageHeader}>
-                    <div>
-                      <div style={styles.messageFrom}>To: {msg.receiver_email.split('@')[0]}</div>
-                      <div style={styles.messageDate}>
-                        {new Date(msg.created_at).toLocaleString()}
-                      </div>
+                  <div style={styles.conversationInfo}>
+                    <div style={styles.conversationHeader}>
+                      <h4 style={styles.conversationName}>{conv.name}</h4>
+                      <span style={styles.timestamp}>{formatTime(conv.timestamp)}</span>
                     </div>
+                    <p style={{
+                      ...styles.lastMessage,
+                      ...(conv.unread ? { fontWeight: 700, color: '#111827' } : {})
+                    }}>
+                      {conv.lastMessage.slice(0, 50)}...
+                    </p>
                   </div>
-                  <p style={styles.messageText}>{msg.message}</p>
+                  {conv.unread && <div style={styles.unreadBadge}></div>}
                 </div>
               ))}
             </div>
-          </>
-        )}
+          )}
+        </div>
+
+        {/* Chat Window */}
+        <div style={styles.chatWindow}>
+          {!selectedConversation ? (
+            <div style={styles.emptyChat}>
+              <div style={{ fontSize: 64 }}>💬</div>
+              <h3>Select a conversation</h3>
+              <p>Choose a message from the left to start chatting</p>
+            </div>
+          ) : (
+            <>
+              {/* Chat Header */}
+              <div style={styles.chatHeader}>
+                <div style={styles.chatHeaderLeft}>
+                  <div style={styles.avatarSmall}>
+                    {selectedConversation.image && selectedConversation.image.startsWith('http') ? (
+                      <img src={selectedConversation.image} alt={selectedConversation.name} style={styles.avatarImage} />
+                    ) : (
+                      <span style={{ fontSize: 20 }}>{selectedConversation.image}</span>
+                    )}
+                  </div>
+                  <h3 style={styles.chatHeaderName}>{selectedConversation.name}</h3>
+                </div>
+              </div>
+
+              {/* Messages */}
+              <div style={styles.messagesContainer}>
+                {messages.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '40px 20px', color: '#6b7280' }}>
+                    <p>No messages yet. Say hi! 👋</p>
+                  </div>
+                ) : (
+                  messages.map(msg => {
+                    const isMine = msg.sender_email === userEmail;
+                    return (
+                      <div
+                        key={msg.id}
+                        style={{
+                          ...styles.messageWrapper,
+                          justifyContent: isMine ? 'flex-end' : 'flex-start'
+                        }}
+                      >
+                        <div
+                          style={{
+                            ...styles.messageBubble,
+                            ...(isMine ? styles.messageBubbleMine : styles.messageBubbleTheirs)
+                          }}
+                        >
+                          <p style={styles.messageText}>{msg.message}</p>
+                          <span style={styles.messageTime}>
+                            {new Date(msg.created_at).toLocaleTimeString('en-US', { 
+                              hour: 'numeric', 
+                              minute: '2-digit' 
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Input */}
+              <form onSubmit={sendMessage} style={styles.inputContainer}>
+                <input
+                  type="text"
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder="Type a message..."
+                  style={styles.input}
+                  disabled={sending}
+                />
+                <button 
+                  type="submit" 
+                  disabled={sending || !newMessage.trim()}
+                  style={{
+                    ...styles.sendBtn,
+                    ...((!newMessage.trim() || sending) ? styles.sendBtnDisabled : {})
+                  }}
+                >
+                  {sending ? '...' : '→'}
+                </button>
+              </form>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
 const styles = {
-  app: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh', paddingTop: 0 },
-  loading: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 },
-  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 100%)', padding: '120px 20px 40px', marginBottom: 40 },
-  heroInner: { maxWidth: 800, margin: '0 auto', textAlign: 'center' },
-  heroTitle: { color: '#fff', fontSize: 42, fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.02em' },
-  heroSub: { color: '#d1fae5', fontSize: 16, margin: 0 },
-  container: { maxWidth: 800, margin: '0 auto', padding: '0 20px 60px' },
-  newMessageCard: { background: 'white', padding: 24, borderRadius: 16, border: '1.5px solid #e5e7eb', marginBottom: 24, boxShadow: '0 2px 8px rgba(0,0,0,0.04)' },
-  newMessageHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  newMessageTitle: { margin: 0, fontSize: 20, fontWeight: 700, color: '#111827' },
-  btnCloseNew: { background: '#fee2e2', border: 'none', width: 32, height: 32, borderRadius: '50%', cursor: 'pointer', fontSize: 16, color: '#dc2626', fontWeight: 700 },
-  formGroup: { marginBottom: 16 },
-  label: { display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 },
-  textarea: { width: '100%', padding: '12px 14px', border: '2px solid #e5e7eb', borderRadius: 10, fontSize: 14, outline: 'none', fontFamily: '"Outfit", sans-serif', resize: 'vertical', boxSizing: 'border-box' },
-  btnSend: { padding: '14px 24px', background: '#065f46', color: 'white', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', width: '100%' },
-  tabs: { marginBottom: 20 },
-  tab: { fontSize: 18, fontWeight: 700, color: '#111827', padding: '12px 0', borderBottom: '3px solid #065f46' },
-  messagesList: { display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 40 },
-  messageCard: { background: 'white', padding: 20, borderRadius: 16, border: '1.5px solid #e5e7eb', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' },
-  messageHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
-  messageFrom: { fontSize: 15, fontWeight: 700, color: '#111827' },
-  messageDate: { fontSize: 12, color: '#6b7280', marginTop: 4 },
-  unreadBadge: { background: '#14B8A6', color: 'white', fontSize: 11, fontWeight: 700, padding: '4px 10px', borderRadius: 20 },
-  messageText: { fontSize: 14, color: '#374151', lineHeight: 1.6, margin: '0 0 16px' },
-  messageActions: { display: 'flex', gap: 8, marginBottom: 16, paddingTop: 16, borderTop: '1px solid #f3f4f6' },
-  btnMark: { padding: '8px 16px', background: '#ecfdf5', color: '#065f46', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' },
-  btnDelete: { padding: '8px 16px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' },
-  replyBox: { background: '#f9fafb', padding: 16, borderRadius: 12 },
-  replyInput: { width: '100%', padding: '12px 14px', border: '2px solid #e5e7eb', borderRadius: 10, fontSize: 14, outline: 'none', fontFamily: '"Outfit", sans-serif', resize: 'vertical', marginBottom: 12, boxSizing: 'border-box' },
-  btnReply: { padding: '12px 20px', background: '#065f46', color: 'white', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', width: '100%' },
-  empty: { textAlign: 'center', padding: '60px 20px', background: 'white', borderRadius: 16, border: '1.5px solid #e5e7eb' },
-  loginRequired: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 20 },
-  btnPrimary: { padding: '14px 28px', background: '#065f46', color: 'white', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' }
+  page: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh', paddingTop: 70 },
+  loading: { minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 },
+  container: { display: 'flex', height: 'calc(100vh - 70px)', maxWidth: 1400, margin: '0 auto' },
+  
+  // Sidebar
+  sidebar: { width: 360, background: '#fff', borderRight: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column' },
+  sidebarTitle: { padding: '24px 20px', margin: 0, fontSize: 24, fontWeight: 800, borderBottom: '1px solid #e5e7eb' },
+  conversationList: { flex: 1, overflowY: 'auto' },
+  conversationItem: { 
+    display: 'flex', 
+    alignItems: 'center', 
+    gap: 12, 
+    padding: '16px 20px', 
+    cursor: 'pointer', 
+    borderBottom: '1px solid #f3f4f6',
+    position: 'relative',
+    transition: 'background 0.2s'
+  },
+  conversationItemActive: { background: '#f9fafb' },
+  avatar: { width: 52, height: 52, borderRadius: '50%', background: '#ecfdf5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' },
+  avatarSmall: { width: 40, height: 40, borderRadius: '50%', background: '#ecfdf5', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  avatarImage: { width: '100%', height: '100%', objectFit: 'cover' },
+  conversationInfo: { flex: 1, minWidth: 0 },
+  conversationHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  conversationName: { margin: 0, fontSize: 15, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  timestamp: { fontSize: 12, color: '#9ca3af' },
+  lastMessage: { margin: 0, fontSize: 13, color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  unreadBadge: { width: 10, height: 10, borderRadius: '50%', background: '#065f46', position: 'absolute', right: 20 },
+  emptyState: { padding: '60px 20px', textAlign: 'center', color: '#6b7280' },
+  
+  // Chat Window
+  chatWindow: { flex: 1, display: 'flex', flexDirection: 'column', background: '#fff' },
+  emptyChat: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: '#6b7280' },
+  chatHeader: { padding: '20px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  chatHeaderLeft: { display: 'flex', alignItems: 'center', gap: 12 },
+  chatHeaderName: { margin: 0, fontSize: 18, fontWeight: 700 },
+  
+  // Messages
+  messagesContainer: { flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: 8, background: '#f9fafb' },
+  messageWrapper: { display: 'flex' },
+  messageBubble: { maxWidth: '70%', padding: '12px 16px', borderRadius: 16, wordWrap: 'break-word' },
+  messageBubbleMine: { background: '#065f46', color: '#fff', borderBottomRightRadius: 4 },
+  messageBubbleTheirs: { background: '#fff', color: '#111827', border: '1px solid #e5e7eb', borderBottomLeftRadius: 4 },
+  messageText: { margin: '0 0 4px', fontSize: 15, lineHeight: 1.5 },
+  messageTime: { fontSize: 11, opacity: 0.7 },
+  
+  // Input
+  inputContainer: { padding: '16px 24px', borderTop: '1px solid #e5e7eb', display: 'flex', gap: 12, background: '#fff' },
+  input: { flex: 1, padding: '12px 16px', border: '1.5px solid #e5e7eb', borderRadius: 24, fontSize: 15, outline: 'none', fontFamily: '"Outfit", sans-serif' },
+  sendBtn: { width: 48, height: 48, borderRadius: '50%', background: '#065f46', color: '#fff', border: 'none', fontSize: 20, fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' },
+  sendBtnDisabled: { opacity: 0.4, cursor: 'not-allowed' }
 };
 
 export default MessagesPage;
