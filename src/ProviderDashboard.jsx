@@ -13,6 +13,7 @@ function ProviderDashboard() {
     confirmedBookings: 0,
     totalRevenue: 0
   });
+  const [recentBookings, setRecentBookings] = useState([]);
 
   const fetchDashboard = useCallback(async () => {
     if (!user) {
@@ -35,7 +36,8 @@ function ProviderDashboard() {
         const { data: bookingsData } = await supabase
           .from('bookings')
           .select('*')
-          .eq('profile_id', profileData.id);
+          .eq('profile_id', profileData.id)
+          .order('created_at', { ascending: false });
 
         const totalBookings = bookingsData?.length || 0;
         const pendingBookings = bookingsData?.filter(b => b.status === 'pending').length || 0;
@@ -47,6 +49,8 @@ function ProviderDashboard() {
           confirmedBookings,
           totalRevenue: 0
         });
+
+        setRecentBookings(bookingsData?.slice(0, 5) || []);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -59,232 +63,355 @@ function ProviderDashboard() {
     fetchDashboard();
   }, [fetchDashboard]);
 
-  if (!user) {
-    return (
-      <div style={styles.app}>
-        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-        <Header transparent={true} />
-        <div style={styles.loginRequired}>
-          <div style={{ fontSize: 64 }}>🔐</div>
-          <h2>Login Required</h2>
-          <p>Please login to view your dashboard</p>
-          <button onClick={() => window.navigateTo('login')} style={styles.btnPrimary}>
-            Login
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   if (loading) {
     return (
-      <div style={styles.app}>
-        <Header transparent={true} />
-        <div style={styles.loading}>
-          <div style={{ fontSize: 48 }}>📊</div>
-          <h2>Loading dashboard...</h2>
-        </div>
+      <div style={styles.page}>
+        <Header />
+        <div style={styles.loading}>Loading dashboard...</div>
       </div>
     );
   }
 
   if (!profile) {
     return (
-      <div style={styles.app}>
-        <Header transparent={true} />
-        <div style={styles.noProfile}>
-          <div style={{ fontSize: 64 }}>👤</div>
-          <h2>No Provider Profile Found</h2>
-          <p>Create a provider profile to access your dashboard</p>
-          <button onClick={() => window.navigateTo('register')} style={styles.btnPrimary}>
-            Create Profile
-          </button>
+      <div style={styles.page}>
+        <Header />
+        <div style={styles.container}>
+          <div style={styles.emptyState}>
+            <h2>No Profile Found</h2>
+            <p>Please complete your profile first.</p>
+            <button onClick={() => window.navigateTo('edit-profile')} style={styles.btnPrimary}>
+              Create Profile
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={styles.app}>
+    <div style={styles.page}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Header transparent={true} />
-
-      <div style={styles.hero}>
-        <div style={styles.heroInner}>
-          <h1 style={styles.heroTitle}>Provider Dashboard</h1>
-          <p style={styles.heroSub}>Welcome back, {profile.name}!</p>
-        </div>
-      </div>
-
+      <Header />
+      
       <div style={styles.container}>
-        
-        {/* STATS GRID */}
+        {/* Header Section */}
+        <div style={styles.dashboardHeader}>
+          <div>
+            <h1 style={styles.title}>Dashboard</h1>
+            <p style={styles.subtitle}>Welcome back, {profile.name}! 👋</p>
+          </div>
+          <button 
+            onClick={() => window.navigateTo('edit-profile')} 
+            style={styles.editBtn}
+          >
+            ✏️ Edit Profile
+          </button>
+        </div>
+
+        {/* Stats Grid */}
         <div style={styles.statsGrid}>
-          <div style={styles.statCard}>
-            <div style={styles.statIcon}>📅</div>
-            <div style={styles.statValue}>{stats.totalBookings}</div>
-            <div style={styles.statLabel}>Total Bookings</div>
+          <div style={{ ...styles.statCard, ...styles.statCardGreen }}>
+            <div style={styles.statIcon}>📊</div>
+            <div>
+              <div style={styles.statValue}>{stats.totalBookings}</div>
+              <div style={styles.statLabel}>Total Bookings</div>
+            </div>
           </div>
 
-          <div style={styles.statCard}>
-            <div style={{ ...styles.statIcon, background: '#FEF3C7', color: '#D97706' }}>⏳</div>
-            <div style={styles.statValue}>{stats.pendingBookings}</div>
-            <div style={styles.statLabel}>Pending</div>
+          <div style={{ ...styles.statCard, ...styles.statCardYellow }}>
+            <div style={styles.statIcon}>⏳</div>
+            <div>
+              <div style={styles.statValue}>{stats.pendingBookings}</div>
+              <div style={styles.statLabel}>Pending</div>
+            </div>
           </div>
 
-          <div style={styles.statCard}>
-            <div style={{ ...styles.statIcon, background: '#D1FAE5', color: '#059669' }}>✓</div>
-            <div style={styles.statValue}>{stats.confirmedBookings}</div>
-            <div style={styles.statLabel}>Confirmed</div>
+          <div style={{ ...styles.statCard, ...styles.statCardBlue }}>
+            <div style={styles.statIcon}>✅</div>
+            <div>
+              <div style={styles.statValue}>{stats.confirmedBookings}</div>
+              <div style={styles.statLabel}>Confirmed</div>
+            </div>
           </div>
 
-          <div style={styles.statCard}>
-            <div style={{ ...styles.statIcon, background: '#E0E7FF', color: '#4F46E5' }}>⭐</div>
-            <div style={styles.statValue}>{profile.rating}</div>
-            <div style={styles.statLabel}>Rating</div>
+          <div style={{ ...styles.statCard, ...styles.statCardPurple }}>
+            <div style={styles.statIcon}>⭐</div>
+            <div>
+              <div style={styles.statValue}>{profile.rating || '5.0'}</div>
+              <div style={styles.statLabel}>Rating</div>
+            </div>
           </div>
         </div>
 
-        {/* PROFILE INFO */}
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>Your Profile</h2>
-          <div style={styles.profileCard}>
-            <div style={styles.profileHeader}>
-              {profile.image_url && profile.image_url.startsWith('http') ? (
-                <img src={profile.image_url} alt={profile.name} style={styles.profileAvatar} />
-              ) : (
-                <div style={styles.profileAvatarPlaceholder}>{profile.image_url || '👤'}</div>
-              )}
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <h3 style={styles.profileName}>{profile.name}</h3>
-                  {profile.verified && <span style={styles.verified}>✓ Verified</span>}
-                  <span style={{
-                    ...styles.statusBadge,
-                    background: profile.available ? '#D1FAE5' : '#FEE2E2',
-                    color: profile.available ? '#059669' : '#DC2626'
+        {/* Profile Info Card */}
+        <div style={styles.profileCard}>
+          <h3 style={styles.sectionTitle}>Your Profile</h3>
+          <div style={styles.profileGrid}>
+            <div style={styles.profileItem}>
+              <span style={styles.profileLabel}>Category</span>
+              <span style={styles.profileValue}>{profile.category}</span>
+            </div>
+            <div style={styles.profileItem}>
+              <span style={styles.profileLabel}>Subcategory</span>
+              <span style={styles.profileValue}>{profile.subcategory}</span>
+            </div>
+            <div style={styles.profileItem}>
+              <span style={styles.profileLabel}>Location</span>
+              <span style={styles.profileValue}>{profile.city}, {profile.country}</span>
+            </div>
+            <div style={styles.profileItem}>
+              <span style={styles.profileLabel}>Price</span>
+              <span style={styles.profileValue}>{profile.price}</span>
+            </div>
+            <div style={styles.profileItem}>
+              <span style={styles.profileLabel}>Status</span>
+              <span style={{
+                ...styles.statusBadge,
+                background: profile.available ? '#d1fae5' : '#fee2e2',
+                color: profile.available ? '#065f46' : '#dc2626'
+              }}>
+                {profile.available ? '● Available' : '● Busy'}
+              </span>
+            </div>
+            <div style={styles.profileItem}>
+              <span style={styles.profileLabel}>Reviews</span>
+              <span style={styles.profileValue}>{profile.review_count || 0} reviews</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Bookings */}
+        {recentBookings.length > 0 && (
+          <div style={styles.bookingsCard}>
+            <h3 style={styles.sectionTitle}>Recent Bookings</h3>
+            <div style={styles.bookingsList}>
+              {recentBookings.map(booking => (
+                <div key={booking.id} style={styles.bookingItem}>
+                  <div style={styles.bookingInfo}>
+                    <div style={styles.bookingName}>{booking.customer_email}</div>
+                    <div style={styles.bookingDate}>
+                      {new Date(booking.date).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                      })}
+                      {' • '}
+                      {booking.time_slot}
+                    </div>
+                  </div>
+                  <div style={{
+                    ...styles.bookingStatus,
+                    background: booking.status === 'confirmed' ? '#d1fae5' : booking.status === 'pending' ? '#fef3c7' : '#fee2e2',
+                    color: booking.status === 'confirmed' ? '#065f46' : booking.status === 'pending' ? '#92400e' : '#dc2626'
                   }}>
-                    {profile.available ? '● Available' : '● Busy'}
-                  </span>
+                    {booking.status === 'confirmed' ? '✓ Confirmed' : booking.status === 'pending' ? '⏳ Pending' : '✕ Cancelled'}
+                  </div>
                 </div>
-                <p style={styles.profileJob}>{profile.job}</p>
-                <p style={styles.profileLocation}>📍 {profile.city}, {profile.country}</p>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={styles.price}>{profile.price}</div>
-                <button onClick={() => window.navigateTo('edit-profile')} style={styles.editBtn}>
-                  ✏️ Edit Profile
-                </button>
-              </div>
+              ))}
             </div>
-
-            <div style={styles.profileInfo}>
-              <div style={styles.infoRow}>
-                <span style={styles.infoLabel}>Category:</span>
-                <span style={styles.infoValue}>{profile.category}</span>
-              </div>
-              <div style={styles.infoRow}>
-                <span style={styles.infoLabel}>Specialization:</span>
-                <span style={styles.infoValue}>{profile.subcategory}</span>
-              </div>
-              <div style={styles.infoRow}>
-                <span style={styles.infoLabel}>Languages:</span>
-                <span style={styles.infoValue}>{profile.languages?.join(', ')}</span>
-              </div>
-              {profile.line_id && (
-                <div style={styles.infoRow}>
-                  <span style={styles.infoLabel}>LINE ID:</span>
-                  <span style={styles.infoValue}>{profile.line_id}</span>
-                </div>
-              )}
-            </div>
-
-            {profile.tags && profile.tags.length > 0 && (
-              <div style={{ marginTop: 16 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#6b7280', marginBottom: 8 }}>Skills:</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {profile.tags.map(tag => (
-                    <span key={tag} style={styles.tag}>{tag}</span>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
-        </div>
-
-        {/* QUICK ACTIONS */}
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>Quick Actions</h2>
-          <div style={styles.actionsGrid}>
-            <button onClick={() => window.navigateTo('bookings')} style={styles.actionCard}>
-              <div style={styles.actionIcon}>📅</div>
-              <div style={styles.actionTitle}>View Bookings</div>
-              <div style={styles.actionSub}>Manage your appointments</div>
-            </button>
-
-            <button onClick={() => window.navigateTo('messages')} style={styles.actionCard}>
-              <div style={styles.actionIcon}>💬</div>
-              <div style={styles.actionTitle}>Messages</div>
-              <div style={styles.actionSub}>Chat with customers</div>
-            </button>
-
-            <button onClick={() => window.navigateTo('edit-profile')} style={styles.actionCard}>
-              <div style={styles.actionIcon}>✏️</div>
-              <div style={styles.actionTitle}>Edit Profile</div>
-              <div style={styles.actionSub}>Update your information</div>
-            </button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
 }
 
 const styles = {
-  app: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh', paddingTop: 0 },
-  loading: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 },
-  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 100%)', padding: '120px 20px 40px', marginBottom: 40 },
-  heroInner: { maxWidth: 1100, margin: '0 auto', textAlign: 'center' },
-  heroTitle: { color: '#fff', fontSize: 42, fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.02em' },
-  heroSub: { color: '#d1fae5', fontSize: 16, margin: 0 },
-  container: { maxWidth: 1100, margin: '0 auto', padding: '0 20px 60px' },
-  
-  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20, marginBottom: 40 },
-  statCard: { background: 'white', borderRadius: 16, padding: 24, border: '1.5px solid #e5e7eb', textAlign: 'center' },
-  statIcon: { width: 48, height: 48, background: '#DBEAFE', color: '#1D4ED8', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, margin: '0 auto 12px' },
-  statValue: { fontSize: 32, fontWeight: 800, color: '#111827', marginBottom: 4 },
-  statLabel: { fontSize: 13, color: '#6b7280', fontWeight: 500 },
-  
-  section: { marginBottom: 40 },
-  sectionTitle: { fontSize: 22, fontWeight: 700, color: '#111827', marginBottom: 20 },
-  
-  profileCard: { background: 'white', borderRadius: 16, padding: 24, border: '1.5px solid #e5e7eb' },
-  profileHeader: { display: 'flex', gap: 20, alignItems: 'flex-start', paddingBottom: 20, borderBottom: '1px solid #f3f4f6' },
-  profileAvatar: { width: 80, height: 80, borderRadius: 16, objectFit: 'cover', flexShrink: 0 },
-  profileAvatarPlaceholder: { width: 80, height: 80, background: '#ecfdf5', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, flexShrink: 0 },
-  profileName: { margin: 0, fontSize: 20, fontWeight: 700, color: '#111827' },
-  profileJob: { margin: '4px 0 0', fontSize: 14, color: '#6b7280' },
-  profileLocation: { margin: '4px 0 0', fontSize: 13, color: '#6b7280' },
-  price: { fontSize: 18, fontWeight: 700, color: '#065f46', marginBottom: 8 },
-  editBtn: { background: '#f3f4f6', border: 'none', padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', color: '#374151', fontFamily: '"Outfit", sans-serif' },
-  verified: { background: '#d1fae5', color: '#065f46', fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 10 },
-  statusBadge: { fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 20 },
-  
-  profileInfo: { marginTop: 20, display: 'flex', flexDirection: 'column', gap: 12 },
-  infoRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  infoLabel: { fontSize: 13, color: '#6b7280', fontWeight: 500 },
-  infoValue: { fontSize: 13, color: '#374151', fontWeight: 600 },
-  tag: { background: '#f3f4f6', color: '#374151', fontSize: 12, padding: '4px 10px', borderRadius: 20, fontWeight: 500 },
-  
-  actionsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 },
-  actionCard: { background: 'white', border: '1.5px solid #e5e7eb', borderRadius: 16, padding: 24, cursor: 'pointer', transition: 'all 0.2s', fontFamily: '"Outfit", sans-serif', textAlign: 'center' },
-  actionIcon: { fontSize: 40, marginBottom: 12 },
-  actionTitle: { fontSize: 16, fontWeight: 700, color: '#111827', marginBottom: 4 },
-  actionSub: { fontSize: 13, color: '#6b7280' },
-  
-  loginRequired: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 20 },
-  noProfile: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 20 },
-  btnPrimary: { padding: '14px 24px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6,95,70,0.3)' }
+  page: { 
+    fontFamily: '"Outfit", sans-serif', 
+    background: '#f9fafb', 
+    minHeight: '100vh', 
+    paddingTop: 70 
+  },
+  loading: { 
+    minHeight: '60vh', 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    fontSize: 18 
+  },
+  container: { 
+    maxWidth: 1200, 
+    margin: '0 auto', 
+    padding: '40px 20px' 
+  },
+  dashboardHeader: { 
+    display: 'flex', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    marginBottom: 32 
+  },
+  title: { 
+    fontSize: 32, 
+    fontWeight: 800, 
+    margin: 0, 
+    color: '#111827' 
+  },
+  subtitle: { 
+    fontSize: 16, 
+    color: '#6b7280', 
+    margin: '8px 0 0' 
+  },
+  editBtn: { 
+    padding: '12px 24px', 
+    background: '#fff', 
+    color: '#065f46', 
+    border: '2px solid #065f46', 
+    borderRadius: 12, 
+    fontSize: 15, 
+    fontWeight: 600, 
+    cursor: 'pointer', 
+    fontFamily: '"Outfit", sans-serif',
+    transition: 'all 0.2s',
+    boxShadow: '0 4px 12px rgba(6, 95, 70, 0.15)'
+  },
+  statsGrid: { 
+    display: 'grid', 
+    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
+    gap: 20, 
+    marginBottom: 32 
+  },
+  statCard: { 
+    background: '#fff', 
+    borderRadius: 16, 
+    padding: 24, 
+    display: 'flex', 
+    alignItems: 'center', 
+    gap: 16,
+    border: '2px solid',
+    transition: 'all 0.2s',
+    boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)'
+  },
+  statCardGreen: { 
+    borderColor: '#d1fae5', 
+    background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)' 
+  },
+  statCardYellow: { 
+    borderColor: '#fef3c7', 
+    background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)' 
+  },
+  statCardBlue: { 
+    borderColor: '#dbeafe', 
+    background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)' 
+  },
+  statCardPurple: { 
+    borderColor: '#e9d5ff', 
+    background: 'linear-gradient(135deg, #faf5ff 0%, #e9d5ff 100%)' 
+  },
+  statIcon: { 
+    fontSize: 40 
+  },
+  statValue: { 
+    fontSize: 32, 
+    fontWeight: 800, 
+    color: '#111827', 
+    lineHeight: 1 
+  },
+  statLabel: { 
+    fontSize: 14, 
+    color: '#6b7280', 
+    marginTop: 4, 
+    fontWeight: 500 
+  },
+  profileCard: { 
+    background: '#fff', 
+    borderRadius: 16, 
+    padding: 32, 
+    marginBottom: 32, 
+    border: '1px solid #e5e7eb',
+    boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)'
+  },
+  bookingsCard: { 
+    background: '#fff', 
+    borderRadius: 16, 
+    padding: 32, 
+    border: '1px solid #e5e7eb',
+    boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)'
+  },
+  sectionTitle: { 
+    fontSize: 20, 
+    fontWeight: 700, 
+    marginBottom: 20, 
+    color: '#111827' 
+  },
+  profileGrid: { 
+    display: 'grid', 
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+    gap: 20 
+  },
+  profileItem: { 
+    display: 'flex', 
+    flexDirection: 'column', 
+    gap: 6 
+  },
+  profileLabel: { 
+    fontSize: 13, 
+    color: '#6b7280', 
+    fontWeight: 500 
+  },
+  profileValue: { 
+    fontSize: 16, 
+    color: '#111827', 
+    fontWeight: 600 
+  },
+  statusBadge: { 
+    display: 'inline-block', 
+    padding: '6px 12px', 
+    borderRadius: 20, 
+    fontSize: 13, 
+    fontWeight: 600, 
+    width: 'fit-content' 
+  },
+  bookingsList: { 
+    display: 'flex', 
+    flexDirection: 'column', 
+    gap: 12 
+  },
+  bookingItem: { 
+    display: 'flex', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    padding: 16, 
+    background: '#f9fafb', 
+    borderRadius: 12, 
+    border: '1px solid #e5e7eb' 
+  },
+  bookingInfo: { 
+    flex: 1 
+  },
+  bookingName: { 
+    fontSize: 15, 
+    fontWeight: 600, 
+    color: '#111827' 
+  },
+  bookingDate: { 
+    fontSize: 13, 
+    color: '#6b7280', 
+    marginTop: 4 
+  },
+  bookingStatus: { 
+    padding: '6px 12px', 
+    borderRadius: 20, 
+    fontSize: 12, 
+    fontWeight: 600 
+  },
+  emptyState: { 
+    textAlign: 'center', 
+    padding: '80px 20px' 
+  },
+  btnPrimary: { 
+    padding: '14px 24px', 
+    background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', 
+    color: '#fff', 
+    border: 'none', 
+    borderRadius: 12, 
+    fontSize: 16, 
+    fontWeight: 600, 
+    cursor: 'pointer', 
+    fontFamily: '"Outfit", sans-serif',
+    marginTop: 16
+  }
 };
 
 export default ProviderDashboard;
