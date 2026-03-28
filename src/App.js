@@ -45,6 +45,8 @@ function App() {
           <MessagesPage />
         ) : currentView === 'edit-profile' ? (
           <EditProfilePage />
+        ) : currentView === 'dashboard' ? (
+          <ProviderDashboard />
         ) : currentView === 'provider-dashboard' ? (
           <ProviderDashboard />
         ) : currentView === 'impressum' ? (

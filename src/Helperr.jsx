@@ -385,7 +385,7 @@ function DistanceRow({ title, profiles, onSelect }) {
 const styles = {
   app: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh' },
   loading: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 },
-  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 100%)', padding: '100px 20px 64px', clipPath: 'ellipse(120% 100% at 50% 0%)' },
+  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', padding: '100px 20px 64px', clipPath: 'ellipse(120% 100% at 50% 0%)' },
   heroInner: { maxWidth: 700, margin: '0 auto', textAlign: 'center' },
   heroTitle: { color: '#fff', fontSize: 52, fontWeight: 800, margin: '0 0 12px', letterSpacing: '-0.02em' },
   heroSub: { color: '#d1fae5', fontSize: 16, margin: '0 0 8px', lineHeight: 1.6 },
