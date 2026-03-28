@@ -326,8 +326,11 @@ function DistanceRow({ title, profiles, onSelect }) {
         </div>
       </div>
       <div ref={scrollRef} style={styles.slider}>
-        {profiles.map(p => (
-          <div key={p.id} onClick={() => onSelect(p)} style={styles.card}>
+        {profiles.map((p, index) => (
+          <div key={p.id} onClick={() => onSelect(p)} style={{
+            ...styles.card,
+            boxShadow: `0 ${6 + (p.id?.charCodeAt(0) || 0) % 10}px ${16 + (p.id?.charCodeAt(1) || 0) % 16}px rgba(0, 0, 0, ${0.06 + ((p.id?.charCodeAt(2) || 0) % 5) * 0.01})`
+          }}>
             <div style={styles.cardTop}>
               {p.image_url && p.image_url.startsWith('http') ? (
                 <img src={p.image_url} alt={p.name} style={styles.cardAvatar} />
@@ -414,7 +417,7 @@ const styles = {
   rowNav: { display: 'flex', gap: 8 },
   navBtn: { width: 36, height: 36, borderRadius: '50%', border: '1.5px solid #e5e7eb', background: 'white', cursor: 'pointer', fontSize: 16, fontWeight: 700, color: '#6b7280', transition: 'all 0.2s' },
   slider: { display: 'flex', gap: 16, overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none', paddingBottom: 8 },
-  card: { minWidth: 380, maxWidth: 380, background: '#fff', borderRadius: 16, padding: 24, cursor: 'pointer', border: '1.5px solid #e5e7eb', transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' },
+  card: { minWidth: 380, maxWidth: 380, background: '#fff', borderRadius: 16, padding: 24, cursor: 'pointer', border: '1.5px solid #e5e7eb', transition: 'all 0.2s', boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)' },
   cardTop: { display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 14 },
   cardAvatar: { width: 80, height: 80, background: '#ecfdf5', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, objectFit: 'cover', flexShrink: 0 },
   cardName: { margin: 0, fontSize: 17, fontWeight: 700, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
@@ -427,7 +430,7 @@ const styles = {
   empty: { textAlign: 'center', padding: '60px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 },
   btnPrimary: { background: '#065f46', color: '#fff', border: 'none', borderRadius: 10, padding: '11px 20px', fontSize: 14, fontWeight: 600, cursor: 'pointer' },
   modalBackdrop: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
-  modal: { background: '#fff', borderRadius: 20, width: '100%', maxWidth: 600, maxHeight: '90vh', overflowY: 'auto', position: 'relative' },
+  modal: { background: '#fff', borderRadius: 20, width: '100%', maxWidth: 600, maxHeight: '90vh', overflowY: 'auto', position: 'relative', boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)' },
   closeBtn: { position: 'absolute', top: 16, right: 16, background: '#f3f4f6', border: 'none', borderRadius: 10, width: 36, height: 36, cursor: 'pointer', fontSize: 14 }
 };
 
