@@ -96,6 +96,27 @@ function Helperr() {
   const mediumProfiles = filteredProfiles.filter(p => p.distance > 20 && p.distance <= 50).sort((a, b) => a.distance - b.distance);
   const farProfiles = filteredProfiles.filter(p => p.distance > 50).sort((a, b) => a.distance - b.distance);
 
+  const trackProfileView = async (profileId) => {
+    try {
+      // Get or create session ID
+      let sessionId = localStorage.getItem('helperr_session_id');
+      if (!sessionId) {
+        sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('helperr_session_id', sessionId);
+      }
+
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      await supabase.from('profile_views').insert({
+        profile_id: profileId,
+        viewer_email: user?.email || null,
+        session_id: sessionId
+      });
+    } catch (error) {
+      console.error('Error tracking view:', error);
+    }
+  };
+
   const handleMessageProvider = (email) => {
     localStorage.setItem('helperr_message_to', email);
     window.navigateTo('messages');
@@ -182,7 +203,7 @@ function Helperr() {
               <DistanceRow
                 title="Within 10 km"
                 profiles={nearbyProfiles}
-                onSelect={setSelected}
+                onSelect={(profile) => { setSelected(profile); trackProfileView(profile.id); }}
               />
             )}
 
@@ -190,7 +211,7 @@ function Helperr() {
               <DistanceRow
                 title="10-20 km"
                 profiles={closeProfiles}
-                onSelect={setSelected}
+                onSelect={(profile) => { setSelected(profile); trackProfileView(profile.id); }}
               />
             )}
 
@@ -198,7 +219,7 @@ function Helperr() {
               <DistanceRow
                 title="20-50 km"
                 profiles={mediumProfiles}
-                onSelect={setSelected}
+                onSelect={(profile) => { setSelected(profile); trackProfileView(profile.id); }}
               />
             )}
 
@@ -206,7 +227,7 @@ function Helperr() {
               <DistanceRow
                 title="50+ km"
                 profiles={farProfiles}
-                onSelect={setSelected}
+                onSelect={(profile) => { setSelected(profile); trackProfileView(profile.id); }}
               />
             )}
           </>

@@ -13,6 +13,14 @@ function ProviderDashboard() {
     confirmedBookings: 0,
     totalRevenue: 0
   });
+  const [analytics, setAnalytics] = useState({
+    viewsToday: 0,
+    viewsThisWeek: 0,
+    viewsThisMonth: 0,
+    viewsTotal: 0,
+    conversionRate: 0,
+    topTimeSlots: []
+  });
   const [recentBookings, setRecentBookings] = useState([]);
 
   const fetchDashboard = useCallback(async () => {
@@ -33,6 +41,7 @@ function ProviderDashboard() {
       if (profileData) {
         setProfile(profileData);
 
+        // Fetch bookings
         const { data: bookingsData } = await supabase
           .from('bookings')
           .select('*')
@@ -51,6 +60,47 @@ function ProviderDashboard() {
         });
 
         setRecentBookings(bookingsData?.slice(0, 5) || []);
+
+        // Fetch Analytics
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+        // Total views
+        const { data: allViews } = await supabase
+          .from('profile_views')
+          .select('created_at')
+          .eq('profile_id', profileData.id);
+
+        const viewsTotal = allViews?.length || 0;
+        const viewsToday = allViews?.filter(v => new Date(v.created_at) >= today).length || 0;
+        const viewsThisWeek = allViews?.filter(v => new Date(v.created_at) >= weekAgo).length || 0;
+        const viewsThisMonth = allViews?.filter(v => new Date(v.created_at) >= monthAgo).length || 0;
+
+        // Conversion rate
+        const conversionRate = viewsTotal > 0 ? ((totalBookings / viewsTotal) * 100).toFixed(1) : 0;
+
+        // Top time slots
+        const timeSlotCounts = {};
+        bookingsData?.forEach(booking => {
+          const slot = booking.time_slot;
+          timeSlotCounts[slot] = (timeSlotCounts[slot] || 0) + 1;
+        });
+
+        const topTimeSlots = Object.entries(timeSlotCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 3)
+          .map(([slot, count]) => ({ slot, count }));
+
+        setAnalytics({
+          viewsToday,
+          viewsThisWeek,
+          viewsThisMonth,
+          viewsTotal,
+          conversionRate,
+          topTimeSlots
+        });
       }
     } catch (error) {
       console.error('Error:', error);
@@ -105,14 +155,52 @@ function ProviderDashboard() {
             onClick={() => window.navigateTo('edit-profile')} 
             style={styles.editBtn}
           >
-            ✏️ Edit Profile
+            Edit Profile
           </button>
         </div>
 
-        {/* Stats Grid */}
+        {/* Analytics Section */}
+        <div style={styles.analyticsSection}>
+          <h2 style={styles.sectionTitle}>Analytics</h2>
+          <div style={styles.statsGrid}>
+            <div style={{ ...styles.statCard, ...styles.statCardPink }}>
+              
+              <div>
+                <div style={styles.statValue}>{analytics.viewsToday}</div>
+                <div style={styles.statLabel}>Views Today</div>
+              </div>
+            </div>
+
+            <div style={{ ...styles.statCard, ...styles.statCardOrange }}>
+              
+              <div>
+                <div style={styles.statValue}>{analytics.viewsThisWeek}</div>
+                <div style={styles.statLabel}>Views This Week</div>
+              </div>
+            </div>
+
+            <div style={{ ...styles.statCard, ...styles.statCardTeal }}>
+              
+              <div>
+                <div style={styles.statValue}>{analytics.viewsThisMonth}</div>
+                <div style={styles.statLabel}>Views This Month</div>
+              </div>
+            </div>
+
+            <div style={{ ...styles.statCard, ...styles.statCardIndigo }}>
+              
+              <div>
+                <div style={styles.statValue}>{analytics.conversionRate}%</div>
+                <div style={styles.statLabel}>Conversion Rate</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Booking Stats Grid */}
         <div style={styles.statsGrid}>
           <div style={{ ...styles.statCard, ...styles.statCardGreen }}>
-            <div style={styles.statIcon}>📊</div>
+            
             <div>
               <div style={styles.statValue}>{stats.totalBookings}</div>
               <div style={styles.statLabel}>Total Bookings</div>
@@ -120,7 +208,7 @@ function ProviderDashboard() {
           </div>
 
           <div style={{ ...styles.statCard, ...styles.statCardYellow }}>
-            <div style={styles.statIcon}>⏳</div>
+            
             <div>
               <div style={styles.statValue}>{stats.pendingBookings}</div>
               <div style={styles.statLabel}>Pending</div>
@@ -128,7 +216,7 @@ function ProviderDashboard() {
           </div>
 
           <div style={{ ...styles.statCard, ...styles.statCardBlue }}>
-            <div style={styles.statIcon}>✅</div>
+            
             <div>
               <div style={styles.statValue}>{stats.confirmedBookings}</div>
               <div style={styles.statLabel}>Confirmed</div>
@@ -136,13 +224,37 @@ function ProviderDashboard() {
           </div>
 
           <div style={{ ...styles.statCard, ...styles.statCardPurple }}>
-            <div style={styles.statIcon}>⭐</div>
+            
             <div>
               <div style={styles.statValue}>{profile.rating || '5.0'}</div>
               <div style={styles.statLabel}>Rating</div>
             </div>
           </div>
         </div>
+
+        {/* Top Time Slots */}
+        {analytics.topTimeSlots.length > 0 && (
+          <div style={styles.timeSlotCard}>
+            <h3 style={styles.sectionTitle}>Most Popular Time Slots</h3>
+            <div style={styles.timeSlotList}>
+              {analytics.topTimeSlots.map((item, index) => (
+                <div key={item.slot} style={styles.timeSlotItem}>
+                  <div style={styles.timeSlotRank}>#{index + 1}</div>
+                  <div style={styles.timeSlotInfo}>
+                    <div style={styles.timeSlotTime}>{item.slot}</div>
+                    <div style={styles.timeSlotCount}>{item.count} bookings</div>
+                  </div>
+                  <div style={styles.timeSlotBar}>
+                    <div style={{
+                      ...styles.timeSlotBarFill,
+                      width: `${(item.count / analytics.topTimeSlots[0].count) * 100}%`
+                    }}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Profile Info Card */}
         <div style={styles.profileCard}>
@@ -266,6 +378,15 @@ const styles = {
     transition: 'all 0.2s',
     boxShadow: '0 4px 12px rgba(6, 95, 70, 0.15)'
   },
+  analyticsSection: {
+    marginBottom: 32
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 700,
+    marginBottom: 16,
+    color: '#111827'
+  },
   statsGrid: { 
     display: 'grid', 
     gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', 
@@ -299,6 +420,22 @@ const styles = {
     borderColor: '#e9d5ff', 
     background: 'linear-gradient(135deg, #faf5ff 0%, #e9d5ff 100%)' 
   },
+  statCardPink: {
+    borderColor: '#fce7f3',
+    background: 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%)'
+  },
+  statCardOrange: {
+    borderColor: '#fed7aa',
+    background: 'linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%)'
+  },
+  statCardTeal: {
+    borderColor: '#99f6e4',
+    background: 'linear-gradient(135deg, #f0fdfa 0%, #99f6e4 100%)'
+  },
+  statCardIndigo: {
+    borderColor: '#c7d2fe',
+    background: 'linear-gradient(135deg, #eef2ff 0%, #c7d2fe 100%)'
+  },
   statIcon: { 
     fontSize: 40 
   },
@@ -314,6 +451,63 @@ const styles = {
     marginTop: 4, 
     fontWeight: 500 
   },
+  timeSlotCard: {
+    background: '#fff',
+    borderRadius: 16,
+    padding: 32,
+    marginBottom: 32,
+    border: '1px solid #e5e7eb',
+    boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)'
+  },
+  timeSlotList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 16
+  },
+  timeSlotItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 16
+  },
+  timeSlotRank: {
+    width: 40,
+    height: 40,
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)',
+    color: '#fff',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: 16,
+    fontWeight: 700,
+    flexShrink: 0
+  },
+  timeSlotInfo: {
+    minWidth: 150
+  },
+  timeSlotTime: {
+    fontSize: 16,
+    fontWeight: 600,
+    color: '#111827'
+  },
+  timeSlotCount: {
+    fontSize: 13,
+    color: '#6b7280',
+    marginTop: 2
+  },
+  timeSlotBar: {
+    flex: 1,
+    height: 8,
+    background: '#f3f4f6',
+    borderRadius: 4,
+    overflow: 'hidden'
+  },
+  timeSlotBarFill: {
+    height: '100%',
+    background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)',
+    borderRadius: 4,
+    transition: 'width 0.3s ease'
+  },
   profileCard: { 
     background: '#fff', 
     borderRadius: 16, 
@@ -328,12 +522,6 @@ const styles = {
     padding: 32, 
     border: '1px solid #e5e7eb',
     boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)'
-  },
-  sectionTitle: { 
-    fontSize: 20, 
-    fontWeight: 700, 
-    marginBottom: 20, 
-    color: '#111827' 
   },
   profileGrid: { 
     display: 'grid', 
