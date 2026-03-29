@@ -116,7 +116,7 @@ function ProviderDashboard() {
   if (loading) {
     return (
       <div style={styles.page}>
-        <Header transparent={true} />
+        <Header />
         <div style={styles.loading}>Loading dashboard...</div>
       </div>
     );
@@ -125,7 +125,7 @@ function ProviderDashboard() {
   if (!profile) {
     return (
       <div style={styles.page}>
-        <Header transparent={true} />
+        <Header />
         <div style={styles.container}>
           <div style={styles.emptyState}>
             <h2>No Profile Found</h2>
@@ -142,7 +142,7 @@ function ProviderDashboard() {
   return (
     <div style={styles.page}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Header transparent={true} />
+      <Header />
       
       <div style={styles.container}>
         {/* Header Section */}

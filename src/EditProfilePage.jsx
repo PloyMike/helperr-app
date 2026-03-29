@@ -9,6 +9,7 @@ function EditProfilePage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [profile, setProfile] = useState(null);
+  const [isScrolled, setIsScrolled] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -94,6 +95,16 @@ function EditProfilePage() {
   }, [user]);
 
   useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 100);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+
+  useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
 
@@ -168,7 +179,7 @@ function EditProfilePage() {
   if (!user) {
     return (
       <div style={styles.app}>
-        <Header transparent={true} />
+        <Header transparent={true} isScrolled={isScrolled} />
         <div style={styles.loginRequired}>
           <div style={{ fontSize: 64 }}>🔐</div>
           <h2>Login Required</h2>
@@ -184,7 +195,7 @@ function EditProfilePage() {
   if (loading) {
     return (
       <div style={styles.app}>
-        <Header transparent={true} />
+        <Header transparent={true} isScrolled={isScrolled} />
         <div style={styles.loading}>
           <div style={{ fontSize: 48 }}>✏️</div>
           <h2>Loading profile...</h2>
@@ -196,7 +207,7 @@ function EditProfilePage() {
   if (!profile) {
     return (
       <div style={styles.app}>
-        <Header transparent={true} />
+        <Header transparent={true} isScrolled={isScrolled} />
         <div style={styles.noProfile}>
           <div style={{ fontSize: 64 }}>👤</div>
           <h2>No Profile Found</h2>
@@ -212,7 +223,7 @@ function EditProfilePage() {
   return (
     <div style={styles.app}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Header transparent={true} />
+      <Header transparent={true} isScrolled={isScrolled} />
 
       <div style={styles.hero}>
         <div style={styles.heroInner}>
@@ -361,7 +372,7 @@ function EditProfilePage() {
 const styles = {
   app: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh', paddingTop: 0 },
   loading: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 },
-  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 100%)', padding: '120px 20px 40px', marginBottom: 40 },
+  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 70%, #14b8a6 100%)', padding: '120px 20px 64px', marginBottom: 40, position: 'relative', overflow: 'hidden', clipPath: 'ellipse(120% 100% at 50% 0%)' },
   heroInner: { maxWidth: 800, margin: '0 auto', textAlign: 'center' },
   heroTitle: { color: '#fff', fontSize: 42, fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.02em' },
   heroSub: { color: '#d1fae5', fontSize: 16, margin: 0 },

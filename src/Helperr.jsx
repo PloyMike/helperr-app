@@ -11,6 +11,7 @@ function Helperr() {
   const [category, setCategory] = useState('All');
   const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [selected, setSelected] = useState(null);
+  const [isScrolled, setIsScrolled] = useState(false);
   const [showBooking, setShowBooking] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
   const [locationError, setLocationError] = useState(false);
@@ -18,6 +19,18 @@ function Helperr() {
   const CATEGORIES = ['All', 'Massage & Wellness', 'Tours & Adventures', 'Yoga & Fitness', 'Cooking Classes', 'Diving & Water Sports', 'Photography'];
 
   useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 100);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    fetchProfiles();
+    
+    // Get user location
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -27,19 +40,11 @@ function Helperr() {
           });
         },
         (error) => {
-          console.log('Geolocation error:', error);
+          console.log('Location error:', error);
           setLocationError(true);
-          setUserLocation({ lat: 9.5255, lng: 100.0133 });
         }
       );
-    } else {
-      setLocationError(true);
-      setUserLocation({ lat: 9.5255, lng: 100.0133 });
     }
-  }, []);
-
-  useEffect(() => {
-    fetchProfiles();
   }, []);
 
   const fetchProfiles = async () => {
@@ -129,9 +134,11 @@ function Helperr() {
   return (
     <div style={styles.app}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Header transparent={true} />
+      <Header transparent={true} isScrolled={isScrolled} />
 
       <div style={styles.hero}>
+        <div style={styles.heroGlow1}></div>
+        <div style={styles.heroGlow2}></div>
         <div style={styles.heroInner}>
           <h1 style={styles.heroTitle}>Find Local Experts</h1>
           <p style={styles.heroSub}>Book verified local guides, instructors & service providers</p>
@@ -407,9 +414,37 @@ function DistanceRow({ title, profiles, onSelect }) {
 }
 
 const styles = {
+  heroGlow1: {
+    position: 'absolute',
+    top: '-50%',
+    right: '-10%',
+    width: '600px',
+    height: '600px',
+    background: 'radial-gradient(circle, rgba(20, 184, 166, 0.3) 0%, transparent 70%)',
+    borderRadius: '50%',
+    filter: 'blur(60px)',
+    pointerEvents: 'none'
+  },
+  heroGlow2: {
+    position: 'absolute',
+    bottom: '-30%',
+    left: '-5%',
+    width: '500px',
+    height: '500px',
+    background: 'radial-gradient(circle, rgba(6, 95, 70, 0.4) 0%, transparent 70%)',
+    borderRadius: '50%',
+    filter: 'blur(80px)',
+    pointerEvents: 'none'
+  },
   app: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh' },
   loading: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 },
-  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', padding: '100px 20px 64px', clipPath: 'ellipse(120% 100% at 50% 0%)' },
+  hero: { 
+    background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 70%, #14b8a6 100%)', 
+    padding: '100px 20px 64px', 
+    position: 'relative',
+    overflow: 'hidden',
+    clipPath: 'ellipse(120% 100% at 50% 0%)'
+  },
   heroInner: { maxWidth: 700, margin: '0 auto', textAlign: 'center' },
   heroTitle: { color: '#fff', fontSize: 52, fontWeight: 800, margin: '0 0 12px', letterSpacing: '-0.02em' },
   heroSub: { color: '#d1fae5', fontSize: 16, margin: '0 0 8px', lineHeight: 1.6 },

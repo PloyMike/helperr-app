@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabase';
 
-function Header({ transparent }) {
+function Header({ transparent, isScrolled }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -43,7 +43,7 @@ function Header({ transparent }) {
   return (
     <header style={{
       ...styles.header,
-      ...(transparent ? styles.headerTransparent : {})
+      ...(transparent ? (isScrolled ? styles.headerTransparentScrolled : styles.headerTransparentTop) : {})
     }}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
       
@@ -52,7 +52,7 @@ function Header({ transparent }) {
           onClick={() => window.navigateTo('home')} 
           style={{
             ...styles.logo,
-            ...(transparent ? styles.logoTransparent : {})
+           ...(transparent ? styles.logoTransparent : {})
           }}
         >
           Helperr
@@ -63,26 +63,26 @@ function Header({ transparent }) {
             <>
               <button onClick={() => window.navigateTo('home')} style={{
                 ...styles.navBtn,
-                ...(transparent ? styles.navBtnTransparent : {})
+               ...(transparent ? styles.navBtnTransparent : {})
               }}>
                 Home
               </button>
               <button onClick={() => window.navigateTo('messages')} style={{
                 ...styles.navBtn,
-                ...(transparent ? styles.navBtnTransparent : {})
+               ...(transparent ? styles.navBtnTransparent : {})
               }}>
                 Messages
               </button>
               <button onClick={() => window.navigateTo('bookings')} style={{
                 ...styles.navBtn,
-                ...(transparent ? styles.navBtnTransparent : {})
+               ...(transparent ? styles.navBtnTransparent : {})
               }}>
                 My Bookings
               </button>
               {hasProviderProfile && (
                 <button onClick={() => window.navigateTo('provider-bookings')} style={{
                   ...styles.navBtn,
-                  ...(transparent ? styles.navBtnTransparent : {})
+                 ...(transparent ? styles.navBtnTransparent : {})
                 }}>
                   Provider Bookings
                 </button>
@@ -134,7 +134,7 @@ function Header({ transparent }) {
             <>
               <button onClick={() => window.navigateTo('login')} style={{
                 ...styles.navBtn,
-                ...(transparent ? styles.navBtnTransparent : {})
+               ...(transparent ? styles.navBtnTransparent : {})
               }}>
                 Login
               </button>
@@ -161,7 +161,12 @@ const styles = {
     boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
     fontFamily: '"Outfit", sans-serif'
   },
-  headerTransparent: {
+  headerTransparentTop: {
+    background: 'transparent',
+    borderBottom: 'none',
+    boxShadow: 'none'
+  },
+  headerTransparentScrolled: {
     background: 'linear-gradient(135deg, rgba(6, 95, 70, 0.3) 0%, rgba(4, 120, 87, 0.3) 100%)',
     backdropFilter: 'blur(20px) saturate(180%)',
     WebkitBackdropFilter: 'blur(20px) saturate(180%)',

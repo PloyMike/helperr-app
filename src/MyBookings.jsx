@@ -18,7 +18,17 @@ function MyBookings() {
     author_name: ''
   });
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const [bookingsWithReviews, setBookingsWithReviews] = useState([]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 100);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const checkProfile = async () => {
@@ -248,7 +258,7 @@ function MyBookings() {
   if (!user) {
     return (
       <div style={styles.app}>
-        <Header transparent={true} />
+        <Header transparent={true} isScrolled={isScrolled} />
         <div style={styles.hero}>
           <div style={styles.heroInner}>
             <h1 style={styles.heroTitle}>My Bookings</h1>
@@ -269,7 +279,7 @@ function MyBookings() {
   if (loading) {
     return (
       <div style={styles.app}>
-        <Header transparent={true} />
+        <Header transparent={true} isScrolled={isScrolled} />
         <div style={styles.loading}>
           <div style={{ fontSize: 48 }}>📅</div>
           <h2>Loading bookings...</h2>
@@ -281,7 +291,7 @@ function MyBookings() {
   return (
     <div style={styles.app}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Header transparent={true} />
+      <Header transparent={true} isScrolled={isScrolled} />
       
       <div style={styles.hero}>
         <div style={styles.heroInner}>
@@ -505,7 +515,7 @@ function MyBookings() {
 
 const styles = {
   app: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh', paddingTop: 0 },
-  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 100%)', padding: '120px 20px 40px', marginBottom: 40 },
+  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 70%, #14b8a6 100%)', padding: '120px 20px 64px', marginBottom: 40, position: 'relative', overflow: 'hidden', clipPath: 'ellipse(120% 100% at 50% 0%)' },
   heroInner: { maxWidth: 1100, margin: '0 auto', textAlign: 'center' },
   heroTitle: { color: '#fff', fontSize: 42, fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.02em' },
   heroSub: { color: '#d1fae5', fontSize: 16, margin: 0 },

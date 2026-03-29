@@ -206,7 +206,7 @@ function MessagesPage() {
   if (loading) {
     return (
       <div style={styles.page}>
-        <Header transparent={true} />
+        <Header />
         <div style={styles.loading}>Loading messages...</div>
       </div>
     );
@@ -215,7 +215,7 @@ function MessagesPage() {
   return (
     <div style={styles.page}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Header transparent={true} />
+      <Header />
       
       <div style={styles.container}>
         {/* Conversations List */}
