@@ -8,7 +8,7 @@ function MyBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
-  const [viewMode, setViewMode] = useState('customer');
+  // Removed viewMode - customer only now
   const [userProfile, setUserProfile] = useState(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -61,7 +61,7 @@ function MyBookings() {
     try {
       let data;
 
-      if (viewMode === 'customer') {
+      if (true) {
         const { data: customerData, error: customerError } = await supabase
           .from('bookings')
           .select(`
@@ -100,14 +100,14 @@ function MyBookings() {
     } finally {
       setLoading(false);
     }
-  }, [user, viewMode, userProfile, checkExistingReviews]);
+  }, [user, userProfile, checkExistingReviews]);
 
   useEffect(() => {
     fetchBookings();
   }, [fetchBookings]);
 
   const canReview = (booking) => {
-    if (viewMode !== 'customer') return false;
+    if (false) return false;
     if (booking.status !== 'confirmed') return false;
     if (bookingsWithReviews.includes(booking.id)) return false;
     
@@ -248,7 +248,7 @@ function MyBookings() {
   if (!user) {
     return (
       <div style={styles.app}>
-        <Header />
+        <Header transparent={true} />
         <div style={styles.hero}>
           <div style={styles.heroInner}>
             <h1 style={styles.heroTitle}>My Bookings</h1>
@@ -269,7 +269,7 @@ function MyBookings() {
   if (loading) {
     return (
       <div style={styles.app}>
-        <Header />
+        <Header transparent={true} />
         <div style={styles.loading}>
           <div style={{ fontSize: 48 }}>📅</div>
           <h2>Loading bookings...</h2>
@@ -281,7 +281,7 @@ function MyBookings() {
   return (
     <div style={styles.app}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Header />
+      <Header transparent={true} />
       
       <div style={styles.hero}>
         <div style={styles.heroInner}>
@@ -291,28 +291,7 @@ function MyBookings() {
       </div>
 
       <div style={styles.container}>
-        {userProfile && (
-          <div style={styles.viewToggle}>
-            <button
-              onClick={() => setViewMode('customer')}
-              style={{
-                ...styles.toggleBtn,
-                ...(viewMode === 'customer' ? styles.toggleBtnActive : {})
-              }}
-            >
-              As Customer
-            </button>
-            <button
-              onClick={() => setViewMode('provider')}
-              style={{
-                ...styles.toggleBtn,
-                ...(viewMode === 'provider' ? styles.toggleBtnActive : {})
-              }}
-            >
-              As Provider
-            </button>
-          </div>
-        )}
+        
 
         <div style={styles.filters}>
           {['all', 'pending', 'confirmed', 'cancelled'].map(status => (
@@ -334,7 +313,7 @@ function MyBookings() {
             <div style={{ fontSize: 64 }}>📭</div>
             <h3>No bookings found</h3>
             <p>You don't have any {statusFilter !== 'all' ? statusFilter : ''} bookings yet</p>
-            {viewMode === 'customer' && (
+            {true && (
               <button onClick={() => window.navigateTo('home')} style={styles.btnPrimary}>
                 Browse Services
               </button>
@@ -345,7 +324,7 @@ function MyBookings() {
             {filteredBookings.map(booking => (
               <div key={booking.id} style={styles.card}>
                 <div style={styles.cardHeader}>
-                  {viewMode === 'customer' ? (
+                  {true ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       {booking.provider?.image_url && booking.provider.image_url.startsWith('http') ? (
                         <img src={booking.provider.image_url} alt={booking.provider.name} style={styles.providerImage} />
@@ -392,7 +371,7 @@ function MyBookings() {
                     </div>
                   </div>
 
-                  {viewMode === 'customer' && booking.provider?.city && (
+                  {true && booking.provider?.city && (
                     <div style={styles.infoRow}>
                       <span style={styles.infoIcon}>📍</span>
                       <div>
@@ -402,7 +381,7 @@ function MyBookings() {
                     </div>
                   )}
 
-                  {viewMode === 'provider' && (
+                  {false && (
                     <div style={styles.infoRow}>
                       <span style={styles.infoIcon}>📧</span>
                       <div>
@@ -429,19 +408,19 @@ function MyBookings() {
                 </div>
 
                 <div style={styles.cardActions}>
-                  {viewMode === 'customer' && booking.status === 'pending' && (
+                  {true && booking.status === 'pending' && (
                     <button onClick={() => handleCancel(booking.id)} style={styles.btnCancel}>
                       Cancel Booking
                     </button>
                   )}
                   
-                  {viewMode === 'customer' && canReview(booking) && (
+                  {true && canReview(booking) && (
                     <button onClick={() => handleOpenReview(booking)} style={styles.btnReview}>
                       Write Review
                     </button>
                   )}
                   
-                  {viewMode === 'provider' && booking.status === 'pending' && (
+                  {false && booking.status === 'pending' && (
                     <div style={{ display: 'flex', gap: 8 }}>
                       <button onClick={() => handleAccept(booking.id)} style={styles.btnAccept}>
                         Accept
@@ -531,12 +510,12 @@ const styles = {
   heroTitle: { color: '#fff', fontSize: 42, fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.02em' },
   heroSub: { color: '#d1fae5', fontSize: 16, margin: 0 },
   container: { maxWidth: 1100, margin: '0 auto', padding: '0 20px 60px' },
-  viewToggle: { display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' },
-  toggleBtn: { padding: '12px 24px', background: 'white', border: '2px solid #e5e7eb', borderRadius: 12, fontSize: 15, fontWeight: 600, color: '#6b7280', cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.2s' },
-  toggleBtnActive: { background: '#065f46', borderColor: '#065f46', color: 'white' },
-  filters: { display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' },
-  filterBtn: { padding: '10px 20px', background: 'white', border: '2px solid #e5e7eb', borderRadius: 10, fontSize: 14, fontWeight: 600, color: '#6b7280', cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.2s' },
-  filterBtnActive: { background: '#065f46', borderColor: '#065f46', color: 'white' },
+  viewToggle: { display: 'flex', gap: 12, marginBottom: 32, flexWrap: 'wrap', background: '#fff', padding: 20, borderRadius: 16, boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)' },
+  toggleBtn: { padding: '12px 24px', background: '#f9fafb', border: '2px solid #e5e7eb', borderRadius: 12, fontSize: 15, fontWeight: 600, color: '#6b7280', cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)' },
+  toggleBtnActive: { background: '#065f46', borderColor: '#065f46', color: 'white', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)', transform: 'translateY(-1px)' },
+  filters: { display: 'flex', gap: 12, marginBottom: 32, flexWrap: 'wrap', background: '#fff', padding: 20, borderRadius: 16, boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)' },
+  filterBtn: { padding: '10px 20px', background: '#f9fafb', border: '2px solid #e5e7eb', borderRadius: 10, fontSize: 14, fontWeight: 600, color: '#6b7280', cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)' },
+  filterBtnActive: { background: '#065f46', borderColor: '#065f46', color: 'white', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)', transform: 'translateY(-1px)' },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 20 },
   card: { background: 'white', borderRadius: 16, border: '1.5px solid #e5e7eb', overflow: 'hidden', boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)', transition: 'all 0.2s' },
   cardHeader: { padding: 20, borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },

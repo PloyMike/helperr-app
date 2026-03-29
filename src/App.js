@@ -3,6 +3,7 @@ import { AuthProvider } from './AuthContext';
 import Helperr from './Helperr';
 import ProfilDetail from './ProfilDetail';
 import MyBookings from './MyBookings';
+import ProviderBookingsPage from './ProviderBookingsPage';
 import Favorites from './Favorites';
 import RegisterPage from './RegisterPage';
 import LoginPage from './LoginPage';
@@ -33,6 +34,8 @@ function App() {
           <ProfilDetail profile={selectedProfile} onBack={() => setCurrentView('home')} />
         ) : currentView === 'bookings' ? (
           <MyBookings />
+        ) : currentView === 'provider-bookings' ? (
+          <ProviderBookingsPage />
         ) : currentView === 'favorites' ? (
           <Favorites />
         ) : currentView === 'register' ? (

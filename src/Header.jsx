@@ -5,6 +5,7 @@ function Header({ transparent }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [hasProviderProfile, setHasProviderProfile] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -17,11 +18,14 @@ function Header({ transparent }) {
     if (user) {
       const { data } = await supabase
         .from('profiles')
-        .select('name, image_url')
+        .select('name, image_url, id')
         .eq('user_id', user.id)
         .single();
       
-      if (data) setProfile(data);
+      if (data) {
+        setProfile(data);
+        setHasProviderProfile(!!data.id);
+      }
     }
   };
 
@@ -75,6 +79,14 @@ function Header({ transparent }) {
               }}>
                 My Bookings
               </button>
+              {hasProviderProfile && (
+                <button onClick={() => window.navigateTo('provider-bookings')} style={{
+                  ...styles.navBtn,
+                  ...(transparent ? styles.navBtnTransparent : {})
+                }}>
+                  Provider Bookings
+                </button>
+              )}
               
               <div style={{ position: 'relative' }}>
                 <button 
