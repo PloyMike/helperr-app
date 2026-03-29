@@ -4,17 +4,22 @@ import { useAuth } from './AuthContext';
 import Header from './Header';
 
 function MyBookings() {
-  const { user, signIn } = useAuth();
+  const { user } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
-  const [viewMode, setViewMode] = useState('customer'); // 'customer' or 'provider'
+  const [viewMode, setViewMode] = useState('customer');
   const [userProfile, setUserProfile] = useState(null);
-  const [loginEmail, setLoginEmail] = useState('');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [loginLoading, setLoginLoading] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [reviewForm, setReviewForm] = useState({
+    rating: 5,
+    review_text: '',
+    author_name: ''
+  });
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [bookingsWithReviews, setBookingsWithReviews] = useState([]);
 
-  // Check if user has a provider profile
   useEffect(() => {
     const checkProfile = async () => {
       if (user) {
@@ -25,9 +30,26 @@ function MyBookings() {
           .single();
         
         setUserProfile(data);
+        if (data?.name) {
+          setReviewForm(prev => ({ ...prev, author_name: data.name }));
+        }
       }
     };
     checkProfile();
+  }, [user]);
+
+  const checkExistingReviews = useCallback(async (bookingIds) => {
+    try {
+      const { data } = await supabase
+        .from('reviews')
+        .select('booking_id')
+        .in('booking_id', bookingIds)
+        .eq('author_email', user.email);
+      
+      setBookingsWithReviews(data?.map(r => r.booking_id) || []);
+    } catch (error) {
+      console.error('Error checking reviews:', error);
+    }
   }, [user]);
 
   const fetchBookings = useCallback(async () => {
@@ -40,7 +62,6 @@ function MyBookings() {
       let data;
 
       if (viewMode === 'customer') {
-        // Customer view: bookings I made
         const { data: customerData, error: customerError } = await supabase
           .from('bookings')
           .select(`
@@ -53,7 +74,6 @@ function MyBookings() {
         if (customerError) throw customerError;
         data = customerData;
       } else {
-        // Provider view: bookings for my services
         if (!userProfile?.id) {
           data = [];
         } else {
@@ -69,32 +89,93 @@ function MyBookings() {
       }
 
       setBookings(data || []);
+      
+      // Check which bookings already have reviews
+      const bookingIds = data?.map(b => b.id).filter(Boolean) || [];
+      if (bookingIds.length > 0) {
+        await checkExistingReviews(bookingIds);
+      }
     } catch (error) {
       console.error('Error:', error);
     } finally {
       setLoading(false);
     }
-  }, [user, viewMode, userProfile]);
+  }, [user, viewMode, userProfile, checkExistingReviews]);
 
   useEffect(() => {
     fetchBookings();
   }, [fetchBookings]);
 
-  const handleLogin = async (e) => {
+  const canReview = (booking) => {
+    if (viewMode !== 'customer') return false;
+    if (booking.status !== 'confirmed') return false;
+    if (bookingsWithReviews.includes(booking.id)) return false;
+    
+    const bookingDate = new Date(booking.booking_date);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return bookingDate < today;
+  };
+
+  const handleOpenReview = (booking) => {
+    setSelectedBooking(booking);
+    setShowReviewModal(true);
+  };
+
+  const handleSubmitReview = async (e) => {
     e.preventDefault();
-    setLoginLoading(true);
+    setSubmittingReview(true);
+
     try {
-      await signIn(loginEmail, loginPassword);
+      const reviewData = {
+        booking_id: selectedBooking.id,
+        profile_id: selectedBooking.profile_id,
+        author_name: reviewForm.author_name,
+        author_email: user.email,
+        rating: reviewForm.rating,
+        review_text: reviewForm.review_text,
+        review_date: new Date().toISOString().split('T')[0]
+      };
+
+      const { error } = await supabase
+        .from('reviews')
+        .insert([reviewData]);
+
+      if (error) throw error;
+
+      // Update profile rating
+      const { data: existingReviews } = await supabase
+        .from('reviews')
+        .select('rating')
+        .eq('profile_id', selectedBooking.profile_id);
+
+      const avgRating = (existingReviews.reduce((sum, r) => sum + r.rating, 0) + reviewForm.rating) / (existingReviews.length + 1);
+      
+      await supabase
+        .from('profiles')
+        .update({ 
+          rating: avgRating.toFixed(1),
+          review_count: existingReviews.length + 1 
+        })
+        .eq('id', selectedBooking.profile_id);
+
+      alert('✅ Review submitted successfully!');
+      fetchBookings(); // Refresh to hide the review button
+      setShowReviewModal(false);
+      setReviewForm({ rating: 5, review_text: '', author_name: reviewForm.author_name });
+      setSelectedBooking(null);
     } catch (error) {
-      alert('Login failed: ' + error.message);
+      console.error('Error:', error);
+      alert('Error submitting review: ' + error.message);
     } finally {
-      setLoginLoading(false);
+      setSubmittingReview(false);
     }
   };
 
   const handleCancel = async (bookingId) => {
-    if (!window.confirm('Are you sure you want to cancel this booking?')) return;
-
+    if (!window.confirm('Cancel this booking?')) return;
+    
     try {
       const { error } = await supabase
         .from('bookings')
@@ -102,9 +183,11 @@ function MyBookings() {
         .eq('id', bookingId);
 
       if (error) throw error;
+      alert('Booking cancelled');
       fetchBookings();
     } catch (error) {
-      alert('Error: ' + error.message);
+      console.error('Error:', error);
+      alert('Error cancelling booking');
     }
   };
 
@@ -116,15 +199,15 @@ function MyBookings() {
         .eq('id', bookingId);
 
       if (error) throw error;
+      alert('Booking confirmed!');
       fetchBookings();
     } catch (error) {
-      alert('Error: ' + error.message);
+      console.error('Error:', error);
+      alert('Error confirming booking');
     }
   };
 
   const handleDecline = async (bookingId) => {
-    if (!window.confirm('Decline this booking request?')) return;
-
     try {
       const { error } = await supabase
         .from('bookings')
@@ -132,66 +215,52 @@ function MyBookings() {
         .eq('id', bookingId);
 
       if (error) throw error;
+      alert('Booking declined');
       fetchBookings();
     } catch (error) {
-      alert('Error: ' + error.message);
+      console.error('Error:', error);
+      alert('Error declining booking');
     }
   };
 
-  const filteredBookings = bookings.filter(b =>
-    statusFilter === 'all' || b.status === statusFilter
-  );
-
   const getStatusColor = (status) => {
     switch(status) {
-      case 'confirmed': return '#059669';
-      case 'pending': return '#F97316';
-      case 'cancelled': return '#DC2626';
-      default: return '#6B7280';
+      case 'confirmed': return '#065f46';
+      case 'pending': return '#f59e0b';
+      case 'cancelled': return '#dc2626';
+      default: return '#6b7280';
     }
   };
 
   const getStatusLabel = (status) => {
     switch(status) {
-      case 'confirmed': return 'Confirmed';
-      case 'pending': return 'Pending';
-      case 'cancelled': return 'Cancelled';
+      case 'confirmed': return '✓ Confirmed';
+      case 'pending': return '⏳ Pending';
+      case 'cancelled': return '✕ Cancelled';
       default: return status;
     }
   };
 
+  const filteredBookings = bookings.filter(b => 
+    statusFilter === 'all' || b.status === statusFilter
+  );
+
   if (!user) {
     return (
       <div style={styles.app}>
-        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-        <Header transparent={true} />
-        <div style={styles.loginContainer}>
-          <div style={styles.loginCard}>
-            <div style={{ fontSize: 64, marginBottom: 20 }}>🔐</div>
-            <h2 style={styles.loginTitle}>Login Required</h2>
-            <p style={styles.loginSub}>Please login to view your bookings</p>
-            <form onSubmit={handleLogin} style={styles.loginForm}>
-              <input
-                type="email"
-                placeholder="Email"
-                value={loginEmail}
-                onChange={(e) => setLoginEmail(e.target.value)}
-                required
-                style={styles.input}
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                required
-                style={styles.input}
-              />
-              <button type="submit" disabled={loginLoading} style={styles.btnPrimary}>
-                {loginLoading ? 'Logging in...' : 'Login'}
-              </button>
-            </form>
+        <Header />
+        <div style={styles.hero}>
+          <div style={styles.heroInner}>
+            <h1 style={styles.heroTitle}>My Bookings</h1>
+            <p style={styles.heroSub}>Manage your bookings and reservations</p>
           </div>
+        </div>
+        <div style={styles.loginRequired}>
+          <h2>Login Required</h2>
+          <p>Please login to view your bookings</p>
+          <button onClick={() => window.navigateTo('login')} style={styles.btnPrimary}>
+            Login
+          </button>
         </div>
       </div>
     );
@@ -200,7 +269,7 @@ function MyBookings() {
   if (loading) {
     return (
       <div style={styles.app}>
-        <Header transparent={true} />
+        <Header />
         <div style={styles.loading}>
           <div style={{ fontSize: 48 }}>📅</div>
           <h2>Loading bookings...</h2>
@@ -212,62 +281,62 @@ function MyBookings() {
   return (
     <div style={styles.app}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Header transparent={true} />
-
+      <Header />
+      
       <div style={styles.hero}>
         <div style={styles.heroInner}>
           <h1 style={styles.heroTitle}>My Bookings</h1>
-          <p style={styles.heroSub}>Manage your service bookings</p>
+          <p style={styles.heroSub}>Manage your bookings and reservations</p>
         </div>
       </div>
 
       <div style={styles.container}>
-        
-        {/* VIEW MODE TOGGLE (only show if user has provider profile) */}
         {userProfile && (
           <div style={styles.viewToggle}>
             <button
               onClick={() => setViewMode('customer')}
-              style={{...styles.toggleBtn, ...(viewMode === 'customer' ? styles.toggleBtnActive : {})}}
+              style={{
+                ...styles.toggleBtn,
+                ...(viewMode === 'customer' ? styles.toggleBtnActive : {})
+              }}
             >
-              📅 My Bookings (as Customer)
+              As Customer
             </button>
             <button
               onClick={() => setViewMode('provider')}
-              style={{...styles.toggleBtn, ...(viewMode === 'provider' ? styles.toggleBtnActive : {})}}
+              style={{
+                ...styles.toggleBtn,
+                ...(viewMode === 'provider' ? styles.toggleBtnActive : {})
+              }}
             >
-              📋 Service Requests (as Provider)
+              As Provider
             </button>
           </div>
         )}
 
         <div style={styles.filters}>
-          <button onClick={() => setStatusFilter('all')} style={{...styles.filterBtn, ...(statusFilter === 'all' ? styles.filterBtnActive : {})}}>
-            All ({bookings.length})
-          </button>
-          <button onClick={() => setStatusFilter('pending')} style={{...styles.filterBtn, ...(statusFilter === 'pending' ? styles.filterBtnActive : {})}}>
-            Pending ({bookings.filter(b => b.status === 'pending').length})
-          </button>
-          <button onClick={() => setStatusFilter('confirmed')} style={{...styles.filterBtn, ...(statusFilter === 'confirmed' ? styles.filterBtnActive : {})}}>
-            Confirmed ({bookings.filter(b => b.status === 'confirmed').length})
-          </button>
-          <button onClick={() => setStatusFilter('cancelled')} style={{...styles.filterBtn, ...(statusFilter === 'cancelled' ? styles.filterBtnActive : {})}}>
-            Cancelled ({bookings.filter(b => b.status === 'cancelled').length})
-          </button>
+          {['all', 'pending', 'confirmed', 'cancelled'].map(status => (
+            <button
+              key={status}
+              onClick={() => setStatusFilter(status)}
+              style={{
+                ...styles.filterBtn,
+                ...(statusFilter === status ? styles.filterBtnActive : {})
+              }}
+            >
+              {status.charAt(0).toUpperCase() + status.slice(1)}
+            </button>
+          ))}
         </div>
 
         {filteredBookings.length === 0 ? (
           <div style={styles.empty}>
-            <div style={{ fontSize: 48 }}>📅</div>
+            <div style={{ fontSize: 64 }}>📭</div>
             <h3>No bookings found</h3>
-            <p>
-              {statusFilter === 'all' 
-                ? (viewMode === 'customer' ? 'You haven\'t made any bookings yet' : 'No service requests yet')
-                : `No ${statusFilter} bookings`}
-            </p>
+            <p>You don't have any {statusFilter !== 'all' ? statusFilter : ''} bookings yet</p>
             {viewMode === 'customer' && (
               <button onClick={() => window.navigateTo('home')} style={styles.btnPrimary}>
-                Browse Providers
+                Browse Services
               </button>
             )}
           </div>
@@ -277,7 +346,6 @@ function MyBookings() {
               <div key={booking.id} style={styles.card}>
                 <div style={styles.cardHeader}>
                   {viewMode === 'customer' ? (
-                    // Customer view: show provider
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       {booking.provider?.image_url && booking.provider.image_url.startsWith('http') ? (
                         <img src={booking.provider.image_url} alt={booking.provider.name} style={styles.providerImage} />
@@ -292,7 +360,6 @@ function MyBookings() {
                       </div>
                     </div>
                   ) : (
-                    // Provider view: show customer
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={styles.providerPlaceholder}>
                         {booking.customer_name?.charAt(0).toUpperCase() || '👤'}
@@ -368,13 +435,19 @@ function MyBookings() {
                     </button>
                   )}
                   
+                  {viewMode === 'customer' && canReview(booking) && (
+                    <button onClick={() => handleOpenReview(booking)} style={styles.btnReview}>
+                      Write Review
+                    </button>
+                  )}
+                  
                   {viewMode === 'provider' && booking.status === 'pending' && (
                     <div style={{ display: 'flex', gap: 8 }}>
                       <button onClick={() => handleAccept(booking.id)} style={styles.btnAccept}>
-                        ✓ Accept
+                        Accept
                       </button>
                       <button onClick={() => handleDecline(booking.id)} style={styles.btnDecline}>
-                        ✕ Decline
+                        Decline
                       </button>
                     </div>
                   )}
@@ -384,6 +457,69 @@ function MyBookings() {
           </div>
         )}
       </div>
+
+      {/* Review Modal */}
+      {showReviewModal && selectedBooking && (
+        <div onClick={() => setShowReviewModal(false)} style={styles.modalBackdrop}>
+          <div onClick={(e) => e.stopPropagation()} style={styles.modal}>
+            <button onClick={() => setShowReviewModal(false)} style={styles.closeBtn}>✕</button>
+            <h2 style={styles.modalTitle}>Write Review</h2>
+            <p style={styles.modalSub}>Review for {selectedBooking.provider?.name}</p>
+            
+            <form onSubmit={handleSubmitReview} style={styles.reviewForm}>
+              <div>
+                <label style={styles.label}>Your Name</label>
+                <input
+                  type="text"
+                  required
+                  value={reviewForm.author_name}
+                  onChange={(e) => setReviewForm({ ...reviewForm, author_name: e.target.value })}
+                  style={styles.input}
+                />
+              </div>
+
+              <div>
+                <label style={styles.label}>Rating</label>
+                <div style={styles.stars}>
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <span
+                      key={star}
+                      onClick={() => setReviewForm({ ...reviewForm, rating: star })}
+                      style={{
+                        ...styles.star,
+                        color: star <= reviewForm.rating ? '#f59e0b' : '#d1d5db'
+                      }}
+                    >
+                      ★
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label style={styles.label}>Your Review</label>
+                <textarea
+                  required
+                  value={reviewForm.review_text}
+                  onChange={(e) => setReviewForm({ ...reviewForm, review_text: e.target.value })}
+                  style={styles.textarea}
+                  rows={4}
+                  placeholder="Share your experience..."
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+                <button type="submit" disabled={submittingReview} style={styles.btnSubmit}>
+                  {submittingReview ? 'Submitting...' : 'Submit Review'}
+                </button>
+                <button type="button" onClick={() => setShowReviewModal(false)} style={styles.btnCancelModal}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -416,19 +552,28 @@ const styles = {
   infoValue: { display: 'block', fontSize: 14, color: '#111827', fontWeight: 500, marginTop: 2 },
   messageBox: { marginTop: 16, padding: 12, background: '#f9fafb', borderRadius: 10 },
   messageText: { margin: '4px 0 0', fontSize: 13, color: '#374151', lineHeight: 1.6 },
-  cardActions: { padding: '0 20px 20px' },
+  cardActions: { padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: 8 },
   btnCancel: { width: '100%', padding: '12px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' },
+  btnReview: { width: '100%', padding: '12px', background: '#065f46', color: 'white', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)' },
   btnAccept: { flex: 1, padding: '12px', background: '#065f46', color: 'white', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)' },
   btnDecline: { flex: 1, padding: '12px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' },
   empty: { textAlign: 'center', padding: '60px 20px', background: 'white', borderRadius: 16, border: '1.5px solid #e5e7eb', boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)' },
   btnPrimary: { padding: '12px 24px', background: '#065f46', color: 'white', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', marginTop: 16 },
   loading: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 },
-  loginContainer: { minHeight: 'calc(100vh - 80px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
-  loginCard: { background: 'white', padding: 40, borderRadius: 20, maxWidth: 400, width: '100%', textAlign: 'center', border: '1.5px solid #e5e7eb', boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)' },
-  loginTitle: { margin: '0 0 8px', fontSize: 24, fontWeight: 700 },
-  loginSub: { margin: '0 0 24px', color: '#6b7280', fontSize: 14 },
-  loginForm: { display: 'flex', flexDirection: 'column', gap: 12 },
-  input: { padding: '12px 16px', border: '2px solid #e5e7eb', borderRadius: 10, fontSize: 14, outline: 'none', fontFamily: '"Outfit", sans-serif' }
+  loginRequired: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 20 },
+  modalBackdrop: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 },
+  modal: { background: '#fff', borderRadius: 20, width: '100%', maxWidth: 500, padding: 32, position: 'relative', boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)' },
+  closeBtn: { position: 'absolute', top: 16, right: 16, background: '#f3f4f6', border: 'none', borderRadius: 10, width: 36, height: 36, cursor: 'pointer', fontSize: 14 },
+  modalTitle: { margin: '0 0 8px', fontSize: 24, fontWeight: 700 },
+  modalSub: { margin: '0 0 24px', color: '#6b7280', fontSize: 14 },
+  reviewForm: { display: 'flex', flexDirection: 'column', gap: 16 },
+  label: { display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 },
+  input: { width: '100%', padding: '10px 12px', border: '1.5px solid #e5e7eb', borderRadius: 8, fontSize: 14, outline: 'none', fontFamily: '"Outfit", sans-serif', boxSizing: 'border-box' },
+  textarea: { width: '100%', padding: '10px 12px', border: '1.5px solid #e5e7eb', borderRadius: 8, fontSize: 14, outline: 'none', fontFamily: '"Outfit", sans-serif', resize: 'vertical', boxSizing: 'border-box' },
+  stars: { display: 'flex', gap: 4 },
+  star: { fontSize: 28, cursor: 'pointer', transition: 'color 0.2s' },
+  btnSubmit: { flex: 1, padding: '12px', background: '#065f46', color: '#fff', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)' },
+  btnCancelModal: { flex: 1, padding: '12px', background: '#fff', color: '#6b7280', border: '1.5px solid #e5e7eb', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' }
 };
 
 export default MyBookings;
