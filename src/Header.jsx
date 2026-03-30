@@ -114,6 +114,14 @@ function Header({ transparent, isScrolled }) {
                     >
                       Edit Profile
                     </button>
+                    {!hasProviderProfile && (
+                      <button 
+                        onClick={() => { setShowDropdown(false); window.navigateTo('register'); }}
+                        style={styles.dropdownItem}
+                      >
+                        Become a Provider
+                      </button>
+                    )}
                     <button 
                       onClick={() => { setShowDropdown(false); window.navigateTo('dashboard'); }}
                       style={styles.dropdownItem}
@@ -138,7 +146,7 @@ function Header({ transparent, isScrolled }) {
               }}>
                 Login
               </button>
-              <button onClick={() => window.navigateTo('register')} style={styles.btnPrimary}>
+              <button onClick={() => window.navigateTo('signup')} style={styles.btnPrimary}>
                 Sign Up
               </button>
             </>
