@@ -37,12 +37,18 @@ function BookingCalendar({ profile, onClose }) {
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
   const [message, setMessage] = useState('');
+  const [customerName, setCustomerName] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   // Fetch user profile data
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (user) {
+        // Set customer name from auth or profile
+        const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || '';
+        setCustomerName(userName);
+        
+
         const { data } = await supabase
           .from('profiles')
           .select('name, email, phone')
@@ -131,7 +137,7 @@ function BookingCalendar({ profile, onClose }) {
     try {
       const { error } = await supabase.from('bookings').insert([{
         profile_id: profile.id,
-        customer_name: userProfile?.name || 'Customer',
+        customer_name: customerName || 'Customer',
         customer_email: userProfile?.email || user.email,
         customer_phone: userProfile?.phone || '',
         booking_date: selectedDate,
@@ -276,12 +282,24 @@ function BookingCalendar({ profile, onClose }) {
                 </div>
                 <div style={{...styles.summaryRow, borderTop: '1px solid #e5e7eb', paddingTop: 12, marginTop: 12}}>
                   <span style={styles.summaryLabel}>Your Name:</span>
-                  <span style={styles.summaryValue}>{userProfile?.name || 'Not set'}</span>
+                  <span style={styles.summaryValue}>{customerName || 'Not set'}</span>
                 </div>
                 <div style={styles.summaryRow}>
                   <span style={styles.summaryLabel}>Your Email:</span>
                   <span style={styles.summaryValue}>{userProfile?.email || user?.email}</span>
                 </div>
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Booking for *</label>
+                <input 
+                  type="text"
+                  value={customerName} 
+                  onChange={(e) => setCustomerName(e.target.value)} 
+                  style={styles.input}
+                  placeholder="Enter your full name"
+                  required
+                />
               </div>
 
               <div style={styles.formGroup}>
