@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from './AuthContext';
 import Header from './Header';
-import Footer from './Footer';
 
 function SignupPage() {
   const [name, setName] = useState('');
@@ -17,238 +16,287 @@ function SignupPage() {
     const { error } = await signUp(email, password, name);
     
     if (error) {
-      alert('Registrierung fehlgeschlagen: ' + error.message);
+      alert('Registration failed: ' + error.message);
     } else {
-      alert('✅ Registrierung erfolgreich! Bitte bestätige deine Email.');
+      alert('✅ Registration successful! Please check your email to confirm.');
       window.navigateTo('login');
     }
     setLoading(false);
   };
 
   return (
-    <div className="signup-container">
+    <div style={styles.page}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Header/>
+      <Header transparent={true} />
       
-      <div className="signup-wrapper">
-        <div className="hero-section">
-          <div className="hero-bg"></div>
-          <div className="hero-gradient"></div>
-          <div className="hero-content">
-            <h1 className="hero-title">✨ Registrieren</h1>
-            <p className="hero-subtitle">Erstelle deinen Account</p>
-          </div>
-        </div>
-
-        <div className="form-container">
-          <form onSubmit={handleSubmit} className="signup-form">
-            
-            <div className="form-group">
-              <label className="form-label">Name *</label>
-              <input required type="text" value={name} onChange={(e)=>setName(e.target.value)} className="form-input"/>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Email *</label>
-              <input required type="email" value={email} onChange={(e)=>setEmail(e.target.value)} className="form-input"/>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Passwort * (mind. 6 Zeichen)</label>
-              <input required type="password" minLength={6} value={password} onChange={(e)=>setPassword(e.target.value)} className="form-input"/>
-            </div>
-
-            <button type="submit" disabled={loading} className={`submit-btn ${loading?'loading':''}`}>
-              {loading ? '⏳ Lädt...' : 'Account erstellen'}
-            </button>
-
-            <p className="login-link">
-              Schon registriert? <button type="button" onClick={()=>window.navigateTo('login')} className="link-btn">Einloggen</button>
-            </p>
-          </form>
+      <div style={styles.hero}>
+        <div style={styles.heroGlow1}></div>
+        <div style={styles.heroGlow2}></div>
+        <div style={styles.heroContent}>
+          <h1 style={styles.heroTitle}>Create Account</h1>
+          <p style={styles.heroSubtitle}>Join Helperr and discover amazing services</p>
         </div>
       </div>
 
-      <Footer/>
+      <div style={styles.container}>
+        <div style={styles.card}>
+          <form onSubmit={handleSubmit} style={styles.form}>
+            
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Full Name</label>
+              <div style={styles.inputWrapper}>
+                <span style={styles.inputIcon}>👤</span>
+                <input 
+                  required 
+                  type="text" 
+                  value={name} 
+                  onChange={(e) => setName(e.target.value)} 
+                  style={styles.input}
+                  placeholder="John Doe"
+                />
+              </div>
+            </div>
 
-      <style>{`
-        .signup-container {
-          min-height: 100vh;
-          background-color: #F9FAFB;
-        }
-        .signup-wrapper {
-          padding-top: 70px;
-        }
-        .hero-section {
-          position: relative;
-          overflow: hidden;
-          padding: 60px 20px;
-        }
-        .hero-bg {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background-image: url(https://images.unsplash.com/photo-1557683316-973673baf926?w=1600&q=80);
-          background-size: cover;
-          background-position: center;
-          opacity: 0.7;
-          z-index: 0;
-        }
-        .hero-gradient {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(250,250,250,0.9) 100%);
-          z-index: 1;
-        }
-        .hero-content {
-          max-width: 500px;
-          margin: 0 auto;
-          text-align: center;
-          position: relative;
-          z-index: 2;
-          color: #1F2937;
-        }
-        .hero-title {
-          font-size: 48px;
-          font-weight: 800;
-          margin-bottom: 12px;
-          font-family: "Outfit", sans-serif;
-          letter-spacing: -1px;
-        }
-        .hero-subtitle {
-          font-size: 18px;
-          font-family: "Outfit", sans-serif;
-          font-weight: 400;
-        }
-        .form-container {
-          max-width: 500px;
-          margin: -10px auto 80px;
-          padding: 0 20px;
-        }
-        .signup-form {
-          background-color: white;
-          border-radius: 20px;
-          padding: 40px;
-          box-shadow: 0 8px 30px rgba(0,0,0,0.1);
-        }
-        .form-group {
-          margin-bottom: 24px;
-        }
-        .form-group:last-of-type {
-          margin-bottom: 32px;
-        }
-        .form-label {
-          display: block;
-          margin-bottom: 8px;
-          font-weight: 600;
-          font-size: 15px;
-          color: #1F2937;
-          font-family: "Outfit", sans-serif;
-        }
-        .form-input {
-          width: 100%;
-          padding: 14px 18px;
-          border: 1px solid #E5E7EB;
-          border-radius: 12px;
-          font-size: 15px;
-          outline: none;
-          font-family: "Outfit", sans-serif;
-          box-sizing: border-box;
-          transition: all 0.3s;
-        }
-        .form-input:focus {
-          border-color: #14B8A6;
-          box-shadow: 0 0 0 3px rgba(20,184,166,0.1);
-        }
-        .submit-btn {
-          width: 100%;
-          padding: 18px;
-          background: #1F2937;
-          color: white;
-          border: none;
-          border-radius: 16px;
-          font-size: 18px;
-          font-weight: 700;
-          cursor: pointer;
-          font-family: "Outfit", sans-serif;
-          margin-bottom: 16px;
-          transition: all 0.3s;
-        }
-        .submit-btn:hover:not(.loading) {
-          background: #14B8A6;
-          transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(20,184,166,0.3);
-        }
-        .submit-btn.loading {
-          background: #CBD5E0;
-          cursor: not-allowed;
-        }
-        .login-link {
-          text-align: center;
-          font-size: 14px;
-          color: #6B7280;
-          font-family: "Outfit", sans-serif;
-          margin: 0;
-        }
-        .link-btn {
-          background: none;
-          border: none;
-          color: #14B8A6;
-          font-weight: 600;
-          cursor: pointer;
-          text-decoration: underline;
-          font-family: "Outfit", sans-serif;
-        }
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Email Address</label>
+              <div style={styles.inputWrapper}>
+                <span style={styles.inputIcon}>📧</span>
+                <input 
+                  required 
+                  type="email" 
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)} 
+                  style={styles.input}
+                  placeholder="you@example.com"
+                />
+              </div>
+            </div>
 
-        /* MOBILE */
-        @media (max-width: 768px) {
-          .hero-section {
-            padding: 40px 16px !important;
-          }
-          .hero-title {
-            font-size: 32px !important;
-            margin-bottom: 8px !important;
-          }
-          .hero-subtitle {
-            font-size: 16px !important;
-          }
-          .form-container {
-            margin: 0 auto 60px !important;
-            padding: 0 16px !important;
-          }
-          .signup-form {
-            padding: 28px !important;
-          }
-          .form-group {
-            margin-bottom: 20px !important;
-          }
-          .form-group:last-of-type {
-            margin-bottom: 28px !important;
-          }
-          .form-label {
-            font-size: 14px !important;
-            margin-bottom: 6px !important;
-          }
-          .form-input {
-            padding: 12px 16px !important;
-            font-size: 14px !important;
-          }
-          .submit-btn {
-            padding: 16px !important;
-            font-size: 16px !important;
-          }
-          .login-link {
-            font-size: 13px !important;
-          }
-        }
-      `}</style>
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Password</label>
+              <div style={styles.inputWrapper}>
+                <span style={styles.inputIcon}>🔒</span>
+                <input 
+                  required 
+                  type="password" 
+                  minLength={6}
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                  style={styles.input}
+                  placeholder="Minimum 6 characters"
+                />
+              </div>
+              <p style={styles.hint}>Must be at least 6 characters</p>
+            </div>
+
+            <button 
+              type="submit" 
+              disabled={loading} 
+              style={{
+                ...styles.submitBtn,
+                ...(loading ? styles.submitBtnLoading : {})
+              }}
+            >
+              {loading ? '⏳ Creating account...' : 'Create Account'}
+            </button>
+
+            <div style={styles.divider}>
+              <span style={styles.dividerText}>or</span>
+            </div>
+
+            <p style={styles.loginText}>
+              Already have an account?{' '}
+              <button 
+                type="button" 
+                onClick={() => window.navigateTo('login')} 
+                style={styles.loginLink}
+              >
+                Sign in
+              </button>
+            </p>
+          </form>
+        </div>
+
+        <p style={styles.footer}>
+          By creating an account, you agree to our Terms of Service and Privacy Policy
+        </p>
+      </div>
     </div>
   );
 }
+
+const styles = {
+  page: {
+    fontFamily: '"Outfit", sans-serif',
+    background: '#f9fafb',
+    minHeight: '100vh',
+    paddingTop: 0
+  },
+  hero: {
+    background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 70%, #14b8a6 100%)',
+    padding: '140px 20px 80px',
+    position: 'relative',
+    overflow: 'hidden',
+    clipPath: 'ellipse(120% 100% at 50% 0%)'
+  },
+  heroGlow1: {
+    position: 'absolute',
+    top: '-50%',
+    right: '-10%',
+    width: '600px',
+    height: '600px',
+    background: 'radial-gradient(circle, rgba(20, 184, 166, 0.3) 0%, transparent 70%)',
+    borderRadius: '50%',
+    filter: 'blur(60px)',
+    pointerEvents: 'none'
+  },
+  heroGlow2: {
+    position: 'absolute',
+    bottom: '-30%',
+    left: '-5%',
+    width: '500px',
+    height: '500px',
+    background: 'radial-gradient(circle, rgba(6, 95, 70, 0.4) 0%, transparent 70%)',
+    borderRadius: '50%',
+    filter: 'blur(80px)',
+    pointerEvents: 'none'
+  },
+  heroContent: {
+    maxWidth: 600,
+    margin: '0 auto',
+    textAlign: 'center',
+    position: 'relative',
+    zIndex: 1
+  },
+  heroTitle: {
+    color: '#fff',
+    fontSize: 48,
+    fontWeight: 800,
+    margin: '0 0 12px',
+    letterSpacing: '-0.02em'
+  },
+  heroSubtitle: {
+    color: '#d1fae5',
+    fontSize: 18,
+    margin: 0,
+    fontWeight: 400
+  },
+  container: {
+    maxWidth: 480,
+    margin: '-40px auto 60px',
+    padding: '0 20px',
+    position: 'relative',
+    zIndex: 10
+  },
+  card: {
+    background: '#fff',
+    borderRadius: 24,
+    padding: '48px 40px',
+    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.12)',
+    border: '1px solid #e5e7eb'
+  },
+  form: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 24
+  },
+  formGroup: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 8
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: 600,
+    color: '#374151',
+    marginBottom: 4
+  },
+  inputWrapper: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center'
+  },
+  inputIcon: {
+    position: 'absolute',
+    left: 16,
+    fontSize: 18,
+    pointerEvents: 'none',
+    zIndex: 1
+  },
+  input: {
+    width: '100%',
+    padding: '14px 16px 14px 48px',
+    border: '2px solid #e5e7eb',
+    borderRadius: 12,
+    fontSize: 15,
+    fontFamily: '"Outfit", sans-serif',
+    outline: 'none',
+    transition: 'all 0.2s',
+    boxSizing: 'border-box',
+    background: '#f9fafb'
+  },
+  hint: {
+    fontSize: 12,
+    color: '#6b7280',
+    margin: '4px 0 0',
+    fontWeight: 400
+  },
+  submitBtn: {
+    padding: '16px',
+    background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)',
+    color: '#fff',
+    border: 'none',
+    borderRadius: 12,
+    fontSize: 16,
+    fontWeight: 700,
+    cursor: 'pointer',
+    fontFamily: '"Outfit", sans-serif',
+    transition: 'all 0.2s',
+    boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)',
+    marginTop: 8
+  },
+  submitBtnLoading: {
+    opacity: 0.7,
+    cursor: 'not-allowed'
+  },
+  divider: {
+    position: 'relative',
+    textAlign: 'center',
+    margin: '8px 0'
+  },
+  dividerText: {
+    background: '#fff',
+    padding: '0 16px',
+    color: '#9ca3af',
+    fontSize: 13,
+    fontWeight: 500,
+    position: 'relative',
+    zIndex: 1
+  },
+  loginText: {
+    textAlign: 'center',
+    fontSize: 14,
+    color: '#6b7280',
+    margin: 0
+  },
+  loginLink: {
+    background: 'none',
+    border: 'none',
+    color: '#065f46',
+    fontWeight: 600,
+    cursor: 'pointer',
+    fontFamily: '"Outfit", sans-serif',
+    fontSize: 14,
+    padding: 0,
+    textDecoration: 'underline'
+  },
+  footer: {
+    textAlign: 'center',
+    fontSize: 12,
+    color: '#9ca3af',
+    marginTop: 32,
+    lineHeight: 1.6
+  }
+};
 
 export default SignupPage;
