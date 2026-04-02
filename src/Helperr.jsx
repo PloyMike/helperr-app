@@ -473,7 +473,7 @@ const styles = {
   rowNav: { display: 'flex', gap: 8 },
   navBtn: { width: 36, height: 36, borderRadius: '50%', border: '1.5px solid #e5e7eb', background: 'white', cursor: 'pointer', fontSize: 16, fontWeight: 700, color: '#6b7280', transition: 'all 0.2s' },
   slider: { display: 'flex', gap: 16, overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none', paddingBottom: 8 },
-  card: { minWidth: 380, maxWidth: 380, background: '#fff', borderRadius: 16, padding: 24, cursor: 'pointer', border: '1.5px solid #e5e7eb', transition: 'all 0.2s', boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)' },
+  card: { minWidth: 300, maxWidth: 300, background: '#fff', borderRadius: 16, padding: 16, cursor: 'pointer', border: '1.5px solid #e5e7eb', transition: 'all 0.2s', boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)' },
   cardTop: { display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 14 },
   cardAvatar: { width: 80, height: 80, background: '#ecfdf5', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, objectFit: 'cover', flexShrink: 0 },
   cardName: { margin: 0, fontSize: 17, fontWeight: 700, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },

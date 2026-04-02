@@ -32,6 +32,7 @@ function BookingCalendar({ profile, onClose }) {
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState('');
+  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
   const [bookedSlots, setBookedSlots] = useState([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
@@ -61,20 +62,43 @@ function BookingCalendar({ profile, onClose }) {
     fetchUserProfile();
   }, [user]);
 
-  const getAvailableDates = () => {
+  const getMonthDates = () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    
+    let startingDayOfWeek = firstDay.getDay();
+    startingDayOfWeek = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1;
+    
     const dates = [];
     const today = new Date();
-    for (let i = 1; i <= 30; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
+    today.setHours(0, 0, 0, 0);
+    
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      dates.push(null);
+    }
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
       dates.push(date);
     }
+    
     return dates;
   };
 
-  const formatDate = (date) => {
-    return date.toLocaleDateString('en-US', { weekday: 'short', day: '2-digit', month: 'short' });
+  const changeMonth = (direction) => {
+    const newMonth = new Date(currentMonth);
+    newMonth.setMonth(currentMonth.getMonth() + direction);
+    setCurrentMonth(newMonth);
   };
+
+  const getMonthName = () => {
+    return currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  };
+
 
   const formatDateFull = (date) => {
     return date.toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
@@ -188,19 +212,48 @@ function BookingCalendar({ profile, onClose }) {
           {step === 1 && (
             <div>
               <h3 style={styles.stepTitle}>Select a Date</h3>
-              <div style={styles.dateGrid}>
-                {getAvailableDates().map(date => {
+              
+              <div style={styles.calendarHeader}>
+                <button onClick={() => changeMonth(-1)} style={styles.monthBtn}>←</button>
+                <div style={styles.monthTitle}>{getMonthName()}</div>
+                <button onClick={() => changeMonth(1)} style={styles.monthBtn}>→</button>
+              </div>
+
+              <div style={styles.weekdaysHeader}>
+                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                  <div key={day} style={styles.weekday}>{day}</div>
+                ))}
+              </div>
+
+              <div style={styles.monthGrid}>
+                {getMonthDates().map((date, index) => {
+                  if (!date) {
+                    return <div key={'empty-' + index} style={styles.emptyDay}></div>;
+                  }
+                  
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const isPast = date < today;
                   const dateISO = formatDateISO(date);
                   const isSelected = selectedDate === dateISO;
+                  
                   return (
-                    <button key={dateISO} onClick={() => setSelectedDate(dateISO)} style={{...styles.dateBtn, ...(isSelected ? styles.dateBtnActive : {})}}>
-                      <div style={styles.dateDay}>{formatDate(date).split(',')[0]}</div>
-                      <div style={styles.dateNumber}>{date.getDate()}</div>
-                      <div style={styles.dateMonth}>{formatDate(date).split(' ')[1]}</div>
+                    <button 
+                      key={dateISO} 
+                      onClick={() => !isPast && setSelectedDate(dateISO)} 
+                      disabled={isPast}
+                      style={{
+                        ...styles.calendarDay,
+                        ...(isSelected ? styles.calendarDaySelected : {}),
+                        ...(isPast ? styles.calendarDayDisabled : {})
+                      }}
+                    >
+                      {date.getDate()}
                     </button>
                   );
                 })}
               </div>
+
               <button onClick={() => setStep(2)} disabled={!selectedDate} style={{...styles.btnNext, opacity: !selectedDate ? 0.5 : 1, cursor: !selectedDate ? 'not-allowed' : 'pointer'}}>
                 Continue to Time Selection →
               </button>
@@ -328,6 +381,16 @@ function BookingCalendar({ profile, onClose }) {
 }
 
 const styles = {
+  calendarHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, padding: '12px 16px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', borderRadius: 12 },
+  monthBtn: { background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '8px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 16, fontWeight: 700, fontFamily: '"Outfit", sans-serif' },
+  monthTitle: { color: 'white', fontSize: 18, fontWeight: 700 },
+  weekdaysHeader: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginBottom: 8, padding: '8px 0' },
+  weekday: { textAlign: 'center', fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' },
+  monthGrid: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, marginBottom: 20 },
+  emptyDay: { padding: '12px', opacity: 0 },
+  calendarDay: { padding: '10px 8px', border: '2px solid #e5e7eb', borderRadius: 10, background: 'white', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s', fontFamily: '"Outfit", sans-serif', fontSize: 16, fontWeight: 600, color: '#111827' },
+  calendarDaySelected: { borderColor: '#065f46', background: '#ecfdf5', color: '#065f46', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.2)' },
+  calendarDayDisabled: { opacity: 0.3, cursor: 'not-allowed', background: '#f9fafb' },
   overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, fontFamily: '"Outfit", sans-serif' },
   modal: { background: 'white', borderRadius: 20, width: '100%', maxWidth: 700, maxHeight: '90vh', overflowY: 'auto' },
   header: { background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', padding: 24, borderRadius: '20px 20px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
