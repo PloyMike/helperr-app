@@ -1,65 +1,29 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from './supabase';
 import { useAuth } from './AuthContext';
 
 function BookingCalendar({ profile, onClose }) {
-  
-  const containsForbiddenContent = (text) => {
-    const forbiddenPatterns = [
-      /\b\d{10,}\b/,
-      /\+?\d[\d\s\-()]{8,}/,
-      /\b0\d{9}\b/,
-      /@/,
-      /\[at\]/i,
-      /\.com\b/i,
-      /\.net\b/i,
-      /\.org\b/i,
-      /\.de\b/i,
-      /\.co\b/i,
-      /whatsapp/i,
-      /line\s*id/i,
-      /telegram/i,
-      /facebook/i,
-      /instagram/i,
-      /wechat/i,
-      /viber/i,
-      /signal/i
-    ];
-
-    return forbiddenPatterns.some(pattern => pattern.test(text));
-  };
-
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
-  const [bookedSlots, setBookedSlots] = useState([]);
-  const [loadingSlots, setLoadingSlots] = useState(false);
-  const [userProfile, setUserProfile] = useState(null);
-  const [message, setMessage] = useState('');
+  const [startHour, setStartHour] = useState('10');
+  const [startMinute, setStartMinute] = useState('00');
+  const [endHour, setEndHour] = useState('11');
+  const [endMinute, setEndMinute] = useState('00');
   const [customerName, setCustomerName] = useState('');
+  const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Fetch user profile data
   useEffect(() => {
-    const fetchUserProfile = async () => {
+    const initCustomerName = async () => {
       if (user) {
-        // Set customer name from auth or profile
         const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || '';
         setCustomerName(userName);
-        
-
-        const { data } = await supabase
-          .from('profiles')
-          .select('name, email, phone')
-          .eq('email', user.email)
-          .single();
-        
-        setUserProfile(data || { name: '', email: user.email, phone: '' });
       }
     };
-    fetchUserProfile();
+    initCustomerName();
   }, [user]);
 
   const getMonthDates = () => {
@@ -99,6 +63,18 @@ function BookingCalendar({ profile, onClose }) {
     return currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   };
 
+  const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
+  const minutes = ['00', '15', '30', '45'];
+
+  const getTimeString = () => {
+    return `${startHour}:${startMinute} - ${endHour}:${endMinute}`;
+  };
+
+  const isValidTimeRange = () => {
+    const start = parseInt(startHour) * 60 + parseInt(startMinute);
+    const end = parseInt(endHour) * 60 + parseInt(endMinute);
+    return end > start;
+  };
 
   const formatDateFull = (date) => {
     return date.toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
@@ -108,51 +84,9 @@ function BookingCalendar({ profile, onClose }) {
     return date.toISOString().split('T')[0];
   };
 
-  const timeSlots = Array.from({ length: 24 }, (_, i) => {
-    const start = i.toString().padStart(2, '0') + ':00';
-    const end = ((i + 1) % 24).toString().padStart(2, '0') + ':00';
-    return `${start} - ${end}`;
-  });
-
-  const fetchBookedSlots = useCallback(async (date) => {
-    setLoadingSlots(true);
-    try {
-      const { data, error } = await supabase
-        .from('bookings')
-        .select('time_slot')
-        .eq('profile_id', profile.id)
-        .eq('booking_date', date)
-        .in('status', ['pending', 'confirmed']);
-
-      if (error) throw error;
-      
-      const slots = data.map(booking => booking.time_slot);
-      setBookedSlots(slots);
-    } catch (error) {
-      console.error('Error loading booked slots:', error);
-      setBookedSlots([]);
-    } finally {
-      setLoadingSlots(false);
-    }
-  }, [profile.id]);
-
-  useEffect(() => {
-    if (selectedDate) {
-      fetchBookedSlots(selectedDate);
-    }
-  }, [selectedDate, fetchBookedSlots]);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    // Check message for forbidden content
-    if (message && containsForbiddenContent(message)) {
-      alert('⚠️ Your message contains phone numbers, emails, or external contact methods which are not allowed. Please use our platform messaging for all communication.');
-      return;
-    }
-    
-    if (!user) {
-      alert('Please login to make a booking');
+  const handleSubmit = async () => {
+    if (!selectedDate || !selectedTimeSlot || !customerName.trim()) {
+      alert('Please complete all required fields');
       return;
     }
 
@@ -161,9 +95,9 @@ function BookingCalendar({ profile, onClose }) {
     try {
       const { error } = await supabase.from('bookings').insert([{
         profile_id: profile.id,
-        customer_name: customerName || 'Customer',
-        customer_email: userProfile?.email || user.email,
-        customer_phone: userProfile?.phone || '',
+        customer_name: customerName,
+        customer_email: user.email,
+        customer_phone: '',
         booking_date: selectedDate,
         time_slot: selectedTimeSlot,
         message: message,
@@ -176,39 +110,40 @@ function BookingCalendar({ profile, onClose }) {
       onClose();
     } catch (error) {
       alert('Error: ' + error.message);
-    } finally {
-      setSubmitting(false);
     }
+    setSubmitting(false);
   };
 
   return (
-    <div style={styles.overlay}>
+    <div style={styles.overlay} onClick={onClose}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      <div style={styles.modal}>
+      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div style={styles.header}>
           <div>
             <h2 style={styles.title}>Book {profile.name}</h2>
-            <p style={styles.subtitle}>{profile.subcategory} · {profile.price}</p>
+            <p style={styles.subtitle}>{profile.category} • {profile.price}</p>
           </div>
-          <button onClick={onClose} style={styles.closeBtn}>✕</button>
+          <button onClick={onClose} style={styles.closeBtn}>×</button>
         </div>
+
         <div style={styles.progress}>
           <div style={{...styles.progressStep, ...(step >= 1 ? styles.progressStepActive : {})}}>
             <div style={styles.progressNumber}>1</div>
             <span style={styles.progressLabel}>Date</span>
           </div>
-          <div style={styles.progressLine} />
+          <div style={styles.progressLine}></div>
           <div style={{...styles.progressStep, ...(step >= 2 ? styles.progressStepActive : {})}}>
             <div style={styles.progressNumber}>2</div>
             <span style={styles.progressLabel}>Time</span>
           </div>
-          <div style={styles.progressLine} />
+          <div style={styles.progressLine}></div>
           <div style={{...styles.progressStep, ...(step >= 3 ? styles.progressStepActive : {})}}>
             <div style={styles.progressNumber}>3</div>
             <span style={styles.progressLabel}>Confirm</span>
           </div>
         </div>
-        <div style={styles.content}>
+
+        <div style={styles.body}>
           {step === 1 && (
             <div>
               <h3 style={styles.stepTitle}>Select a Date</h3>
@@ -259,67 +194,107 @@ function BookingCalendar({ profile, onClose }) {
               </button>
             </div>
           )}
+
           {step === 2 && (
             <div>
-              <h3 style={styles.stepTitle}>Select Time Slot</h3>
+              <h3 style={styles.stepTitle}>Select Time</h3>
               <p style={styles.selectedInfo}>📅 {formatDateFull(new Date(selectedDate))}</p>
               
-              {loadingSlots ? (
-                <div style={styles.loadingSlots}>
-                  <div style={{ fontSize: 24 }}>⏳</div>
-                  <p>Checking availability...</p>
-                </div>
-              ) : (
-                <>
-                  {bookedSlots.length > 0 && (
-                    <div style={styles.infoBox}>
-                      ℹ️ {bookedSlots.length} slot{bookedSlots.length > 1 ? 's' : ''} already booked on this day
-                    </div>
-                  )}
-                  <div style={styles.timeGrid}>
-                    {timeSlots.map(slot => {
-                      const isBooked = bookedSlots.includes(slot);
-                      const isSelected = selectedTimeSlot === slot;
-                      return (
-                        <button
-                          key={slot}
-                          onClick={() => !isBooked && setSelectedTimeSlot(slot)}
-                          disabled={isBooked}
-                          style={{
-                            ...styles.timeBtn,
-                            ...(isSelected ? styles.timeBtnActive : {}),
-                            ...(isBooked ? styles.timeBtnBooked : {})
-                          }}
-                        >
-                          {slot}
-                          {isBooked && <div style={styles.bookedLabel}>Booked</div>}
-                        </button>
-                      );
-                    })}
+              <div style={styles.timePickerContainer}>
+                <div style={styles.timePickerSection}>
+                  <div style={styles.timePickerLabel}>Start Time</div>
+                  <div style={styles.pickerRow}>
+                    <select 
+                      value={startHour} 
+                      onChange={(e) => setStartHour(e.target.value)}
+                      style={styles.timePicker}
+                    >
+                      {hours.map(h => (
+                        <option key={h} value={h}>{h}</option>
+                      ))}
+                    </select>
+                    <span style={styles.pickerColon}>:</span>
+                    <select 
+                      value={startMinute} 
+                      onChange={(e) => setStartMinute(e.target.value)}
+                      style={styles.timePicker}
+                    >
+                      {minutes.map(m => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
                   </div>
-                </>
+                </div>
+
+                <div style={styles.timePickerArrow}>↓</div>
+
+                <div style={styles.timePickerSection}>
+                  <div style={styles.timePickerLabel}>End Time</div>
+                  <div style={styles.pickerRow}>
+                    <select 
+                      value={endHour} 
+                      onChange={(e) => setEndHour(e.target.value)}
+                      style={styles.timePicker}
+                    >
+                      {hours.map(h => (
+                        <option key={h} value={h}>{h}</option>
+                      ))}
+                    </select>
+                    <span style={styles.pickerColon}>:</span>
+                    <select 
+                      value={endMinute} 
+                      onChange={(e) => setEndMinute(e.target.value)}
+                      style={styles.timePicker}
+                    >
+                      {minutes.map(m => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {!isValidTimeRange() && (
+                <div style={styles.errorBox}>
+                  ⚠️ End time must be after start time
+                </div>
               )}
-              
-              <div style={styles.btnGroup}>
-                <button onClick={() => setStep(1)} style={styles.btnBack}>← Back</button>
-                <button onClick={() => setStep(3)} disabled={!selectedTimeSlot} style={{...styles.btnNext, flex: 1, opacity: !selectedTimeSlot ? 0.5 : 1, cursor: !selectedTimeSlot ? 'not-allowed' : 'pointer'}}>
+
+              <div style={styles.timePreview}>
+                <div style={styles.timePreviewLabel}>Selected Time:</div>
+                <div style={styles.timePreviewValue}>{getTimeString()}</div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button onClick={() => setStep(1)} style={styles.btnBack}>
+                  ← Back
+                </button>
+                <button 
+                  onClick={() => {
+                    setSelectedTimeSlot(getTimeString());
+                    setStep(3);
+                  }} 
+                  disabled={!isValidTimeRange()} 
+                  style={{
+                    ...styles.btnNext, 
+                    opacity: !isValidTimeRange() ? 0.5 : 1, 
+                    cursor: !isValidTimeRange() ? 'not-allowed' : 'pointer'
+                  }}
+                >
                   Continue to Confirm →
                 </button>
               </div>
             </div>
           )}
+
           {step === 3 && (
-            <form onSubmit={handleSubmit}>
+            <div>
               <h3 style={styles.stepTitle}>Confirm Booking</h3>
               
               <div style={styles.summary}>
                 <div style={styles.summaryRow}>
                   <span style={styles.summaryLabel}>Provider:</span>
                   <span style={styles.summaryValue}>{profile.name}</span>
-                </div>
-                <div style={styles.summaryRow}>
-                  <span style={styles.summaryLabel}>Service:</span>
-                  <span style={styles.summaryValue}>{profile.subcategory}</span>
                 </div>
                 <div style={styles.summaryRow}>
                   <span style={styles.summaryLabel}>Date:</span>
@@ -336,10 +311,6 @@ function BookingCalendar({ profile, onClose }) {
                 <div style={{...styles.summaryRow, borderTop: '1px solid #e5e7eb', paddingTop: 12, marginTop: 12}}>
                   <span style={styles.summaryLabel}>Your Name:</span>
                   <span style={styles.summaryValue}>{customerName || 'Not set'}</span>
-                </div>
-                <div style={styles.summaryRow}>
-                  <span style={styles.summaryLabel}>Your Email:</span>
-                  <span style={styles.summaryValue}>{userProfile?.email || user?.email}</span>
                 </div>
               </div>
 
@@ -362,17 +333,27 @@ function BookingCalendar({ profile, onClose }) {
                   onChange={(e) => setMessage(e.target.value)} 
                   style={styles.textarea} 
                   placeholder="Any special requests or notes for the provider..." 
-                  rows={3} 
+                  rows={4}
                 />
               </div>
 
-              <div style={styles.btnGroup}>
-                <button type="button" onClick={() => setStep(2)} style={styles.btnBack}>← Back</button>
-                <button type="submit" disabled={submitting} style={{...styles.btnSubmit, flex: 1, opacity: submitting ? 0.6 : 1}}>
-                  {submitting ? 'Sending...' : '✅ Confirm Booking'}
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button onClick={() => setStep(2)} style={styles.btnBack}>
+                  ← Back
+                </button>
+                <button 
+                  onClick={handleSubmit} 
+                  disabled={submitting || !customerName.trim()} 
+                  style={{
+                    ...styles.btnSubmit,
+                    opacity: (submitting || !customerName.trim()) ? 0.5 : 1,
+                    cursor: (submitting || !customerName.trim()) ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  {submitting ? '⏳ Sending...' : '✅ Confirm Booking'}
                 </button>
               </div>
-            </form>
+            </div>
           )}
         </div>
       </div>
@@ -381,55 +362,53 @@ function BookingCalendar({ profile, onClose }) {
 }
 
 const styles = {
-  calendarHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, padding: '12px 16px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', borderRadius: 12 },
+  overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1200, padding: '20px', fontFamily: '"Outfit", sans-serif' },
+  modal: { background: 'white', borderRadius: 16, width: '100%', maxWidth: 700, maxHeight: '88vh', overflowY: 'auto', margin: '0 8px' },
+  header: { background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', padding: '12px 12px', borderRadius: '20px 20px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
+  title: { margin: 0, fontSize: 'clamp(20px, 5vw, 24px)', fontWeight: 800, color: 'white' },
+  subtitle: { margin: '4px 0 0', fontSize: 14, color: '#d1fae5' },
+  closeBtn: { background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', width: 36, height: 36, borderRadius: '50%', cursor: 'pointer', fontSize: 18, fontWeight: 700 },
+  progress: { display: 'flex', alignItems: 'center', padding: '10px 12px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb' },
+  progressStep: { display: 'flex', alignItems: 'center', gap: 8 },
+  progressStepActive: { },
+  progressNumber: { width: 32, height: 32, borderRadius: '50%', background: '#e5e7eb', color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700 },
+  progressLabel: { fontSize: 13, color: '#6b7280', fontWeight: 600 },
+  progressLine: { flex: 1, height: 2, background: '#e5e7eb', margin: '0 8px' },
+  body: { padding: '12px 10px' },
+  stepTitle: { fontSize: 16, fontWeight: 700, color: '#111827', marginBottom: 8 },
+  calendarHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, padding: '8px 12px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', borderRadius: 12 },
   monthBtn: { background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '8px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 16, fontWeight: 700, fontFamily: '"Outfit", sans-serif' },
   monthTitle: { color: 'white', fontSize: 18, fontWeight: 700 },
   weekdaysHeader: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginBottom: 8, padding: '8px 0' },
   weekday: { textAlign: 'center', fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' },
-  monthGrid: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, marginBottom: 20 },
+  monthGrid: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginBottom: 12 },
   emptyDay: { padding: '12px', opacity: 0 },
-  calendarDay: { padding: '10px 8px', border: '2px solid #e5e7eb', borderRadius: 10, background: 'white', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s', fontFamily: '"Outfit", sans-serif', fontSize: 16, fontWeight: 600, color: '#111827' },
+  calendarDay: { padding: '8px 6px', border: '1.5px solid #e5e7eb', borderRadius: 10, background: 'white', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s', fontFamily: '"Outfit", sans-serif', fontSize: 16, fontWeight: 600, color: '#111827' },
   calendarDaySelected: { borderColor: '#065f46', background: '#ecfdf5', color: '#065f46', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.2)' },
   calendarDayDisabled: { opacity: 0.3, cursor: 'not-allowed', background: '#f9fafb' },
-  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, fontFamily: '"Outfit", sans-serif' },
-  modal: { background: 'white', borderRadius: 20, width: '100%', maxWidth: 700, maxHeight: '90vh', overflowY: 'auto' },
-  header: { background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', padding: 24, borderRadius: '20px 20px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
-  title: { margin: 0, fontSize: 24, fontWeight: 800, color: 'white' },
-  subtitle: { margin: '4px 0 0', fontSize: 14, color: '#d1fae5' },
-  closeBtn: { background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', width: 36, height: 36, borderRadius: '50%', cursor: 'pointer', fontSize: 18, fontWeight: 700 },
-  progress: { display: 'flex', alignItems: 'center', padding: '24px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb' },
-  progressStep: { display: 'flex', alignItems: 'center', gap: 8 },
-  progressStepActive: { color: '#065f46' },
-  progressNumber: { width: 32, height: 32, borderRadius: '50%', background: '#e5e7eb', color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700 },
-  progressLabel: { fontSize: 13, fontWeight: 600, color: '#6b7280' },
-  progressLine: { flex: 1, height: 2, background: '#e5e7eb', margin: '0 12px' },
-  content: { padding: 24 },
-  stepTitle: { margin: '0 0 20px', fontSize: 20, fontWeight: 700, color: '#111827' },
-  dateGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))', gap: 10, marginBottom: 20 },
-  dateBtn: { padding: '12px 8px', border: '2px solid #e5e7eb', borderRadius: 12, background: 'white', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s' },
-  dateBtnActive: { borderColor: '#065f46', background: '#ecfdf5' },
-  dateDay: { fontSize: 11, color: '#6b7280', fontWeight: 600 },
-  dateNumber: { fontSize: 20, fontWeight: 800, color: '#111827', margin: '4px 0' },
-  dateMonth: { fontSize: 11, color: '#6b7280', fontWeight: 600 },
-  timeGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 10, marginBottom: 20, maxHeight: 400, overflowY: 'auto' },
-  timeBtn: { padding: '12px', border: '2px solid #e5e7eb', borderRadius: 10, background: 'white', cursor: 'pointer', fontSize: 14, fontWeight: 600, color: '#374151', transition: 'all 0.2s', position: 'relative' },
-  timeBtnActive: { borderColor: '#065f46', background: '#ecfdf5', color: '#065f46' },
-  timeBtnBooked: { background: '#fee2e2', borderColor: '#fecaca', color: '#991b1b', cursor: 'not-allowed', opacity: 0.6 },
-  bookedLabel: { fontSize: 10, color: '#dc2626', fontWeight: 700, marginTop: 4 },
-  selectedInfo: { background: '#ecfdf5', padding: 12, borderRadius: 10, fontSize: 14, color: '#065f46', fontWeight: 600, marginBottom: 16 },
-  infoBox: { background: '#fffbeb', padding: 12, borderRadius: 10, fontSize: 13, color: '#92400e', marginBottom: 16, fontWeight: 500 },
-  loadingSlots: { textAlign: 'center', padding: 40, color: '#6b7280' },
-  summary: { background: '#f9fafb', padding: 20, borderRadius: 12, marginBottom: 20 },
-  summaryRow: { display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 14 },
-  summaryLabel: { color: '#6b7280', fontWeight: 600 },
-  summaryValue: { color: '#111827', fontWeight: 600, textAlign: 'right' },
-  formGroup: { marginBottom: 16 },
-  label: { display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 },
-  textarea: { width: '100%', padding: '12px 14px', border: '2px solid #e5e7eb', borderRadius: 10, fontSize: 14, outline: 'none', fontFamily: '"Outfit", sans-serif', resize: 'vertical', boxSizing: 'border-box' },
-  btnGroup: { display: 'flex', gap: 12, marginTop: 20 },
-  btnBack: { padding: '14px 24px', background: 'white', color: '#374151', border: '2px solid #e5e7eb', borderRadius: 12, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' },
-  btnNext: { padding: '14px 24px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', width: '100%' },
-  btnSubmit: { padding: '14px 24px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' }
+  selectedInfo: { fontSize: 13, color: '#6b7280', marginBottom: 10, background: '#f9fafb', padding: 8, borderRadius: 10, textAlign: 'center' },
+  timePickerContainer: { background: '#f9fafb', padding: 10, borderRadius: 10, marginBottom: 12, border: '2px solid #e5e7eb', display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 12 },
+  timePickerSection: { width: '100%' },
+  timePickerLabel: { fontSize: 13, fontWeight: 700, color: '#065f46', marginBottom: 8, textAlign: 'center' },
+  pickerRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  timePicker: { fontSize: 18, fontWeight: 700, padding: '5px 8px', border: '2px solid #065f46', borderRadius: 12, background: 'white', cursor: 'pointer', fontFamily: '"Outfit", sans-serif', color: '#065f46', textAlign: 'center', minWidth: 60 },
+  pickerColon: { fontSize: 18, fontWeight: 700, color: '#065f46' },
+  timePickerArrow: { fontSize: 20, color: '#6b7280', textAlign: 'center', padding: '4px 0' },
+  errorBox: { background: '#fee2e2', color: '#dc2626', padding: 8, borderRadius: 8, fontSize: 13, fontWeight: 600, marginBottom: 10, textAlign: 'center' },
+  timePreview: { background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', padding: 10, borderRadius: 10, marginBottom: 12, textAlign: 'center' },
+  timePreviewLabel: { fontSize: 12, color: '#d1fae5', fontWeight: 600, marginBottom: 8 },
+  timePreviewValue: { fontSize: 16, color: 'white', fontWeight: 800 },
+  summary: { background: '#f9fafb', padding: 12, borderRadius: 12, marginBottom: 12, border: '1px solid #e5e7eb' },
+  summaryRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  summaryLabel: { fontSize: 14, color: '#6b7280', fontWeight: 600 },
+  summaryValue: { fontSize: 15, color: '#111827', fontWeight: 700 },
+  formGroup: { marginBottom: 12 },
+  label: { display: 'block', fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 8 },
+  input: { width: '100%', padding: '10px 12px', border: '2px solid #e5e7eb', borderRadius: 12, fontSize: 15, fontFamily: '"Outfit", sans-serif', outline: 'none', transition: 'all 0.2s', boxSizing: 'border-box' },
+  textarea: { width: '100%', padding: '10px 12px', border: '2px solid #e5e7eb', borderRadius: 12, fontSize: 14, fontFamily: '"Outfit", sans-serif', outline: 'none', resize: 'vertical', boxSizing: 'border-box' },
+  btnNext: { flex: 1, padding: '10px 14px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', width: '100%' },
+  btnBack: { padding: '10px 14px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' },
+  btnSubmit: { flex: 1, padding: '10px 14px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)' }
 };
 
 export default BookingCalendar;
