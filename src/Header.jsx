@@ -40,6 +40,7 @@ function Header({ transparent, isScrolled }) {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    setShowMobileMenu(false);
     window.location.href = '/';
   };
 
@@ -60,7 +61,7 @@ function Header({ transparent, isScrolled }) {
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
         
         <div style={styles.container}>
-          {isMobile && user && (
+          {isMobile && (
             <button onClick={() => setShowMobileMenu(true)} style={styles.hamburgerBtn}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
                 <path d="M3 12H21M3 6H21M3 18H21" stroke={transparent && !isScrolled ? "white" : "#065f46"} strokeWidth="2" strokeLinecap="round"/>
@@ -186,36 +187,49 @@ function Header({ transparent, isScrolled }) {
             </div>
             
             <div style={styles.mobileMenuItems}>
-              <button onClick={() => { closeMobileMenu(); window.navigateTo('home'); }} style={styles.mobileMenuItem}>
-                🏠 Home
-              </button>
-              <button onClick={() => { closeMobileMenu(); window.navigateTo('messages'); }} style={styles.mobileMenuItem}>
-                💬 Messages
-              </button>
-              <button onClick={() => { closeMobileMenu(); window.navigateTo('bookings'); }} style={styles.mobileMenuItem}>
-                📅 My Bookings
-              </button>
-              {hasProviderProfile && (
-                <button onClick={() => { closeMobileMenu(); window.navigateTo('provider-bookings'); }} style={styles.mobileMenuItem}>
-                  📊 Provider Bookings
-                </button>
+              {user ? (
+                <>
+                  <button onClick={() => { closeMobileMenu(); window.navigateTo('home'); }} style={styles.mobileMenuItem}>
+                    🏠 Home
+                  </button>
+                  <button onClick={() => { closeMobileMenu(); window.navigateTo('messages'); }} style={styles.mobileMenuItem}>
+                    💬 Messages
+                  </button>
+                  <button onClick={() => { closeMobileMenu(); window.navigateTo('bookings'); }} style={styles.mobileMenuItem}>
+                    📅 My Bookings
+                  </button>
+                  {hasProviderProfile && (
+                    <button onClick={() => { closeMobileMenu(); window.navigateTo('provider-bookings'); }} style={styles.mobileMenuItem}>
+                      📊 Provider Bookings
+                    </button>
+                  )}
+                  <div style={styles.menuDivider}></div>
+                  <button onClick={() => { closeMobileMenu(); window.navigateTo('edit-profile'); }} style={styles.mobileMenuItem}>
+                    ✏️ Edit Profile
+                  </button>
+                  {!hasProviderProfile && (
+                    <button onClick={() => { closeMobileMenu(); window.navigateTo('register'); }} style={styles.mobileMenuItem}>
+                      ⭐ Become a Provider
+                    </button>
+                  )}
+                  <button onClick={() => { closeMobileMenu(); window.navigateTo('dashboard'); }} style={styles.mobileMenuItem}>
+                    📊 Dashboard
+                  </button>
+                  <div style={styles.menuDivider}></div>
+                  <button onClick={handleLogout} style={styles.mobileMenuLogout}>
+                    🚪 Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button onClick={() => { closeMobileMenu(); window.navigateTo('login'); }} style={styles.mobileMenuItem}>
+                    🔑 Login
+                  </button>
+                  <button onClick={() => { closeMobileMenu(); window.navigateTo('signup'); }} style={styles.mobileMenuItem}>
+                    ✨ Sign Up
+                  </button>
+                </>
               )}
-              <div style={styles.menuDivider}></div>
-              <button onClick={() => { closeMobileMenu(); window.navigateTo('edit-profile'); }} style={styles.mobileMenuItem}>
-                ✏️ Edit Profile
-              </button>
-              {!hasProviderProfile && (
-                <button onClick={() => { closeMobileMenu(); window.navigateTo('register'); }} style={styles.mobileMenuItem}>
-                  ⭐ Become a Provider
-                </button>
-              )}
-              <button onClick={() => { closeMobileMenu(); window.navigateTo('dashboard'); }} style={styles.mobileMenuItem}>
-                📊 Dashboard
-              </button>
-              <div style={styles.menuDivider}></div>
-              <button onClick={handleLogout} style={styles.mobileMenuLogout}>
-                🚪 Logout
-              </button>
             </div>
           </div>
         </div>
@@ -387,8 +401,7 @@ const styles = {
     height: '100%',
     boxShadow: '2px 0 12px rgba(0,0,0,0.2)',
     display: 'flex',
-    flexDirection: 'column',
-    animation: 'slideIn 0.3s ease-out'
+    flexDirection: 'column'
   },
   mobileMenuHeader: {
     background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)',

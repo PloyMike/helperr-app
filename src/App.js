@@ -62,8 +62,8 @@ function App() {
           <Helperr />
         )}
         
-        {/* AI CHATBOT - IMMER SICHTBAR */}
-        <ChatbotWidget />
+        {/* AI CHATBOT - Versteckt auf Messages Page */}
+        {currentView !== 'messages' && <ChatbotWidget />}
       </div>
     </AuthProvider>
   );
