@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabase';
 import { useAuth } from './AuthContext';
 
@@ -8,13 +8,28 @@ function BookingCalendar({ profile, onClose }) {
   const [selectedDate, setSelectedDate] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
-  const [startHour, setStartHour] = useState('10');
-  const [startMinute, setStartMinute] = useState('00');
-  const [endHour, setEndHour] = useState('11');
-  const [endMinute, setEndMinute] = useState('00');
+  const [startHour, setStartHour] = useState(10);
+  const [startMinute, setStartMinute] = useState(0);
+  const [endHour, setEndHour] = useState(11);
+  const [endMinute, setEndMinute] = useState(0);
   const [customerName, setCustomerName] = useState('');
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  const startHourRef = useRef(null);
+  const startMinuteRef = useRef(null);
+  const endHourRef = useRef(null);
+  const endMinuteRef = useRef(null);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 640);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     const initCustomerName = async () => {
@@ -63,16 +78,20 @@ function BookingCalendar({ profile, onClose }) {
     return currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   };
 
-  const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
-  const minutes = ['00', '15', '30', '45'];
+  const hours = Array.from({ length: 24 }, (_, i) => i);
+  const minutes = [0, 15, 30, 45];
 
   const getTimeString = () => {
-    return `${startHour}:${startMinute} - ${endHour}:${endMinute}`;
+    const sh = startHour.toString().padStart(2, '0');
+    const sm = startMinute.toString().padStart(2, '0');
+    const eh = endHour.toString().padStart(2, '0');
+    const em = endMinute.toString().padStart(2, '0');
+    return `${sh}:${sm} - ${eh}:${em}`;
   };
 
   const isValidTimeRange = () => {
-    const start = parseInt(startHour) * 60 + parseInt(startMinute);
-    const end = parseInt(endHour) * 60 + parseInt(endMinute);
+    const start = startHour * 60 + startMinute;
+    const end = endHour * 60 + endMinute;
     return end > start;
   };
 
@@ -112,6 +131,53 @@ function BookingCalendar({ profile, onClose }) {
       alert('Error: ' + error.message);
     }
     setSubmitting(false);
+  };
+
+  useEffect(() => {
+    if (step === 2) {
+      setTimeout(() => {
+        const itemHeight = 40;
+        if (startHourRef.current) startHourRef.current.scrollTop = startHour * itemHeight;
+        if (startMinuteRef.current) startMinuteRef.current.scrollTop = (startMinute / 15) * itemHeight;
+        if (endHourRef.current) endHourRef.current.scrollTop = endHour * itemHeight;
+        if (endMinuteRef.current) endMinuteRef.current.scrollTop = (endMinute / 15) * itemHeight;
+      }, 50);
+    }
+  }, [step, startHour, startMinute, endHour, endMinute]);
+
+  const handleScroll = (ref, items, setValue) => {
+    if (!ref.current) return;
+    const itemHeight = 40;
+    const scrollTop = ref.current.scrollTop;
+    const index = Math.round(scrollTop / itemHeight);
+    const clampedIndex = Math.max(0, Math.min(index, items.length - 1));
+    setValue(items[clampedIndex]);
+  };
+
+  const AppleScrollPicker = ({ items, value, onChange, pickerRef }) => {
+    return (
+      <div style={isMobile ? styles.scrollPickerWrapperMobile : styles.scrollPickerWrapper}>
+        <div style={styles.scrollPickerHighlight}></div>
+        <div 
+          ref={pickerRef}
+          style={styles.scrollPicker}
+          onScroll={() => handleScroll(pickerRef, items, onChange)}
+        >
+          <div style={isMobile ? styles.scrollSpacerMobile : styles.scrollSpacer}></div>
+          {items.map((item, i) => (
+            <div key={i} style={{
+              ...styles.scrollItem,
+              opacity: item === value ? 1 : 0.3,
+              transform: item === value ? 'scale(1)' : 'scale(0.85)',
+              fontSize: item === value ? 20 : 16
+            }}>
+              {item.toString().padStart(2, '0')}
+            </div>
+          ))}
+          <div style={isMobile ? styles.scrollSpacerMobile : styles.scrollSpacer}></div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -200,56 +266,24 @@ function BookingCalendar({ profile, onClose }) {
               <h3 style={styles.stepTitle}>Select Time</h3>
               <p style={styles.selectedInfo}>📅 {formatDateFull(new Date(selectedDate))}</p>
               
-              <div style={styles.timePickerContainer}>
-                <div style={styles.timePickerSection}>
-                  <div style={styles.timePickerLabel}>Start Time</div>
+              <div style={isMobile ? styles.mobileTimeContainer : styles.desktopTimeContainer}>
+                <div style={isMobile ? styles.timeSectionMobile : styles.timeSection}>
+                  <div style={isMobile ? styles.timeSectionLabelMobile : styles.timeSectionLabel}>Start Time</div>
                   <div style={styles.pickerRow}>
-                    <select 
-                      value={startHour} 
-                      onChange={(e) => setStartHour(e.target.value)}
-                      style={styles.timePicker}
-                    >
-                      {hours.map(h => (
-                        <option key={h} value={h}>{h}</option>
-                      ))}
-                    </select>
-                    <span style={styles.pickerColon}>:</span>
-                    <select 
-                      value={startMinute} 
-                      onChange={(e) => setStartMinute(e.target.value)}
-                      style={styles.timePicker}
-                    >
-                      {minutes.map(m => (
-                        <option key={m} value={m}>{m}</option>
-                      ))}
-                    </select>
+                    <AppleScrollPicker items={hours} value={startHour} onChange={setStartHour} pickerRef={startHourRef} />
+                    <span style={styles.colon}>:</span>
+                    <AppleScrollPicker items={minutes} value={startMinute} onChange={setStartMinute} pickerRef={startMinuteRef} />
                   </div>
                 </div>
 
-                <div style={styles.timePickerArrow}>↓</div>
+                {!isMobile && <div style={styles.timeDivider}>→</div>}
 
-                <div style={styles.timePickerSection}>
-                  <div style={styles.timePickerLabel}>End Time</div>
+                <div style={isMobile ? styles.timeSectionMobile : styles.timeSection}>
+                  <div style={isMobile ? styles.timeSectionLabelMobile : styles.timeSectionLabel}>End Time</div>
                   <div style={styles.pickerRow}>
-                    <select 
-                      value={endHour} 
-                      onChange={(e) => setEndHour(e.target.value)}
-                      style={styles.timePicker}
-                    >
-                      {hours.map(h => (
-                        <option key={h} value={h}>{h}</option>
-                      ))}
-                    </select>
-                    <span style={styles.pickerColon}>:</span>
-                    <select 
-                      value={endMinute} 
-                      onChange={(e) => setEndMinute(e.target.value)}
-                      style={styles.timePicker}
-                    >
-                      {minutes.map(m => (
-                        <option key={m} value={m}>{m}</option>
-                      ))}
-                    </select>
+                    <AppleScrollPicker items={hours} value={endHour} onChange={setEndHour} pickerRef={endHourRef} />
+                    <span style={styles.colon}>:</span>
+                    <AppleScrollPicker items={minutes} value={endMinute} onChange={setEndMinute} pickerRef={endMinuteRef} />
                   </div>
                 </div>
               </div>
@@ -260,8 +294,8 @@ function BookingCalendar({ profile, onClose }) {
                 </div>
               )}
 
-              <div style={styles.timePreview}>
-                <div style={styles.timePreviewLabel}>Selected Time:</div>
+              <div style={isMobile ? styles.timePreviewMobile : styles.timePreview}>
+                <div style={styles.timePreviewLabel}>Selected Time</div>
                 <div style={styles.timePreviewValue}>{getTimeString()}</div>
               </div>
 
@@ -364,51 +398,95 @@ function BookingCalendar({ profile, onClose }) {
 const styles = {
   overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1200, padding: '20px', fontFamily: '"Outfit", sans-serif' },
   modal: { background: 'white', borderRadius: 16, width: '100%', maxWidth: 700, maxHeight: '88vh', overflowY: 'auto', margin: '0 8px' },
-  header: { background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', padding: '12px 12px', borderRadius: '20px 20px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
-  title: { margin: 0, fontSize: 'clamp(20px, 5vw, 24px)', fontWeight: 800, color: 'white' },
-  subtitle: { margin: '4px 0 0', fontSize: 14, color: '#d1fae5' },
-  closeBtn: { background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', width: 36, height: 36, borderRadius: '50%', cursor: 'pointer', fontSize: 18, fontWeight: 700 },
+  header: { background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', padding: '12px 12px', borderRadius: '16px 16px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
+  title: { margin: 0, fontSize: 'clamp(18px, 5vw, 22px)', fontWeight: 800, color: 'white' },
+  subtitle: { margin: '4px 0 0', fontSize: 13, color: '#d1fae5' },
+  closeBtn: { background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', width: 32, height: 32, borderRadius: '50%', cursor: 'pointer', fontSize: 16, fontWeight: 700 },
   progress: { display: 'flex', alignItems: 'center', padding: '10px 12px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb' },
-  progressStep: { display: 'flex', alignItems: 'center', gap: 8 },
+  progressStep: { display: 'flex', alignItems: 'center', gap: 6 },
   progressStepActive: { },
-  progressNumber: { width: 32, height: 32, borderRadius: '50%', background: '#e5e7eb', color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700 },
-  progressLabel: { fontSize: 13, color: '#6b7280', fontWeight: 600 },
-  progressLine: { flex: 1, height: 2, background: '#e5e7eb', margin: '0 8px' },
+  progressNumber: { width: 28, height: 28, borderRadius: '50%', background: '#e5e7eb', color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700 },
+  progressLabel: { fontSize: 12, color: '#6b7280', fontWeight: 600 },
+  progressLine: { flex: 1, height: 2, background: '#e5e7eb', margin: '0 6px' },
   body: { padding: '12px 10px' },
   stepTitle: { fontSize: 16, fontWeight: 700, color: '#111827', marginBottom: 8 },
-  calendarHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, padding: '8px 12px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', borderRadius: 12 },
-  monthBtn: { background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '8px 16px', borderRadius: 8, cursor: 'pointer', fontSize: 16, fontWeight: 700, fontFamily: '"Outfit", sans-serif' },
-  monthTitle: { color: 'white', fontSize: 18, fontWeight: 700 },
-  weekdaysHeader: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginBottom: 8, padding: '8px 0' },
-  weekday: { textAlign: 'center', fontSize: 12, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' },
+  calendarHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, padding: '8px 12px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', borderRadius: 10 },
+  monthBtn: { background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '6px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontWeight: 700, fontFamily: '"Outfit", sans-serif' },
+  monthTitle: { color: 'white', fontSize: 16, fontWeight: 700 },
+  weekdaysHeader: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 3, marginBottom: 6, padding: '6px 0' },
+  weekday: { textAlign: 'center', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' },
   monthGrid: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginBottom: 12 },
-  emptyDay: { padding: '12px', opacity: 0 },
-  calendarDay: { padding: '8px 6px', border: '1.5px solid #e5e7eb', borderRadius: 10, background: 'white', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s', fontFamily: '"Outfit", sans-serif', fontSize: 16, fontWeight: 600, color: '#111827' },
+  emptyDay: { padding: '10px', opacity: 0 },
+  calendarDay: { padding: '8px 6px', border: '1.5px solid #e5e7eb', borderRadius: 8, background: 'white', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s', fontFamily: '"Outfit", sans-serif', fontSize: 14, fontWeight: 600, color: '#111827' },
   calendarDaySelected: { borderColor: '#065f46', background: '#ecfdf5', color: '#065f46', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.2)' },
   calendarDayDisabled: { opacity: 0.3, cursor: 'not-allowed', background: '#f9fafb' },
-  selectedInfo: { fontSize: 13, color: '#6b7280', marginBottom: 10, background: '#f9fafb', padding: 8, borderRadius: 10, textAlign: 'center' },
-  timePickerContainer: { background: '#f9fafb', padding: 10, borderRadius: 10, marginBottom: 12, border: '2px solid #e5e7eb', display: 'flex', flexDirection: 'column', alignItems: 'stretch', gap: 12 },
-  timePickerSection: { width: '100%' },
-  timePickerLabel: { fontSize: 13, fontWeight: 700, color: '#065f46', marginBottom: 8, textAlign: 'center' },
-  pickerRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  timePicker: { fontSize: 18, fontWeight: 700, padding: '5px 8px', border: '2px solid #065f46', borderRadius: 12, background: 'white', cursor: 'pointer', fontFamily: '"Outfit", sans-serif', color: '#065f46', textAlign: 'center', minWidth: 60 },
-  pickerColon: { fontSize: 18, fontWeight: 700, color: '#065f46' },
-  timePickerArrow: { fontSize: 20, color: '#6b7280', textAlign: 'center', padding: '4px 0' },
-  errorBox: { background: '#fee2e2', color: '#dc2626', padding: 8, borderRadius: 8, fontSize: 13, fontWeight: 600, marginBottom: 10, textAlign: 'center' },
+  selectedInfo: { fontSize: 13, color: '#6b7280', marginBottom: 10, background: '#f9fafb', padding: 8, borderRadius: 8, textAlign: 'center' },
+  
+  // MOBILE TIME CONTAINER
+  mobileTimeContainer: { display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 },
+  timeSectionMobile: { background: '#f9fafb', borderRadius: 10, padding: 8, border: '2px solid #e5e7eb' },
+  timeSectionLabelMobile: { fontSize: 11, fontWeight: 700, color: '#065f46', marginBottom: 6, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.5px' },
+  scrollPickerWrapperMobile: { position: 'relative', width: 70, height: 120, overflow: 'hidden' },
+  scrollSpacerMobile: { height: 40 },
+  timePreviewMobile: { background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', padding: 8, borderRadius: 10, marginBottom: 10, textAlign: 'center' },
+  
+  // DESKTOP TIME CONTAINER  
+  desktopTimeContainer: { display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'center', marginBottom: 8, flexWrap: 'wrap' },
+  timeSection: { background: '#f9fafb', borderRadius: 10, padding: 10, border: '2px solid #e5e7eb', flex: '1 1 auto', maxWidth: 200, minWidth: 160 },
+  timeSectionLabel: { fontSize: 11, fontWeight: 700, color: '#065f46', marginBottom: 8, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.5px' },
+  scrollPickerWrapper: { position: 'relative', width: 70, height: 160, overflow: 'hidden' },
+  scrollSpacer: { height: 60 },
   timePreview: { background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', padding: 10, borderRadius: 10, marginBottom: 12, textAlign: 'center' },
-  timePreviewLabel: { fontSize: 12, color: '#d1fae5', fontWeight: 600, marginBottom: 8 },
+  
+  pickerRow: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  scrollPickerHighlight: { 
+    position: 'absolute', 
+    top: '50%', 
+    left: 0, 
+    right: 0, 
+    height: 40, 
+    transform: 'translateY(-50%)', 
+    background: 'rgba(236, 253, 245, 0.6)', 
+    border: '2px solid #065f46', 
+    borderRadius: 8, 
+    pointerEvents: 'none', 
+    zIndex: 1 
+  },
+  scrollPicker: { 
+    height: '100%', 
+    overflowY: 'scroll', 
+    scrollSnapType: 'y mandatory', 
+    WebkitOverflowScrolling: 'touch',
+    scrollbarWidth: 'none',
+    msOverflowStyle: 'none'
+  },
+  scrollItem: { 
+    height: 40, 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    fontWeight: 700, 
+    color: '#065f46', 
+    scrollSnapAlign: 'center',
+    transition: 'all 0.2s',
+    fontFamily: '"Outfit", sans-serif'
+  },
+  colon: { fontSize: 20, fontWeight: 700, color: '#065f46', padding: '0 4px' },
+  timeDivider: { fontSize: 16, color: '#6b7280', fontWeight: 700, display: 'flex', alignItems: 'center', padding: '0 4px' },
+  errorBox: { background: '#fee2e2', color: '#dc2626', padding: 8, borderRadius: 8, fontSize: 13, fontWeight: 600, marginBottom: 10, textAlign: 'center' },
+  timePreviewLabel: { fontSize: 11, color: '#d1fae5', fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' },
   timePreviewValue: { fontSize: 16, color: 'white', fontWeight: 800 },
   summary: { background: '#f9fafb', padding: 12, borderRadius: 12, marginBottom: 12, border: '1px solid #e5e7eb' },
   summaryRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  summaryLabel: { fontSize: 14, color: '#6b7280', fontWeight: 600 },
-  summaryValue: { fontSize: 15, color: '#111827', fontWeight: 700 },
+  summaryLabel: { fontSize: 13, color: '#6b7280', fontWeight: 600 },
+  summaryValue: { fontSize: 14, color: '#111827', fontWeight: 700 },
   formGroup: { marginBottom: 12 },
-  label: { display: 'block', fontSize: 14, fontWeight: 600, color: '#374151', marginBottom: 8 },
-  input: { width: '100%', padding: '10px 12px', border: '2px solid #e5e7eb', borderRadius: 12, fontSize: 15, fontFamily: '"Outfit", sans-serif', outline: 'none', transition: 'all 0.2s', boxSizing: 'border-box' },
-  textarea: { width: '100%', padding: '10px 12px', border: '2px solid #e5e7eb', borderRadius: 12, fontSize: 14, fontFamily: '"Outfit", sans-serif', outline: 'none', resize: 'vertical', boxSizing: 'border-box' },
-  btnNext: { flex: 1, padding: '10px 14px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', width: '100%' },
-  btnBack: { padding: '10px 14px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' },
-  btnSubmit: { flex: 1, padding: '10px 14px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)' }
+  label: { display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 },
+  input: { width: '100%', padding: '10px 12px', border: '2px solid #e5e7eb', borderRadius: 10, fontSize: 14, fontFamily: '"Outfit", sans-serif', outline: 'none', transition: 'all 0.2s', boxSizing: 'border-box' },
+  textarea: { width: '100%', padding: '10px 12px', border: '2px solid #e5e7eb', borderRadius: 10, fontSize: 13, fontFamily: '"Outfit", sans-serif', outline: 'none', resize: 'vertical', boxSizing: 'border-box' },
+  btnNext: { flex: 1, padding: '10px 14px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', width: '100%' },
+  btnBack: { padding: '10px 14px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' },
+  btnSubmit: { flex: 1, padding: '10px 14px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)' }
 };
 
 export default BookingCalendar;
