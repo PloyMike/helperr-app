@@ -420,15 +420,15 @@ const styles = {
   calendarDay: { padding: '8px 6px', border: '1.5px solid #e5e7eb', borderRadius: 8, background: 'white', cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s', fontFamily: '"Outfit", sans-serif', fontSize: 14, fontWeight: 600, color: '#111827' },
   calendarDaySelected: { borderColor: '#065f46', background: '#ecfdf5', color: '#065f46', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.2)' },
   calendarDayDisabled: { opacity: 0.3, cursor: 'not-allowed', background: '#f9fafb' },
-  selectedInfo: { fontSize: 13, color: '#6b7280', marginBottom: 10, background: '#f9fafb', padding: 8, borderRadius: 8, textAlign: 'center' },
+  selectedInfo: { fontSize: 12, color: '#6b7280', marginBottom: 8, background: '#f9fafb', padding: 6, borderRadius: 8, textAlign: 'center' },
   
   // MOBILE TIME CONTAINER
-  mobileTimeContainer: { display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 8 },
-  timeSectionMobile: { background: '#f9fafb', borderRadius: 10, padding: 8, border: '2px solid #e5e7eb' },
-  timeSectionLabelMobile: { fontSize: 11, fontWeight: 700, color: '#065f46', marginBottom: 6, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.5px' },
-  scrollPickerWrapperMobile: { position: 'relative', width: 70, height: 120, overflow: 'hidden' },
-  scrollSpacerMobile: { height: 40 },
-  timePreviewMobile: { background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', padding: 8, borderRadius: 10, marginBottom: 10, textAlign: 'center' },
+  mobileTimeContainer: { display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 6 },
+  timeSectionMobile: { background: '#f9fafb', borderRadius: 8, padding: 6, border: '2px solid #e5e7eb' },
+  timeSectionLabelMobile: { fontSize: 10, fontWeight: 700, color: '#065f46', marginBottom: 4, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.5px' },
+  scrollPickerWrapperMobile: { position: 'relative', width: 70, height: 100, overflow: 'hidden' },
+  scrollSpacerMobile: { height: 30 },
+  timePreviewMobile: { background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', padding: 6, borderRadius: 8, marginBottom: 8, textAlign: 'center' },
   
   // DESKTOP TIME CONTAINER  
   desktopTimeContainer: { display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'center', marginBottom: 8, flexWrap: 'wrap' },

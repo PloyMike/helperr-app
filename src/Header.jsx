@@ -5,11 +5,20 @@ function Header({ transparent, isScrolled }) {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [hasProviderProfile, setHasProviderProfile] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     checkUser();
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  const checkMobile = () => {
+    setIsMobile(window.innerWidth <= 768);
+  };
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -40,120 +49,178 @@ function Header({ transparent, isScrolled }) {
     return 'U';
   };
 
-  return (
-    <header style={{
-      ...styles.header,
-      ...(transparent ? (isScrolled ? styles.headerTransparentScrolled : styles.headerTransparentTop) : {})
-    }}>
-      <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      
-      <div style={styles.container}>
-        <h1 
-          onClick={() => window.navigateTo('home')} 
-          style={{
-            ...styles.logo,
-           ...(transparent ? styles.logoTransparent : {})
-          }}
-        >
-          Helperr
-        </h1>
+  const closeMobileMenu = () => setShowMobileMenu(false);
 
-        <nav style={styles.nav}>
-          {user ? (
-            <>
-              <button onClick={() => window.navigateTo('home')} style={{
-                ...styles.navBtn,
-               ...(transparent ? styles.navBtnTransparent : {})
-              }}>
-                Home
+  return (
+    <>
+      <header style={{
+        ...styles.header,
+        ...(transparent ? (isScrolled ? styles.headerTransparentScrolled : styles.headerTransparentTop) : {})
+      }}>
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+        
+        <div style={styles.container}>
+          {isMobile && user && (
+            <button onClick={() => setShowMobileMenu(true)} style={styles.hamburgerBtn}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M3 12H21M3 6H21M3 18H21" stroke={transparent && !isScrolled ? "white" : "#065f46"} strokeWidth="2" strokeLinecap="round"/>
+              </svg>
+            </button>
+          )}
+
+          <h1 
+            onClick={() => window.navigateTo('home')} 
+            style={{
+              ...styles.logo,
+             ...(transparent ? styles.logoTransparent : {})
+            }}
+          >
+            Helperr
+          </h1>
+
+          {!isMobile && (
+            <nav style={styles.nav}>
+              {user ? (
+                <>
+                  <button onClick={() => window.navigateTo('home')} style={{
+                    ...styles.navBtn,
+                   ...(transparent ? styles.navBtnTransparent : {})
+                  }}>
+                    Home
+                  </button>
+                  <button onClick={() => window.navigateTo('messages')} style={{
+                    ...styles.navBtn,
+                   ...(transparent ? styles.navBtnTransparent : {})
+                  }}>
+                    Messages
+                  </button>
+                  <button onClick={() => window.navigateTo('bookings')} style={{
+                    ...styles.navBtn,
+                   ...(transparent ? styles.navBtnTransparent : {})
+                  }}>
+                    My Bookings
+                  </button>
+                  {hasProviderProfile && (
+                    <button onClick={() => window.navigateTo('provider-bookings')} style={{
+                      ...styles.navBtn,
+                     ...(transparent ? styles.navBtnTransparent : {})
+                    }}>
+                      Provider Bookings
+                    </button>
+                  )}
+                  
+                  <div style={{ position: 'relative' }}>
+                    <button 
+                      onClick={() => setShowDropdown(!showDropdown)}
+                      style={styles.profileBtn}
+                    >
+                      {profile?.image_url && profile.image_url.startsWith('http') ? (
+                        <img 
+                          src={profile.image_url} 
+                          alt="Profile" 
+                          style={styles.profileImage}
+                        />
+                      ) : profile?.image_url && !profile.image_url.startsWith('http') ? (
+                        <span style={{ fontSize: 20 }}>{profile.image_url}</span>
+                      ) : (
+                        <div style={styles.profileInitial}>{getInitial()}</div>
+                      )}
+                    </button>
+
+                    {showDropdown && (
+                      <div style={styles.dropdown}>
+                        <button 
+                          onClick={() => { setShowDropdown(false); window.navigateTo('edit-profile'); }}
+                          style={styles.dropdownItem}
+                        >
+                          Edit Profile
+                        </button>
+                        {!hasProviderProfile && (
+                          <button 
+                            onClick={() => { setShowDropdown(false); window.navigateTo('register'); }}
+                            style={styles.dropdownItem}
+                          >
+                            Become a Provider
+                          </button>
+                        )}
+                        <button 
+                          onClick={() => { setShowDropdown(false); window.navigateTo('dashboard'); }}
+                          style={styles.dropdownItem}
+                        >
+                          Dashboard
+                        </button>
+                        <button 
+                          onClick={handleLogout}
+                          style={{ ...styles.dropdownItem, color: '#dc2626' }}
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <button onClick={() => window.navigateTo('login')} style={{
+                    ...styles.navBtn,
+                   ...(transparent ? styles.navBtnTransparent : {})
+                  }}>
+                    Login
+                  </button>
+                  <button onClick={() => window.navigateTo('signup')} style={styles.btnPrimary}>
+                    Sign Up
+                  </button>
+                </>
+              )}
+            </nav>
+          )}
+        </div>
+      </header>
+
+      {isMobile && showMobileMenu && (
+        <div style={styles.mobileMenuOverlay} onClick={closeMobileMenu}>
+          <div style={styles.mobileMenu} onClick={(e) => e.stopPropagation()}>
+            <div style={styles.mobileMenuHeader}>
+              <h2 style={styles.mobileMenuTitle}>Menu</h2>
+              <button onClick={closeMobileMenu} style={styles.mobileMenuClose}>×</button>
+            </div>
+            
+            <div style={styles.mobileMenuItems}>
+              <button onClick={() => { closeMobileMenu(); window.navigateTo('home'); }} style={styles.mobileMenuItem}>
+                🏠 Home
               </button>
-              <button onClick={() => window.navigateTo('messages')} style={{
-                ...styles.navBtn,
-               ...(transparent ? styles.navBtnTransparent : {})
-              }}>
-                Messages
+              <button onClick={() => { closeMobileMenu(); window.navigateTo('messages'); }} style={styles.mobileMenuItem}>
+                💬 Messages
               </button>
-              <button onClick={() => window.navigateTo('bookings')} style={{
-                ...styles.navBtn,
-               ...(transparent ? styles.navBtnTransparent : {})
-              }}>
-                My Bookings
+              <button onClick={() => { closeMobileMenu(); window.navigateTo('bookings'); }} style={styles.mobileMenuItem}>
+                📅 My Bookings
               </button>
               {hasProviderProfile && (
-                <button onClick={() => window.navigateTo('provider-bookings')} style={{
-                  ...styles.navBtn,
-                 ...(transparent ? styles.navBtnTransparent : {})
-                }}>
-                  Provider Bookings
+                <button onClick={() => { closeMobileMenu(); window.navigateTo('provider-bookings'); }} style={styles.mobileMenuItem}>
+                  📊 Provider Bookings
                 </button>
               )}
-              
-              <div style={{ position: 'relative' }}>
-                <button 
-                  onClick={() => setShowDropdown(!showDropdown)}
-                  style={styles.profileBtn}
-                >
-                  {profile?.image_url && profile.image_url.startsWith('http') ? (
-                    <img 
-                      src={profile.image_url} 
-                      alt="Profile" 
-                      style={styles.profileImage}
-                    />
-                  ) : profile?.image_url && !profile.image_url.startsWith('http') ? (
-                    <span style={{ fontSize: 20 }}>{profile.image_url}</span>
-                  ) : (
-                    <div style={styles.profileInitial}>{getInitial()}</div>
-                  )}
+              <div style={styles.menuDivider}></div>
+              <button onClick={() => { closeMobileMenu(); window.navigateTo('edit-profile'); }} style={styles.mobileMenuItem}>
+                ✏️ Edit Profile
+              </button>
+              {!hasProviderProfile && (
+                <button onClick={() => { closeMobileMenu(); window.navigateTo('register'); }} style={styles.mobileMenuItem}>
+                  ⭐ Become a Provider
                 </button>
-
-                {showDropdown && (
-                  <div style={styles.dropdown}>
-                    <button 
-                      onClick={() => { setShowDropdown(false); window.navigateTo('edit-profile'); }}
-                      style={styles.dropdownItem}
-                    >
-                      Edit Profile
-                    </button>
-                    {!hasProviderProfile && (
-                      <button 
-                        onClick={() => { setShowDropdown(false); window.navigateTo('register'); }}
-                        style={styles.dropdownItem}
-                      >
-                        Become a Provider
-                      </button>
-                    )}
-                    <button 
-                      onClick={() => { setShowDropdown(false); window.navigateTo('dashboard'); }}
-                      style={styles.dropdownItem}
-                    >
-                      Dashboard
-                    </button>
-                    <button 
-                      onClick={handleLogout}
-                      style={{ ...styles.dropdownItem, color: '#dc2626' }}
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            </>
-          ) : (
-            <>
-              <button onClick={() => window.navigateTo('login')} style={{
-                ...styles.navBtn,
-               ...(transparent ? styles.navBtnTransparent : {})
-              }}>
-                Login
+              )}
+              <button onClick={() => { closeMobileMenu(); window.navigateTo('dashboard'); }} style={styles.mobileMenuItem}>
+                📊 Dashboard
               </button>
-              <button onClick={() => window.navigateTo('signup')} style={styles.btnPrimary}>
-                Sign Up
+              <div style={styles.menuDivider}></div>
+              <button onClick={handleLogout} style={styles.mobileMenuLogout}>
+                🚪 Logout
               </button>
-            </>
-          )}
-        </nav>
-      </div>
-    </header>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -188,7 +255,18 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    height: 70
+    height: 70,
+    gap: 12
+  },
+  hamburgerBtn: {
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: 8,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8
   },
   logo: {
     fontSize: 28,
@@ -291,6 +369,89 @@ const styles = {
     cursor: 'pointer',
     fontFamily: '"Outfit", sans-serif',
     transition: 'background 0.2s'
+  },
+  mobileMenuOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'rgba(0,0,0,0.5)',
+    zIndex: 9999,
+    display: 'flex'
+  },
+  mobileMenu: {
+    background: 'white',
+    width: '80%',
+    maxWidth: 320,
+    height: '100%',
+    boxShadow: '2px 0 12px rgba(0,0,0,0.2)',
+    display: 'flex',
+    flexDirection: 'column',
+    animation: 'slideIn 0.3s ease-out'
+  },
+  mobileMenuHeader: {
+    background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)',
+    padding: '20px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  mobileMenuTitle: {
+    margin: 0,
+    fontSize: 22,
+    fontWeight: 800,
+    color: 'white'
+  },
+  mobileMenuClose: {
+    background: 'transparent',
+    border: 'none',
+    color: 'white',
+    fontSize: 32,
+    fontWeight: 700,
+    cursor: 'pointer',
+    padding: 0,
+    width: 32,
+    height: 32,
+    lineHeight: 1
+  },
+  mobileMenuItems: {
+    padding: '12px 0',
+    flex: 1,
+    overflowY: 'auto'
+  },
+  mobileMenuItem: {
+    display: 'block',
+    width: '100%',
+    padding: '16px 24px',
+    fontSize: 16,
+    fontWeight: 600,
+    color: '#111827',
+    background: 'none',
+    border: 'none',
+    borderBottom: '1px solid #f3f4f6',
+    textAlign: 'left',
+    cursor: 'pointer',
+    fontFamily: '"Outfit", sans-serif',
+    transition: 'background 0.2s'
+  },
+  menuDivider: {
+    height: 8,
+    background: '#f9fafb',
+    margin: '8px 0'
+  },
+  mobileMenuLogout: {
+    display: 'block',
+    width: '100%',
+    padding: '16px 24px',
+    fontSize: 16,
+    fontWeight: 600,
+    color: '#dc2626',
+    background: 'transparent',
+    border: 'none',
+    textAlign: 'left',
+    cursor: 'pointer',
+    fontFamily: '"Outfit", sans-serif'
   }
 };
 
