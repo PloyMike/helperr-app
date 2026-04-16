@@ -12,7 +12,14 @@ function ProviderRegistration({ isOpen, onClose }) {
     e.preventDefault();
     setLoading(true);
     try {
-      const { error } = await supabase.from('profiles').insert([{ ...formData, available: true, verified: false, id_status: 'pending', rating: 0, review_count: 0, total_bookings: 0 }]);
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not logged in');
+      
+      const { error } = await supabase.from('profiles').insert([{ 
+        ...formData, 
+        user_id: user.id,
+        available: true, verified: false, id_status: 'pending', rating: 0, review_count: 0, total_bookings: 0 }]);
       if (error) throw error;
       setSuccess(true);
       setTimeout(() => { onClose(); window.location.reload(); }, 2000);

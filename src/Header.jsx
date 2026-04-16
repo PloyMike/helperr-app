@@ -22,18 +22,29 @@ function Header({ transparent, isScrolled }) {
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
+    console.log('🔍 User email:', user?.email);
+      console.log('🔍 User ID:', user?.id);
+      console.log('🔍 Searching for profile with user_id:', user?.id);
     setUser(user);
     
     if (user) {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
-        .select('name, image_url, id')
+        .select('name, image_url, id, job')
         .eq('user_id', user.id)
-        .single();
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      console.log('🔍 Profile data:', data);
+      console.log('🔍 Error:', error);
+      console.log('🔍 Has job?', !!data?.job);
+      console.log('🔍 Job value:', data?.job);
       
       if (data) {
         setProfile(data);
-        setHasProviderProfile(!!data.id);
+        setHasProviderProfile(!!data.job);
+        console.log('🔍 hasProviderProfile set to:', !!data.job);
       }
     }
   };
@@ -187,49 +198,36 @@ function Header({ transparent, isScrolled }) {
             </div>
             
             <div style={styles.mobileMenuItems}>
-              {user ? (
-                <>
-                  <button onClick={() => { closeMobileMenu(); window.navigateTo('home'); }} style={styles.mobileMenuItem}>
-                    🏠 Home
-                  </button>
-                  <button onClick={() => { closeMobileMenu(); window.navigateTo('messages'); }} style={styles.mobileMenuItem}>
-                    💬 Messages
-                  </button>
-                  <button onClick={() => { closeMobileMenu(); window.navigateTo('bookings'); }} style={styles.mobileMenuItem}>
-                    📅 My Bookings
-                  </button>
-                  {hasProviderProfile && (
-                    <button onClick={() => { closeMobileMenu(); window.navigateTo('provider-bookings'); }} style={styles.mobileMenuItem}>
-                      📊 Provider Bookings
-                    </button>
-                  )}
-                  <div style={styles.menuDivider}></div>
-                  <button onClick={() => { closeMobileMenu(); window.navigateTo('edit-profile'); }} style={styles.mobileMenuItem}>
-                    ✏️ Edit Profile
-                  </button>
-                  {!hasProviderProfile && (
-                    <button onClick={() => { closeMobileMenu(); window.navigateTo('register'); }} style={styles.mobileMenuItem}>
-                      ⭐ Become a Provider
-                    </button>
-                  )}
-                  <button onClick={() => { closeMobileMenu(); window.navigateTo('dashboard'); }} style={styles.mobileMenuItem}>
-                    📊 Dashboard
-                  </button>
-                  <div style={styles.menuDivider}></div>
-                  <button onClick={handleLogout} style={styles.mobileMenuLogout}>
-                    🚪 Logout
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button onClick={() => { closeMobileMenu(); window.navigateTo('login'); }} style={styles.mobileMenuItem}>
-                    🔑 Login
-                  </button>
-                  <button onClick={() => { closeMobileMenu(); window.navigateTo('signup'); }} style={styles.mobileMenuItem}>
-                    ✨ Sign Up
-                  </button>
-                </>
+              <button onClick={() => { closeMobileMenu(); window.navigateTo('home'); }} style={styles.mobileMenuItem}>
+                🏠 Home
+              </button>
+              <button onClick={() => { closeMobileMenu(); window.navigateTo('messages'); }} style={styles.mobileMenuItem}>
+                💬 Messages
+              </button>
+              <button onClick={() => { closeMobileMenu(); window.navigateTo('bookings'); }} style={styles.mobileMenuItem}>
+                📅 My Bookings
+              </button>
+              {hasProviderProfile && (
+                <button onClick={() => { closeMobileMenu(); window.navigateTo('provider-bookings'); }} style={styles.mobileMenuItem}>
+                  📊 Provider Bookings
+                </button>
               )}
+              <div style={styles.menuDivider}></div>
+              <button onClick={() => { closeMobileMenu(); window.navigateTo('edit-profile'); }} style={styles.mobileMenuItem}>
+                ✏️ Edit Profile
+              </button>
+              {!hasProviderProfile && (
+                <button onClick={() => { closeMobileMenu(); window.navigateTo('register'); }} style={styles.mobileMenuItem}>
+                  ⭐ Become a Provider
+                </button>
+              )}
+              <button onClick={() => { closeMobileMenu(); window.navigateTo('dashboard'); }} style={styles.mobileMenuItem}>
+                📊 Dashboard
+              </button>
+              <div style={styles.menuDivider}></div>
+              <button onClick={handleLogout} style={styles.mobileMenuLogout}>
+                🚪 Logout
+              </button>
             </div>
           </div>
         </div>
