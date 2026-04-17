@@ -42,8 +42,11 @@ function Header({ transparent, isScrolled }) {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
     setShowMobileMenu(false);
+    setUser(null);
+    setProfile(null);
+    setHasProviderProfile(false);
+    await supabase.auth.signOut();
     window.location.href = '/';
   };
 
@@ -190,7 +193,9 @@ function Header({ transparent, isScrolled }) {
             </div>
             
             <div style={styles.mobileMenuItems}>
-              <button onClick={() => { closeMobileMenu(); window.navigateTo('home'); }} style={styles.mobileMenuItem}>
+              {user ? (
+                <>
+                  <button onClick={() => { closeMobileMenu(); window.navigateTo('home'); }} style={styles.mobileMenuItem}>
                 🏠 Home
               </button>
               <button onClick={() => { closeMobileMenu(); window.navigateTo('messages'); }} style={styles.mobileMenuItem}>
@@ -218,8 +223,19 @@ function Header({ transparent, isScrolled }) {
               </button>
               <div style={styles.menuDivider}></div>
               <button onClick={handleLogout} style={styles.mobileMenuLogout}>
-                🚪 Logout
-              </button>
+                    🚪 Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button onClick={() => { closeMobileMenu(); window.navigateTo('login'); }} style={styles.mobileMenuItem}>
+                    🔑 Login
+                  </button>
+                  <button onClick={() => { closeMobileMenu(); window.navigateTo('signup'); }} style={styles.mobileMenuItem}>
+                    ✨ Sign Up
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
