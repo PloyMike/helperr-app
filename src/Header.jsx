@@ -22,13 +22,10 @@ function Header({ transparent, isScrolled }) {
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    console.log('🔍 User email:', user?.email);
-      console.log('🔍 User ID:', user?.id);
-      console.log('🔍 Searching for profile with user_id:', user?.id);
     setUser(user);
     
     if (user) {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('profiles')
         .select('name, image_url, id, job')
         .eq('user_id', user.id)
@@ -36,16 +33,10 @@ function Header({ transparent, isScrolled }) {
         .limit(1)
         .maybeSingle();
       
-      console.log('🔍 Profile data:', data);
-      console.log('🔍 Error:', error);
-      console.log('🔍 Has job?', !!data?.job);
-      console.log('🔍 Job value:', data?.job);
-      
       if (data) {
         setProfile(data);
         setHasProviderProfile(!!data.job);
-        console.log('🔍 hasProviderProfile set to:', !!data.job);
-      }
+        }
     }
   };
 
