@@ -16,6 +16,9 @@ import Datenschutz from './Datenschutz';
 import AGB from './AGB';
 import ChatbotWidget from './ChatbotWidget';
 
+// 🔒 MAINTENANCE MODE - Set to true to show "Coming Soon" page
+const MAINTENANCE_MODE = false;
+
 function App() {
   const [currentView, setCurrentView] = useState('home');
   const [selectedProfile, setSelectedProfile] = useState(null);
@@ -24,6 +27,52 @@ function App() {
     setCurrentView(view);
     if (profile) setSelectedProfile(profile);
   };
+
+  // 🔒 MAINTENANCE MODE SCREEN
+  if (MAINTENANCE_MODE) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)',
+        fontFamily: '"Outfit", sans-serif',
+        padding: 20
+      }}>
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+        <div style={{
+          textAlign: 'center',
+          color: 'white',
+          maxWidth: 600
+        }}>
+          <h1 style={{
+            fontSize: 72,
+            fontWeight: 800,
+            margin: '0 0 20px',
+            background: 'white',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
+          }}>
+            Helperr
+          </h1>
+          <h2 style={{
+            fontSize: 32,
+            fontWeight: 600,
+            margin: '0 0 20px'
+          }}>
+            🚧 Under Maintenance
+          </h2>
+          <p style={{
+            fontSize: 18,
+            opacity: 0.9
+          }}>
+            We're currently working on improvements. Check back soon!
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AuthProvider>
