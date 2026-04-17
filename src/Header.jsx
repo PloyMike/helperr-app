@@ -196,43 +196,43 @@ function Header({ transparent, isScrolled }) {
               {user ? (
                 <>
                   <button onClick={() => { closeMobileMenu(); window.navigateTo('home'); }} style={styles.mobileMenuItem}>
-                🏠 Home
+                Home
               </button>
               <button onClick={() => { closeMobileMenu(); window.navigateTo('messages'); }} style={styles.mobileMenuItem}>
-                💬 Messages
+                Messages
               </button>
               <button onClick={() => { closeMobileMenu(); window.navigateTo('bookings'); }} style={styles.mobileMenuItem}>
-                📅 My Bookings
+                My Bookings
               </button>
               {hasProviderProfile && (
                 <button onClick={() => { closeMobileMenu(); window.navigateTo('provider-bookings'); }} style={styles.mobileMenuItem}>
-                  📊 Provider Bookings
+                  Provider Bookings
                 </button>
               )}
               <div style={styles.menuDivider}></div>
               <button onClick={() => { closeMobileMenu(); window.navigateTo('edit-profile'); }} style={styles.mobileMenuItem}>
-                ✏️ Edit Profile
+                Edit Profile
               </button>
               {!hasProviderProfile && (
                 <button onClick={() => { closeMobileMenu(); window.navigateTo('register'); }} style={styles.mobileMenuItem}>
-                  ⭐ Become a Provider
+                  Become a Provider
                 </button>
               )}
               <button onClick={() => { closeMobileMenu(); window.navigateTo('dashboard'); }} style={styles.mobileMenuItem}>
-                📊 Dashboard
+                Dashboard
               </button>
               <div style={styles.menuDivider}></div>
               <button onClick={handleLogout} style={styles.mobileMenuLogout}>
-                    🚪 Logout
+                    Logout
                   </button>
                 </>
               ) : (
                 <>
                   <button onClick={() => { closeMobileMenu(); window.navigateTo('login'); }} style={styles.mobileMenuItem}>
-                    🔑 Login
+                    Login
                   </button>
                   <button onClick={() => { closeMobileMenu(); window.navigateTo('signup'); }} style={styles.mobileMenuItem}>
-                    ✨ Sign Up
+                    Sign Up
                   </button>
                 </>
               )}

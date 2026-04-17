@@ -353,7 +353,22 @@ function BookingCalendar({ profile, onClose }) {
                 <input 
                   type="text"
                   value={customerName} 
-                  onChange={(e) => setCustomerName(e.target.value)} 
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const digitCount = (value.match(/\d/g) || []).length;
+                    
+                    if (value.includes('@') || 
+                        value.includes('http') || 
+                        value.includes('www.') ||
+                        value.includes('+49') ||
+                        value.includes('+43') ||
+                        value.includes('+41') ||
+                        digitCount >= 7) {
+                      alert('⚠️ Please enter only your name. No emails, phone numbers or links allowed. All communication happens through Helperr Messages.');
+                      return;
+                    }
+                    setCustomerName(value);
+                  }} 
                   style={styles.input}
                   placeholder="Enter your full name"
                   required
@@ -363,8 +378,23 @@ function BookingCalendar({ profile, onClose }) {
               <div style={styles.formGroup}>
                 <label style={styles.label}>Message (Optional)</label>
                 <textarea 
-                  value={message} 
-                  onChange={(e) => setMessage(e.target.value)} 
+                  value={message}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const digitCount = (value.match(/\d/g) || []).length;
+                    
+                    if (value.includes('@') || 
+                        value.includes('http') || 
+                        value.includes('www.') ||
+                        value.includes('+49') ||
+                        value.includes('+43') ||
+                        value.includes('+41') ||
+                        digitCount >= 7) {
+                      alert('⚠️ No emails, phone numbers or links allowed. All communication happens through Helperr Messages.');
+                      return;
+                    }
+                    setMessage(value);
+                  }} 
                   style={styles.textarea} 
                   placeholder="Any special requests or notes for the provider..." 
                   rows={4}
