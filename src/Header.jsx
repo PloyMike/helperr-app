@@ -25,10 +25,11 @@ function Header({ transparent, isScrolled }) {
     setUser(user);
     
     if (user) {
+      // Search by EMAIL instead of user_id - much simpler!
       const { data } = await supabase
         .from('profiles')
-        .select('name, image_url, id, job')
-        .eq('user_id', user.id)
+        .select('name, image_url, id, job, email')
+        .eq('email', user.email)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -36,7 +37,7 @@ function Header({ transparent, isScrolled }) {
       if (data) {
         setProfile(data);
         setHasProviderProfile(!!data.job);
-        }
+      }
     }
   };
 
