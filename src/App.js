@@ -17,7 +17,7 @@ import AGB from './AGB';
 import ChatbotWidget from './ChatbotWidget';
 
 // 🔒 MAINTENANCE MODE - Set to true to show "Coming Soon" page
-const MAINTENANCE_MODE = false;
+const MAINTENANCE_MODE = true;
 
 function App() {
   const [currentView, setCurrentView] = useState('home');
