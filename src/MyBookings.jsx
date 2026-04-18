@@ -170,7 +170,7 @@ function MyBookings() {
         })
         .eq('id', selectedBooking.profile_id);
 
-      alert('✅ Review submitted successfully!');
+      alert('Review submitted successfully!');
       fetchBookings(); // Refresh to hide the review button
       setShowReviewModal(false);
       setReviewForm({ rating: 5, review_text: '', author_name: reviewForm.author_name });
@@ -281,7 +281,7 @@ function MyBookings() {
       <div style={styles.app}>
         <Header transparent={true} isScrolled={isScrolled} />
         <div style={styles.loading}>
-          <div style={{ fontSize: 48 }}>📅</div>
+          
           <h2>Loading bookings...</h2>
         </div>
       </div>
@@ -320,7 +320,7 @@ function MyBookings() {
 
         {filteredBookings.length === 0 ? (
           <div style={styles.empty}>
-            <div style={{ fontSize: 64 }}>📭</div>
+            
             <h3>No bookings found</h3>
             <p>You don't have any {statusFilter !== 'all' ? statusFilter : ''} bookings yet</p>
             {true && (
@@ -340,7 +340,7 @@ function MyBookings() {
                         <img src={booking.provider.image_url} alt={booking.provider.name} style={styles.providerImage} />
                       ) : (
                         <div style={styles.providerPlaceholder}>
-                          {booking.provider?.name?.charAt(0).toUpperCase() || '👤'}
+                          {booking.provider?.name?.charAt(0).toUpperCase() || 'U'}
                         </div>
                       )}
                       <div>
@@ -351,7 +351,7 @@ function MyBookings() {
                   ) : (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                       <div style={styles.providerPlaceholder}>
-                        {booking.customer_name?.charAt(0).toUpperCase() || '👤'}
+                        {booking.customer_name?.charAt(0).toUpperCase() || 'U'}
                       </div>
                       <div>
                         <h3 style={styles.cardTitle}>{booking.customer_name}</h3>
@@ -366,7 +366,7 @@ function MyBookings() {
 
                 <div style={styles.cardBody}>
                   <div style={styles.infoRow}>
-                    <span style={styles.infoIcon}>📅</span>
+                    
                     <div>
                       <span style={styles.infoLabel}>Date</span>
                       <span style={styles.infoValue}>{new Date(booking.booking_date).toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span>
@@ -374,7 +374,7 @@ function MyBookings() {
                   </div>
 
                   <div style={styles.infoRow}>
-                    <span style={styles.infoIcon}>🕐</span>
+                    
                     <div>
                       <span style={styles.infoLabel}>Time</span>
                       <span style={styles.infoValue}>{booking.time_slot}</span>
@@ -383,7 +383,7 @@ function MyBookings() {
 
                   {true && booking.provider?.city && (
                     <div style={styles.infoRow}>
-                      <span style={styles.infoIcon}>📍</span>
+                      
                       <div>
                         <span style={styles.infoLabel}>Location</span>
                         <span style={styles.infoValue}>{booking.provider.city}</span>
@@ -393,7 +393,7 @@ function MyBookings() {
 
                   {false && (
                     <div style={styles.infoRow}>
-                      <span style={styles.infoIcon}>📧</span>
+                      
                       <div>
                         <span style={styles.infoLabel}>Contact</span>
                         <span style={styles.infoValue}>{booking.customer_email}</span>
@@ -402,7 +402,7 @@ function MyBookings() {
                   )}
 
                   <div style={styles.infoRow}>
-                    <span style={styles.infoIcon}>💰</span>
+                    
                     <div>
                       <span style={styles.infoLabel}>Price</span>
                       <span style={styles.infoValue}>{booking.total_price}</span>

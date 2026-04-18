@@ -162,7 +162,7 @@ function ProviderBookingsPage() {
       <div style={styles.app}>
         <Header transparent={true} isScrolled={isScrolled} />
         <div style={styles.loading}>
-          <div style={{ fontSize: 48 }}>📅</div>
+          
           <h2>Loading bookings...</h2>
         </div>
       </div>
@@ -199,7 +199,7 @@ function ProviderBookingsPage() {
 
         {filteredBookings.length === 0 ? (
           <div style={styles.empty}>
-            <div style={{ fontSize: 64 }}>📭</div>
+            
             <h3>No bookings found</h3>
             <p>You don't have any {statusFilter !== 'all' ? statusFilter : ''} bookings yet</p>
           </div>
@@ -210,7 +210,7 @@ function ProviderBookingsPage() {
                 <div style={styles.cardHeader}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={styles.customerPlaceholder}>
-                      {booking.customer_name?.charAt(0).toUpperCase() || '👤'}
+                      {booking.customer_name?.charAt(0).toUpperCase() || 'U'}
                     </div>
                     <div>
                       <h3 style={styles.cardTitle}>{booking.customer_name}</h3>
@@ -224,7 +224,7 @@ function ProviderBookingsPage() {
 
                 <div style={styles.cardBody}>
                   <div style={styles.infoRow}>
-                    <span style={styles.infoIcon}>📅</span>
+                    
                     <div>
                       <span style={styles.infoLabel}>Date</span>
                       <span style={styles.infoValue}>{new Date(booking.booking_date).toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span>
@@ -232,7 +232,7 @@ function ProviderBookingsPage() {
                   </div>
 
                   <div style={styles.infoRow}>
-                    <span style={styles.infoIcon}>🕐</span>
+                    
                     <div>
                       <span style={styles.infoLabel}>Time</span>
                       <span style={styles.infoValue}>{booking.time_slot}</span>
@@ -240,15 +240,29 @@ function ProviderBookingsPage() {
                   </div>
 
                   <div style={styles.infoRow}>
-                    <span style={styles.infoIcon}>📧</span>
+                    
                     <div>
                       <span style={styles.infoLabel}>Contact</span>
-                      <span style={styles.infoValue}>{booking.customer_email}</span>
+                      <button 
+                        onClick={() => window.navigateTo('messages')}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#065f46',
+                          fontSize: 15,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          textDecoration: 'underline',
+                          padding: 0
+                        }}
+                      >
+                        Contact via Helperr Messages
+                      </button>
                     </div>
                   </div>
 
                   <div style={styles.infoRow}>
-                    <span style={styles.infoIcon}>💰</span>
+                    
                     <div>
                       <span style={styles.infoLabel}>Price</span>
                       <span style={styles.infoValue}>{booking.total_price}</span>
