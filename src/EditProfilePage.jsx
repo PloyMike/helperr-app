@@ -19,7 +19,9 @@ function EditProfilePage() {
     category: '',
     subcategory: '',
     job: '',
-    price: '',
+    priceAmount: '',
+    currency: 'EUR',
+    priceType: 'hour',
     tags: '',
     languages: '',
     line_id: '',
@@ -79,7 +81,9 @@ function EditProfilePage() {
           category: data.category || '',
           subcategory: data.subcategory || '',
           job: data.job || '',
-          price: data.price || '',
+          priceAmount: data.price_amount || data.price?.split(' ')[0] || '',
+          currency: data.currency || 'EUR',
+          priceType: data.price_type || 'hour',
           tags: data.tags?.join(', ') || '',
           languages: data.languages?.join(', ') || '',
           line_id: data.line_id || '',
@@ -156,7 +160,10 @@ function EditProfilePage() {
           category: formData.category,
           subcategory: formData.subcategory,
           job: formData.job,
-          price: formData.price,
+          price_amount: formData.priceAmount,
+          currency: formData.currency,
+          price_type: formData.priceType,
+          price: `${formData.priceAmount} ${formData.currency}/${formData.priceType}`,
           tags: tagsArray,
           languages: languagesArray,
           line_id: formData.line_id,
@@ -237,7 +244,7 @@ function EditProfilePage() {
           
           {/* PROFILE IMAGE */}
           <div style={styles.section}>
-            <h3 style={styles.sectionTitle}>📸 Profile Image</h3>
+            <h3 style={styles.sectionTitle}>Profile Image</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
               {formData.image_url && formData.image_url.startsWith('http') ? (
                 <img src={formData.image_url} alt="Profile" style={{ width: 100, height: 100, borderRadius: 16, objectFit: 'cover' }} />
@@ -266,7 +273,7 @@ function EditProfilePage() {
           </div>
 
           <div style={styles.section}>
-            <h3 style={styles.sectionTitle}>📍 Basic Info</h3>
+            <h3 style={styles.sectionTitle}>Basic Info</h3>
             <div style={styles.grid}>
               <div>
                 <label style={styles.label}>Name *</label>
@@ -275,6 +282,20 @@ function EditProfilePage() {
               <div>
                 <label style={styles.label}>Phone *</label>
                 <input type="tel" required value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} style={styles.input} />
+              </div>
+              <div>
+                <label style={styles.label}>Languages *</label>
+                <input 
+                  type="text" 
+                  required 
+                  value={formData.languages} 
+                  onChange={(e) => setFormData({...formData, languages: e.target.value})} 
+                  style={styles.input}
+                  placeholder="English, German, Thai"
+                />
+              </div>
+              <div>
+                {/* Empty for spacing */}
               </div>
               <div>
                 <label style={styles.label}>Country *</label>
@@ -297,7 +318,7 @@ function EditProfilePage() {
           </div>
 
           <div style={styles.section}>
-            <h3 style={styles.sectionTitle}>💼 Service</h3>
+            <h3 style={styles.sectionTitle}>Service</h3>
             <div style={styles.grid}>
               <div>
                 <label style={styles.label}>Category *</label>
@@ -319,9 +340,39 @@ function EditProfilePage() {
                 <label style={styles.label}>Job Title *</label>
                 <input type="text" required value={formData.job} onChange={(e) => setFormData({...formData, job: e.target.value})} style={styles.input} />
               </div>
-              <div>
-                <label style={styles.label}>Price *</label>
-                <input type="text" required value={formData.price} onChange={(e) => setFormData({...formData, price: e.target.value})} style={styles.input} />
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={styles.label}>Pricing *</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '4fr 4fr 4fr', gap: 16 }}>
+                  <input 
+                    type="number" 
+                    required 
+                    value={formData.priceAmount} 
+                    onChange={(e) => setFormData({...formData, priceAmount: e.target.value})} 
+                    style={styles.input}
+                    placeholder="Amount (e.g. 50)"
+                  />
+                  <select 
+                    value={formData.currency} 
+                    onChange={(e) => setFormData({...formData, currency: e.target.value})} 
+                    style={styles.input}
+                    required
+                  >
+                    <option value="EUR">EUR €</option>
+                    <option value="USD">USD $</option>
+                    <option value="GBP">GBP £</option>
+                    <option value="CHF">CHF</option>
+                    <option value="THB">THB ฿</option>
+                  </select>
+                  <select 
+                    value={formData.priceType} 
+                    onChange={(e) => setFormData({...formData, priceType: e.target.value})} 
+                    style={styles.input}
+                    required
+                  >
+                    <option value="hour">Per Hour</option>
+                    <option value="day">Per Day</option>
+                  </select>
+                </div>
               </div>
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={styles.label}>Skills/Tags (comma-separated)</label>
@@ -330,22 +381,10 @@ function EditProfilePage() {
             </div>
           </div>
 
-          <div style={styles.section}>
-            <h3 style={styles.sectionTitle}>📱 Contact</h3>
-            <div style={styles.grid}>
-              <div>
-                <label style={styles.label}>LINE ID</label>
-                <input type="text" value={formData.line_id} onChange={(e) => setFormData({...formData, line_id: e.target.value})} style={styles.input} />
-              </div>
-              <div>
-                <label style={styles.label}>Languages (comma-separated)</label>
-                <input type="text" value={formData.languages} onChange={(e) => setFormData({...formData, languages: e.target.value})} style={styles.input} placeholder="Thai, English, German" />
-              </div>
-            </div>
-          </div>
+          
 
           <div style={styles.section}>
-            <h3 style={styles.sectionTitle}>⏰ Availability</h3>
+            <h3 style={styles.sectionTitle}>Availability</h3>
             <label style={styles.checkbox}>
               <input type="checkbox" checked={formData.available} onChange={(e) => setFormData({...formData, available: e.target.checked})} />
               <div>
@@ -360,7 +399,7 @@ function EditProfilePage() {
               Cancel
             </button>
             <button type="submit" disabled={saving || uploading} style={{...styles.btnPrimary, flex: 1, opacity: (saving || uploading) ? 0.6 : 1}}>
-              {saving ? 'Saving...' : '💾 Save Changes'}
+              {saving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </form>
