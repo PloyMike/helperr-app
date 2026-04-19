@@ -161,7 +161,12 @@ function BookingCalendar({ profile, onClose }) {
         <div 
           ref={pickerRef}
           style={styles.scrollPicker}
-          onScroll={() => handleScroll(pickerRef, items, onChange)}
+          onScroll={(e) => {
+                clearTimeout(pickerRef.current?._timeout);
+                pickerRef.current._timeout = setTimeout(() => {
+                  handleScroll(pickerRef, items, onChange);
+                }, 50);
+              }}
         >
           <div style={isMobile ? styles.scrollSpacerMobile : styles.scrollSpacer}></div>
           {items.map((item, i) => (
@@ -264,7 +269,7 @@ function BookingCalendar({ profile, onClose }) {
           {step === 2 && (
             <div>
               <h3 style={styles.stepTitle}>Select Time</h3>
-              <p style={styles.selectedInfo}>📅 {formatDateFull(new Date(selectedDate))}</p>
+              <p style={styles.selectedInfo}>{formatDateFull(new Date(selectedDate))}</p>
               
               <div style={isMobile ? styles.mobileTimeContainer : styles.desktopTimeContainer}>
                 <div style={isMobile ? styles.timeSectionMobile : styles.timeSection}>
@@ -414,7 +419,7 @@ function BookingCalendar({ profile, onClose }) {
                     cursor: (submitting || !customerName.trim()) ? 'not-allowed' : 'pointer'
                   }}
                 >
-                  {submitting ? '⏳ Sending...' : '✅ Confirm Booking'}
+                  {submitting ? 'Sending...' : 'Confirm Booking'}
                 </button>
               </div>
             </div>

@@ -293,7 +293,7 @@ function Helperr() {
                     fontFamily: '"Outfit", sans-serif'
                   }}
                 >
-                  💬 Message Provider
+                  Message Provider
                 </button>
                 <button 
                   onClick={() => setShowBooking(true)} 
@@ -311,7 +311,7 @@ function Helperr() {
                     boxShadow: '0 4px 12px rgba(6,95,70,0.3)'
                   }}
                 >
-                  📅 Book Now
+                  Book Now
                 </button>
               </div>
 
