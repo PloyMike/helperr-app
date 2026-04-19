@@ -13,6 +13,13 @@ function BookingCalendar({ profile, onClose }) {
   const [endHour, setEndHour] = useState(11);
   const [endMinute, setEndMinute] = useState(0);
   const [customerName, setCustomerName] = useState('');
+  const [address, setAddress] = useState({
+    street: '',
+    houseNumber: '',
+    postalCode: '',
+    city: '',
+    notes: ''
+  });
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -210,6 +217,11 @@ function BookingCalendar({ profile, onClose }) {
           <div style={styles.progressLine}></div>
           <div style={{...styles.progressStep, ...(step >= 3 ? styles.progressStepActive : {})}}>
             <div style={styles.progressNumber}>3</div>
+            <span style={styles.progressLabel}>Address</span>
+          </div>
+          <div style={styles.progressLine}></div>
+          <div style={{...styles.progressStep, ...(step >= 4 ? styles.progressStepActive : {})}}>
+            <div style={styles.progressNumber}>4</div>
             <span style={styles.progressLabel}>Confirm</span>
           </div>
         </div>
@@ -328,6 +340,104 @@ function BookingCalendar({ profile, onClose }) {
 
           {step === 3 && (
             <div>
+              <h3 style={styles.stepTitle}>Service Location</h3>
+              
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Street *</label>
+                <input 
+                  type="text"
+                  value={address.street} 
+                  onChange={(e) => setAddress({...address, street: e.target.value})} 
+                  style={styles.input}
+                  placeholder="e.g. Main Street"
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12, marginBottom: 16 }}>
+                <div>
+                  <label style={styles.label}>City *</label>
+                  <input 
+                    type="text"
+                    value={address.city} 
+                    onChange={(e) => setAddress({...address, city: e.target.value})} 
+                    style={styles.input}
+                    placeholder="e.g. Berlin"
+                    required
+                  />
+                </div>
+                <div>
+                  <label style={styles.label}>Postal Code *</label>
+                  <input 
+                    type="text"
+                    value={address.postalCode} 
+                    onChange={(e) => setAddress({...address, postalCode: e.target.value})} 
+                    style={styles.input}
+                    placeholder="e.g. 10115"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>House Number *</label>
+                <input 
+                  type="text"
+                  value={address.houseNumber} 
+                  onChange={(e) => setAddress({...address, houseNumber: e.target.value})} 
+                  style={styles.input}
+                  placeholder="e.g. 42A"
+                  required
+                />
+              </div>
+
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Additional Notes (Optional)</label>
+                <textarea 
+                  value={address.notes} 
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const digitCount = (value.match(/\d/g) || []).length;
+                    
+                    if (value.includes('@') || 
+                        value.includes('http') || 
+                        value.includes('www.') ||
+                        value.includes('+49') ||
+                        value.includes('+43') ||
+                        value.includes('+41') ||
+                        digitCount >= 7) {
+                      alert('⚠️ No emails, phone numbers or links allowed. All communication happens through Helperr Messages.');
+                      return;
+                    }
+                    setAddress({...address, notes: value});
+                  }} 
+                  style={{...styles.input, minHeight: 80, resize: 'vertical'}}
+                  placeholder="Floor, apartment number, entrance, etc."
+                />
+              </div>
+
+              <div style={styles.footer}>
+                <button onClick={() => setStep(2)} style={styles.btnSecondary}>
+                  Back
+                </button>
+                <button 
+                  onClick={() => {
+                    if (!address.street || !address.city || !address.postalCode || !address.houseNumber) {
+                      alert('Please fill in all required address fields');
+                      return;
+                    }
+                    setStep(4);
+                  }} 
+                  style={styles.btnPrimary}
+                >
+                  Continue
+                </button>
+              </div>
+            </div>
+          )}
+
+          {step === 4 && (
+            <div>
               <h3 style={styles.stepTitle}>Confirm Booking</h3>
               
               <div style={styles.summary}>
@@ -342,6 +452,10 @@ function BookingCalendar({ profile, onClose }) {
                 <div style={styles.summaryRow}>
                   <span style={styles.summaryLabel}>Time:</span>
                   <span style={styles.summaryValue}>{selectedTimeSlot}</span>
+                </div>
+                <div style={styles.summaryRow}>
+                  <span style={styles.summaryLabel}>Address:</span>
+                  <span style={styles.summaryValue}>{address.street} {address.houseNumber}, {address.postalCode} {address.city}</span>
                 </div>
                 <div style={styles.summaryRow}>
                   <span style={styles.summaryLabel}>Price:</span>
@@ -407,7 +521,7 @@ function BookingCalendar({ profile, onClose }) {
               </div>
 
               <div style={{ display: 'flex', gap: 12 }}>
-                <button onClick={() => setStep(2)} style={styles.btnBack}>
+                <button onClick={() => setStep(3)} style={styles.btnBack}>
                   ← Back
                 </button>
                 <button 
@@ -521,7 +635,10 @@ const styles = {
   textarea: { width: '100%', padding: '10px 12px', border: '2px solid #e5e7eb', borderRadius: 10, fontSize: 13, fontFamily: '"Outfit", sans-serif', outline: 'none', resize: 'vertical', boxSizing: 'border-box' },
   btnNext: { flex: 1, padding: '10px 14px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', width: '100%' },
   btnBack: { padding: '10px 14px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' },
-  btnSubmit: { flex: 1, padding: '10px 14px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)' }
+  btnSubmit: { flex: 1, padding: '10px 14px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)' },
+  btnSecondary: { padding: '14px 24px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: 10, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.2s' },
+  btnPrimary: { flex: 1, padding: '14px 24px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 10, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)', transition: 'all 0.2s' },
+  footer: { display: 'flex', gap: 12, marginTop: 20 }
 };
 
 export default BookingCalendar;
