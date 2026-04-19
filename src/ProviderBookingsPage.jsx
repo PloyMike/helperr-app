@@ -242,6 +242,17 @@ function ProviderBookingsPage() {
                   <div style={styles.infoRow}>
                     
                     <div>
+                      <span style={styles.infoLabel}>Address</span>
+                      <span style={styles.infoValue}>
+                        {booking.service_address || 'No address provided'}
+                        {booking.address_notes && <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>Note: {booking.address_notes}</div>}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style={styles.infoRow}>
+                    
+                    <div>
                       <span style={styles.infoLabel}>Contact</span>
                       <button 
                         onClick={() => window.navigateTo('messages')}

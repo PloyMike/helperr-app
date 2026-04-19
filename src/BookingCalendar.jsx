@@ -126,6 +126,8 @@ function BookingCalendar({ profile, onClose }) {
         customer_phone: '',
         booking_date: selectedDate,
         time_slot: selectedTimeSlot,
+        service_address: `${address.street} ${address.houseNumber}, ${address.postalCode} ${address.city}`,
+        address_notes: address.notes,
         message: message,
         total_price: profile.price,
         status: 'pending'
