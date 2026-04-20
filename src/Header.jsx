@@ -7,6 +7,8 @@ function Header({ transparent, isScrolled }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [hasProviderProfile, setHasProviderProfile] = useState(false);
+  const [myBookingsBadge, setMyBookingsBadge] = useState(0);
+  const [providerBookingsBadge, setProviderBookingsBadge] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -40,6 +42,39 @@ function Header({ transparent, isScrolled }) {
       }
     }
   };
+
+  const fetchBookingCounts = async () => {
+    if (!user || !profile) return;
+
+    try {
+      const { count: myCount } = await supabase
+        .from('bookings')
+        .select('*', { count: 'exact', head: true })
+        .eq('customer_email', user.email)
+        .eq('status', 'pending');
+      
+      setMyBookingsBadge(myCount || 0);
+
+      if (hasProviderProfile && profile.id) {
+        const { count: providerCount } = await supabase
+          .from('bookings')
+          .select('*', { count: 'exact', head: true })
+          .eq('profile_id', profile.id)
+          .eq('status', 'pending');
+        
+        setProviderBookingsBadge(providerCount || 0);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (user && profile) {
+      fetchBookingCounts();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, profile, hasProviderProfile]);
 
   const handleLogout = async () => {
     setShowMobileMenu(false);
@@ -106,6 +141,24 @@ function Header({ transparent, isScrolled }) {
                    ...(transparent ? styles.navBtnTransparent : {})
                   }}>
                     My Bookings
+                    {myBookingsBadge > 0 && (
+                      <span style={{
+                        marginLeft: 6,
+                        background: '#ef4444',
+                        color: 'white',
+                        borderRadius: '50%',
+                        minWidth: 18,
+                        height: 18,
+                        padding: '0 5px',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        {myBookingsBadge}
+                      </span>
+                    )}
                   </button>
                   {hasProviderProfile && (
                     <button onClick={() => window.navigateTo('provider-bookings')} style={{
@@ -113,6 +166,24 @@ function Header({ transparent, isScrolled }) {
                      ...(transparent ? styles.navBtnTransparent : {})
                     }}>
                       Provider Bookings
+                      {providerBookingsBadge > 0 && (
+                        <span style={{
+                          marginLeft: 6,
+                          background: '#ef4444',
+                          color: 'white',
+                          borderRadius: '50%',
+                          minWidth: 18,
+                          height: 18,
+                          padding: '0 5px',
+                          fontSize: 11,
+                          fontWeight: 700,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}>
+                          {providerBookingsBadge}
+                        </span>
+                      )}
                     </button>
                   )}
                   
@@ -202,12 +273,48 @@ function Header({ transparent, isScrolled }) {
                 Messages
               </button>
               <button onClick={() => { closeMobileMenu(); window.navigateTo('bookings'); }} style={styles.mobileMenuItem}>
-                My Bookings
-              </button>
+              My Bookings
+              {myBookingsBadge > 0 && (
+                <span style={{
+                  marginLeft: 'auto',
+                  background: '#ef4444',
+                  color: 'white',
+                  borderRadius: '50%',
+                  minWidth: 20,
+                  height: 20,
+                  padding: '0 6px',
+                  fontSize: 11,
+                  fontWeight: 700,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  {myBookingsBadge}
+                </span>
+              )}
+            </button>
               {hasProviderProfile && (
                 <button onClick={() => { closeMobileMenu(); window.navigateTo('provider-bookings'); }} style={styles.mobileMenuItem}>
-                  Provider Bookings
-                </button>
+                Provider Bookings
+                {providerBookingsBadge > 0 && (
+                  <span style={{
+                    marginLeft: 'auto',
+                    background: '#ef4444',
+                    color: 'white',
+                    borderRadius: '50%',
+                    minWidth: 20,
+                    height: 20,
+                    padding: '0 6px',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    {providerBookingsBadge}
+                  </span>
+                )}
+              </button>
               )}
               <div style={styles.menuDivider}></div>
               <button onClick={() => { closeMobileMenu(); window.navigateTo('edit-profile'); }} style={styles.mobileMenuItem}>
