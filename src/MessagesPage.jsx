@@ -12,6 +12,7 @@ function MessagesPage() {
   const [sending, setSending] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const checkMobile = () => {
@@ -226,18 +227,47 @@ function MessagesPage() {
         {/* Conversations List */}
         {(!isMobile || !showChat) && (
           <div style={styles.sidebar}>
-            <div style={styles.sidebarHeader}>
-              <h2 style={styles.sidebarTitle}>Messages</h2>
+            <div style={{
+              padding: 16,
+              borderBottom: '1px solid #e5e7eb'
+            }}>
+              <input
+                type="text"
+                placeholder="Search conversations..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: 10,
+                  fontSize: 14,
+                  fontFamily: '"Outfit", sans-serif',
+                  outline: 'none',
+                  transition: 'all 0.2s',
+                  boxSizing: 'border-box'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#10b981'}
+                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+              />
             </div>
+            
             
             {conversations.length === 0 ? (
               <div style={styles.emptyState}>
-                <div style={{ fontSize: 48, marginBottom: 12 }}>💬</div>
+                
                 <p style={{ margin: 0, color: '#9ca3af', fontSize: 15 }}>No messages yet</p>
               </div>
             ) : (
               <div style={styles.conversationList}>
-                {conversations.map(conv => (
+                {conversations
+                .filter(conv => {
+                  if (!searchQuery) return true;
+                  const query = searchQuery.toLowerCase();
+                  return conv.name?.toLowerCase().includes(query) ||
+                         conv.email?.toLowerCase().includes(query);
+                })
+                .map(conv => (
                   <div
                     key={conv.email}
                     onClick={() => handleSelectConversation(conv)}
