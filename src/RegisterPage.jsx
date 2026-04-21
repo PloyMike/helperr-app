@@ -80,7 +80,6 @@ function RegisterPage() {
         languages: formData.languages.split(',').map(l => l.trim()).filter(Boolean),
         available: formData.available,
         verified: false,
-        id_status: 'pending',
         rating: 0,
         review_count: 0,
         total_bookings: 0,
