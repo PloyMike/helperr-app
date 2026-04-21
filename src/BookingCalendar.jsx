@@ -334,7 +334,7 @@ function BookingCalendar({ profile, onClose }) {
                     cursor: !isValidTimeRange() ? 'not-allowed' : 'pointer'
                   }}
                 >
-                  Continue to Confirm →
+                  Continue →
                 </button>
               </div>
             </div>
@@ -420,7 +420,7 @@ function BookingCalendar({ profile, onClose }) {
 
               <div style={styles.footer}>
                 <button onClick={() => setStep(2)} style={styles.btnSecondary}>
-                  Back
+                  ← Back
                 </button>
                 <button 
                   onClick={() => {
@@ -432,7 +432,7 @@ function BookingCalendar({ profile, onClose }) {
                   }} 
                   style={styles.btnPrimary}
                 >
-                  Continue
+                  Continue →
                 </button>
               </div>
             </div>
@@ -455,9 +455,18 @@ function BookingCalendar({ profile, onClose }) {
                   <span style={styles.summaryLabel}>Time:</span>
                   <span style={styles.summaryValue}>{selectedTimeSlot}</span>
                 </div>
-                <div style={styles.summaryRow}>
+                <div style={{...styles.summaryRow, alignItems: 'flex-start'}}>
                   <span style={styles.summaryLabel}>Address:</span>
-                  <span style={styles.summaryValue}>{address.street} {address.houseNumber}, {address.postalCode} {address.city}</span>
+                  <span style={styles.summaryValue}>
+                    {isMobile ? (
+                      <>
+                        <div>{address.street} {address.houseNumber}</div>
+                        <div style={{ marginTop: 4, textAlign: 'right' }}>{address.postalCode} {address.city}</div>
+                      </>
+                    ) : (
+                      <>{address.street} {address.houseNumber}, {address.postalCode} {address.city}</>
+                    )}
+                  </span>
                 </div>
                 <div style={styles.summaryRow}>
                   <span style={styles.summaryLabel}>Price:</span>
