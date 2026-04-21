@@ -140,7 +140,11 @@ function Helperr() {
         <div style={styles.heroGlow1}></div>
         <div style={styles.heroGlow2}></div>
         <div style={styles.heroInner}>
-          <h1 style={styles.heroTitle}>Find Local Experts</h1>
+          <h1 style={{
+            ...styles.heroTitle,
+            fontSize: window.innerWidth <= 768 ? 36 : 60,
+            fontWeight: window.innerWidth <= 768 ? 700 : 800
+          }}>Find Local Experts</h1>
           <p style={styles.heroSub}>Book verified local guides, instructors & service providers</p>
           {userLocation && !locationError && (
             <p style={{ color: '#d1fae5', fontSize: 14, margin: '8px 0 0' }}>
