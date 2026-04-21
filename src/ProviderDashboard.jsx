@@ -149,11 +149,15 @@ function ProviderDashboard() {
         <div style={styles.dashboardHeader}>
           <div>
             <h1 style={styles.title}>Dashboard</h1>
-            <p style={styles.subtitle}>Welcome back, {profile.name}! 👋</p>
+            <p style={styles.subtitle}>Welcome back, {profile.name}!</p>
           </div>
           <button 
             onClick={() => window.navigateTo('edit-profile')} 
-            style={styles.editBtn}
+            style={{
+              ...styles.editBtn,
+              padding: window.innerWidth <= 768 ? '10px 12px' : '12px 24px',
+              fontSize: window.innerWidth <= 768 ? 14 : 15
+            }}
           >
             Edit Profile
           </button>
@@ -366,7 +370,7 @@ const styles = {
     margin: '8px 0 0' 
   },
   editBtn: { 
-    padding: '12px 24px', 
+    padding: '12px 16px', 
     background: '#fff', 
     color: '#065f46', 
     border: '2px solid #065f46', 
