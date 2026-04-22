@@ -397,17 +397,7 @@ function DistanceRow({ title, profiles, onSelect }) {
                   </span>
                 </div>
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={styles.price}>{p.price}</div>
-                <div style={{
-                  fontSize: 11,
-                  color: p.available ? '#059669' : '#dc2626',
-                  marginTop: 4,
-                  fontWeight: 600
-                }}>
-                  {p.available ? '● Available' : '● Busy'}
-                </div>
-              </div>
+              
             </div>
             
             <p style={styles.cardBio}>{p.bio?.slice(0, 80)}...</p>
@@ -419,11 +409,9 @@ function DistanceRow({ title, profiles, onSelect }) {
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, paddingTop: 14, borderTop: '1px solid #f3f4f6' }}>
               <span style={styles.locationBadge}>📍 {p.city}</span>
-              {p.distance < 999 && (
-                <span style={{ fontSize: 13, color: '#065f46', fontWeight: 700 }}>
-                  {p.distance.toFixed(1)} km
-                </span>
-              )}
+              <div style={{ textAlign: 'right' }}>
+                <div style={styles.price}>{p.price}</div>
+              </div>
             </div>
           </div>
         ))}
