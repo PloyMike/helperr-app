@@ -305,7 +305,7 @@ function ProviderDashboard() {
               {recentBookings.map(booking => (
                 <div key={booking.id} style={styles.bookingItem}>
                   <div style={styles.bookingInfo}>
-                    <div style={styles.bookingName}>{booking.customer_email}</div>
+                    <div style={styles.bookingName}>{booking.customer_name}</div>
                     <div style={styles.bookingDate}>
                       {new Date(booking.date).toLocaleDateString('en-US', { 
                         month: 'short', 
