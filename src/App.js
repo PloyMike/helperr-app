@@ -22,7 +22,11 @@ import ChatbotWidget from './ChatbotWidget';
 const MAINTENANCE_MODE = false;
 
 function App() {
-  const [currentView, setCurrentView] = useState('home');
+  // Check for password recovery token
+  const hashParams = new URLSearchParams(window.location.hash.substring(1));
+  const isRecovery = hashParams.get('type') === 'recovery';
+  
+  const [currentView, setCurrentView] = useState(isRecovery ? 'update-password' : 'home');
   const [selectedProfile, setSelectedProfile] = useState(null);
 
   window.navigateTo = (view, profile) => {
