@@ -400,7 +400,7 @@ function DistanceRow({ title, profiles, onSelect }) {
               
             </div>
             
-            <p style={styles.cardBio}>{p.bio?.slice(0, 80)}...</p>
+            <p style={styles.cardBio}>{p.bio?.slice(0, 150)}...</p>
             
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
               {p.tags?.slice(0, 4).map(tag => (
@@ -485,7 +485,7 @@ const styles = {
   cardAvatar: { width: 80, height: 80, background: '#ecfdf5', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, objectFit: 'cover', flexShrink: 0 },
   cardName: { margin: 0, fontSize: 17, fontWeight: 700, color: '#111827', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   cardSub: { margin: '4px 0 0', fontSize: 13, color: '#6b7280' },
-  cardBio: { fontSize: 13, color: '#6b7280', lineHeight: 1.5, margin: 0 },
+  cardBio: { fontSize: 13, color: '#6b7280', lineHeight: 1.6, margin: 0, minHeight: 70 },
   price: { fontSize: 16, fontWeight: 700, color: '#065f46' },
   locationBadge: { fontSize: 12, color: '#6b7280', background: '#f3f4f6', borderRadius: 8, padding: '4px 10px', fontWeight: 500 },
   verified: { background: '#d1fae5', color: '#065f46', fontSize: 10, fontWeight: 700, padding: '1px 5px', borderRadius: 10, flexShrink: 0 },
