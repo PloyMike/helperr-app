@@ -53,13 +53,26 @@ function RegisterPage() {
     setLoading(true);
     
     try {
-      // 1. Create auth user
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-      });
+      // Check if user is already logged in
+      const { data: { user: existingUser } } = await supabase.auth.getUser();
+      
+      let userId;
+      let isNewUser = false;
+      
+      if (existingUser) {
+        // User is already logged in - just create provider profile
+        userId = existingUser.id;
+      } else {
+        // New user - create auth account first
+        const { data: authData, error: signUpError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+        });
 
-      if (signUpError) throw signUpError;
+        if (signUpError) throw signUpError;
+        userId = authData.user.id;
+        isNewUser = true;
+      }
 
       // 2. Insert provider profile
       const { error: insertError } = await supabase.from('profiles').insert([{
@@ -83,13 +96,21 @@ function RegisterPage() {
         rating: 0,
         review_count: 0,
         total_bookings: 0,
-        user_id: authData.user.id
+        user_id: userId
       }]);
 
       if (insertError) throw insertError;
 
-      alert('✅ Registration successful! Please check your email to verify your account.');
-      window.navigateTo('login');
+      if (isNewUser) {
+        alert('✅ Registration successful! Please check your email to verify your account.');
+      } else {
+        alert('✅ Provider profile created successfully!');
+      }
+      if (isNewUser) {
+        window.navigateTo('login');
+      } else {
+        window.navigateTo('dashboard');
+      }
     } catch (error) {
       console.error('Error:', error);
       alert('Error: ' + error.message);

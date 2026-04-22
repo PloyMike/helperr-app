@@ -28,6 +28,21 @@ function Helperr() {
   }, []);
 
   useEffect(() => {
+    if (selected) {
+      // Lock body scroll when modal opens
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Restore body scroll when modal closes
+      document.body.style.overflow = 'auto';
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [selected]);
+
+  useEffect(() => {
     fetchProfiles();
     
     // Get user location

@@ -277,6 +277,7 @@ function Header({ transparent, isScrolled }) {
               {myBookingsBadge > 0 && (
                 <span style={{
                   marginLeft: 'auto',
+                    marginRight: 16,
                   background: '#ef4444',
                   color: 'white',
                   borderRadius: '50%',
@@ -299,6 +300,7 @@ function Header({ transparent, isScrolled }) {
                 {providerBookingsBadge > 0 && (
                   <span style={{
                     marginLeft: 'auto',
+                    marginRight: 16,
                     background: '#ef4444',
                     color: 'white',
                     borderRadius: '50%',
