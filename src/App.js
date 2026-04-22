@@ -7,6 +7,8 @@ import ProviderBookingsPage from './ProviderBookingsPage';
 import Favorites from './Favorites';
 import RegisterPage from './RegisterPage';
 import LoginPage from './LoginPage';
+import ResetPasswordPage from './ResetPasswordPage';
+import UpdatePasswordPage from './UpdatePasswordPage';
 import SignupPage from './SignupPage';
 import MessagesPage from './MessagesPage';
 import EditProfilePage from './EditProfilePage';
@@ -91,6 +93,10 @@ function App() {
           <RegisterPage />
         ) : currentView === 'login' ? (
           <LoginPage />
+        ) : currentView === 'reset-password' ? (
+          <ResetPasswordPage />
+        ) : currentView === 'update-password' ? (
+          <UpdatePasswordPage />
         ) : currentView === 'signup' ? (
           <SignupPage />
         ) : currentView === 'messages' ? (

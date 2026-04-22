@@ -70,8 +70,26 @@ function LoginPage() {
               </div>
             </div>
 
-            <button 
-              type="submit" 
+            <div style={{ textAlign: 'right', marginBottom: 16 }}>
+              <button 
+                type="button"
+                onClick={() => window.navigateTo('reset-password')}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#065f46',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  textDecoration: 'underline',
+                  fontFamily: '"Outfit", sans-serif'
+                }}
+              >
+                Forgot Password?
+              </button>
+            </div>
+
+            <button type="submit" 
               disabled={loading} 
               style={{
                 ...styles.submitBtn,
