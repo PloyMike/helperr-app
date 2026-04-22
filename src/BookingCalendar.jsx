@@ -525,7 +525,10 @@ function BookingCalendar({ profile, onClose }) {
                     }
                     setMessage(value);
                   }} 
-                  style={styles.textarea} 
+                  style={{
+                    ...styles.textarea,
+                    ...(isMobile ? { height: 50, minHeight: 50 } : {})
+                  }} 
                   placeholder="Any special requests or notes for the provider..." 
                   rows={4}
                 />
@@ -569,7 +572,7 @@ const styles = {
   progressLabel: { fontSize: 12, color: '#6b7280', fontWeight: 600 },
   progressLine: { flex: 1, height: 2, background: '#e5e7eb', margin: '0 6px' },
   body: { padding: '12px 10px' },
-  stepTitle: { fontSize: 16, fontWeight: 700, color: '#111827', marginBottom: 8 },
+  stepTitle: { fontSize: 16, fontWeight: 700, color: '#111827', marginBottom: 4 },
   calendarHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, padding: '8px 12px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', borderRadius: 10 },
   monthBtn: { background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '6px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontWeight: 700, fontFamily: '"Outfit", sans-serif' },
   monthTitle: { color: 'white', fontSize: 16, fontWeight: 700 },
