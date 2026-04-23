@@ -32,6 +32,9 @@ function UpdatePasswordPage() {
 
       setUpdated(true);
       
+      // Logout user after password update for security
+      await supabase.auth.signOut();
+      
       setTimeout(() => {
         window.navigateTo('login');
       }, 2000);
