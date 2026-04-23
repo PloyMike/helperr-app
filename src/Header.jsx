@@ -70,7 +70,7 @@ function Header({ transparent, isScrolled }) {
       const { count: unreadCount } = await supabase
         .from('messages')
         .select('*', { count: 'exact', head: true })
-        .eq('recipient_email', user.email)
+        .eq('receiver_email', user.email)
         .or('read.is.null,read.eq.false');
       
       setMessagesBadge(unreadCount || 0);
