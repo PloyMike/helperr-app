@@ -9,6 +9,7 @@ function Header({ transparent, isScrolled }) {
   const [hasProviderProfile, setHasProviderProfile] = useState(false);
   const [myBookingsBadge, setMyBookingsBadge] = useState(0);
   const [providerBookingsBadge, setProviderBookingsBadge] = useState(0);
+  const [messagesBadge, setMessagesBadge] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -64,6 +65,15 @@ function Header({ transparent, isScrolled }) {
         
         setProviderBookingsBadge(providerCount || 0);
       }
+
+      // Fetch unread messages count
+      const { count: unreadCount } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('recipient_email', user.email)
+        .or('read.is.null,read.eq.false');
+      
+      setMessagesBadge(unreadCount || 0);
     } catch (error) {
       console.error('Error:', error);
     }
@@ -132,9 +142,27 @@ function Header({ transparent, isScrolled }) {
                   </button>
                   <button onClick={() => window.navigateTo('messages')} style={{
                     ...styles.navBtn,
-                   ...(transparent ? styles.navBtnTransparent : {})
+                    ...(transparent ? styles.navBtnTransparent : {})
                   }}>
                     Messages
+                    {messagesBadge > 0 && (
+                      <span style={{
+                        marginLeft: 6,
+                        background: '#ef4444',
+                        color: 'white',
+                        borderRadius: '50%',
+                        minWidth: 18,
+                        height: 18,
+                        padding: '0 5px',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        {messagesBadge}
+                      </span>
+                    )}
                   </button>
                   <button onClick={() => window.navigateTo('bookings')} style={{
                     ...styles.navBtn,
@@ -271,6 +299,24 @@ function Header({ transparent, isScrolled }) {
               </button>
               <button onClick={() => { closeMobileMenu(); window.navigateTo('messages'); }} style={styles.mobileMenuItem}>
                 Messages
+                {messagesBadge > 0 && (
+                  <span style={{
+                    marginLeft: 'auto',
+                    background: '#ef4444',
+                    color: 'white',
+                    borderRadius: '50%',
+                    minWidth: 20,
+                    height: 20,
+                    padding: '0 6px',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}>
+                    {messagesBadge}
+                  </span>
+                )}
               </button>
               <button onClick={() => { closeMobileMenu(); window.navigateTo('bookings'); }} style={styles.mobileMenuItem}>
               My Bookings
