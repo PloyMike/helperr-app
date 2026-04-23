@@ -40,12 +40,41 @@ function RegisterPage() {
   const countries = ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore'];
   
   const citiesByCountry = {
+    // ASIA
     'Thailand': ['Bangkok', 'Phuket', 'Koh Samui', 'Chiang Mai', 'Pattaya', 'Hua Hin', 'Krabi', 'Koh Phangan'],
     'Vietnam': ['Ho Chi Minh City', 'Hanoi', 'Da Nang', 'Hoi An', 'Nha Trang'],
     'Indonesia': ['Bali', 'Jakarta', 'Yogyakarta', 'Lombok'],
     'Philippines': ['Manila', 'Cebu', 'Boracay', 'Palawan'],
     'Malaysia': ['Kuala Lumpur', 'Penang', 'Langkawi'],
-    'Singapore': ['Singapore']
+    'Singapore': ['Singapore'],
+    'Japan': ['Tokyo', 'Osaka', 'Kyoto', 'Fukuoka', 'Sapporo'],
+    'South Korea': ['Seoul', 'Busan', 'Jeju'],
+    
+    // EUROPE
+    'Germany': ['Berlin', 'Munich', 'Hamburg', 'Frankfurt', 'Cologne'],
+    'France': ['Paris', 'Lyon', 'Marseille', 'Nice', 'Bordeaux'],
+    'United Kingdom': ['London', 'Manchester', 'Edinburgh', 'Birmingham'],
+    'Spain': ['Barcelona', 'Madrid', 'Valencia', 'Seville', 'Ibiza'],
+    'Italy': ['Rome', 'Milan', 'Florence', 'Venice', 'Naples'],
+    'Switzerland': ['Zurich', 'Geneva', 'Bern', 'Lucerne'],
+    'Austria': ['Vienna', 'Salzburg', 'Innsbruck'],
+    'Netherlands': ['Amsterdam', 'Rotterdam', 'The Hague'],
+    'Portugal': ['Lisbon', 'Porto', 'Faro'],
+    'Greece': ['Athens', 'Thessaloniki', 'Mykonos', 'Santorini'],
+    
+    // AMERICAS
+    'USA': ['New York', 'Los Angeles', 'Miami', 'San Francisco', 'Las Vegas', 'Chicago', 'Boston'],
+    'Canada': ['Toronto', 'Vancouver', 'Montreal', 'Calgary'],
+    'Mexico': ['Mexico City', 'Cancun', 'Playa del Carmen', 'Guadalajara'],
+    'Brazil': ['Rio de Janeiro', 'Sao Paulo', 'Brasilia'],
+    
+    // OCEANIA
+    'Australia': ['Sydney', 'Melbourne', 'Brisbane', 'Perth'],
+    'New Zealand': ['Auckland', 'Wellington', 'Queenstown'],
+    
+    // AFRICA & MIDDLE EAST
+    'UAE': ['Dubai', 'Abu Dhabi'],
+    'South Africa': ['Cape Town', 'Johannesburg', 'Durban']
   };
 
   const handleSubmit = async (e) => {
