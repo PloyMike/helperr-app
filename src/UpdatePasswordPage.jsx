@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from './supabase';
-import Header from './Header';
-
 function UpdatePasswordPage() {
+  
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -48,7 +47,7 @@ function UpdatePasswordPage() {
   return (
     <>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      <Header />
+      
       
       <div style={styles.page}>
         <div style={styles.container}>
