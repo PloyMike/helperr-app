@@ -37,8 +37,6 @@ function RegisterPage() {
   };
 
   const categories = Object.keys(subcategories);
-  const countries = ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore'];
-  
   const citiesByCountry = {
     // ASIA
     'Thailand': ['Bangkok', 'Phuket', 'Koh Samui', 'Chiang Mai', 'Pattaya', 'Hua Hin', 'Krabi', 'Koh Phangan'],
@@ -59,6 +57,7 @@ function RegisterPage() {
     'Switzerland': ['Zurich', 'Geneva', 'Bern', 'Lucerne'],
     'Austria': ['Vienna', 'Salzburg', 'Innsbruck'],
     'Netherlands': ['Amsterdam', 'Rotterdam', 'The Hague'],
+    'Luxembourg': ['Luxembourg City'],
     'Portugal': ['Lisbon', 'Porto', 'Faro'],
     'Greece': ['Athens', 'Thessaloniki', 'Mykonos', 'Santorini'],
     
@@ -76,6 +75,7 @@ function RegisterPage() {
     'UAE': ['Dubai', 'Abu Dhabi'],
     'South Africa': ['Cape Town', 'Johannesburg', 'Durban']
   };
+  const countries = Object.keys(citiesByCountry);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -203,6 +203,10 @@ function RegisterPage() {
                 <input type="tel" required value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} style={styles.input} />
               </div>
               <div>
+                <label style={styles.label}>Languages *</label>
+                <input type="text" required value={formData.languages} onChange={(e) => setFormData({ ...formData, languages: e.target.value })} style={styles.input} placeholder="English, German, Thai" />
+              </div>
+              <div>
                 <label style={styles.label}>Country *</label>
                 <select required value={formData.country} onChange={(e) => setFormData({ ...formData, country: e.target.value, city: '' })} style={styles.input}>
                   {countries.map(c => <option key={c} value={c}>{c}</option>)}
@@ -214,10 +218,6 @@ function RegisterPage() {
                   <option value="">-- Select City --</option>
                   {citiesByCountry[formData.country]?.map(city => <option key={city} value={city}>{city}</option>)}
                 </select>
-              </div>
-              <div>
-                <label style={styles.label}>Languages *</label>
-                <input type="text" required value={formData.languages} onChange={(e) => setFormData({ ...formData, languages: e.target.value })} style={styles.input} placeholder="English, German, Thai" />
               </div>
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={styles.label}>About You *</label>

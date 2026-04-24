@@ -44,8 +44,6 @@ function EditProfilePage() {
   };
 
   const categories = Object.keys(subcategories);
-  const countries = ['Thailand', 'Vietnam', 'Indonesia', 'Philippines', 'Malaysia', 'Singapore'];
-  
   const citiesByCountry = {
     // ASIA
     'Thailand': ['Bangkok', 'Phuket', 'Koh Samui', 'Chiang Mai', 'Pattaya', 'Hua Hin', 'Krabi', 'Koh Phangan'],
@@ -66,6 +64,7 @@ function EditProfilePage() {
     'Switzerland': ['Zurich', 'Geneva', 'Bern', 'Lucerne'],
     'Austria': ['Vienna', 'Salzburg', 'Innsbruck'],
     'Netherlands': ['Amsterdam', 'Rotterdam', 'The Hague'],
+    'Luxembourg': ['Luxembourg City'],
     'Portugal': ['Lisbon', 'Porto', 'Faro'],
     'Greece': ['Athens', 'Thessaloniki', 'Mykonos', 'Santorini'],
     
@@ -83,6 +82,7 @@ function EditProfilePage() {
     'UAE': ['Dubai', 'Abu Dhabi'],
     'South Africa': ['Cape Town', 'Johannesburg', 'Durban']
   };
+  const countries = Object.keys(citiesByCountry);
 
   const fetchProfile = useCallback(async () => {
     if (!user) {
