@@ -190,6 +190,35 @@ function EditProfilePage() {
   };
   const countries = Object.keys(citiesByCountry);
 
+        // Auto-select currency based on country (only using available currencies in dropdown)
+  const currencyByCountry = {
+    'Thailand': 'THB', 'Vietnam': 'VND', 'Indonesia': 'IDR', 'Philippines': 'PHP', 'Malaysia': 'MYR', 'Singapore': 'SGD',
+    'Cambodia': 'USD', 'Laos': 'USD', 'Myanmar': 'USD', 'Brunei': 'SGD',
+    'Japan': 'JPY', 'South Korea': 'KRW', 'China': 'CNY', 'Taiwan': 'TWD', 'Hong Kong': 'HKD', 'North Korea': 'KRW',
+    'India': 'INR', 'Pakistan': 'INR', 'Bangladesh': 'INR', 'Sri Lanka': 'INR', 'Nepal': 'INR', 'Bhutan': 'INR', 'Afghanistan': 'USD',
+    'Germany': 'EUR', 'France': 'EUR', 'Italy': 'EUR', 'Spain': 'EUR', 'Netherlands': 'EUR', 'Belgium': 'EUR', 'Austria': 'EUR',
+    'Portugal': 'EUR', 'Greece': 'EUR', 'Ireland': 'EUR', 'Finland': 'EUR', 'Luxembourg': 'EUR', 'Slovenia': 'EUR', 'Slovakia': 'EUR',
+    'Estonia': 'EUR', 'Latvia': 'EUR', 'Lithuania': 'EUR', 'Malta': 'EUR', 'Cyprus': 'EUR', 'Andorra': 'EUR', 'Montenegro': 'EUR', 'Kosovo': 'EUR',
+    'United Kingdom': 'GBP', 'Switzerland': 'CHF', 'Norway': 'NOK', 'Sweden': 'SEK', 'Denmark': 'DKK', 'Iceland': 'DKK',
+    'Poland': 'PLN', 'Czech Republic': 'CZK', 'Hungary': 'HUF', 'Romania': 'EUR', 'Bulgaria': 'EUR', 'Croatia': 'EUR',
+    'Serbia': 'EUR', 'Bosnia and Herzegovina': 'EUR', 'Albania': 'EUR', 'Macedonia': 'EUR', 'Moldova': 'EUR',
+    'Russia': 'RUB', 'Ukraine': 'RUB', 'Georgia': 'RUB', 'Armenia': 'RUB', 'Azerbaijan': 'RUB',
+    'Kazakhstan': 'RUB', 'Uzbekistan': 'RUB', 'Turkmenistan': 'RUB', 'Kyrgyzstan': 'RUB', 'Tajikistan': 'RUB', 'Mongolia': 'CNY',
+    'USA': 'USD', 'Canada': 'CAD', 'Mexico': 'MXN',
+    'Brazil': 'BRL', 'Argentina': 'ARS', 'Chile': 'USD', 'Colombia': 'USD', 'Peru': 'USD', 'Venezuela': 'USD',
+    'Ecuador': 'USD', 'Bolivia': 'USD', 'Paraguay': 'USD', 'Uruguay': 'USD',
+    'Costa Rica': 'USD', 'Panama': 'USD', 'Guatemala': 'USD', 'Honduras': 'USD', 'Nicaragua': 'USD', 'El Salvador': 'USD', 'Belize': 'USD',
+    'Jamaica': 'USD', 'Trinidad and Tobago': 'USD', 'Bahamas': 'USD', 'Barbados': 'USD', 'Aruba': 'USD', 'Curacao': 'USD', 'St. Lucia': 'USD', 'Haiti': 'USD', 'Dominican Republic': 'USD',
+    'Australia': 'AUD', 'New Zealand': 'NZD', 'Fiji': 'AUD', 'Papua New Guinea': 'AUD', 'Samoa': 'AUD', 'Vanuatu': 'AUD', 'Timor-Leste': 'USD',
+    'UAE': 'AED', 'Saudi Arabia': 'SAR', 'Qatar': 'SAR', 'Kuwait': 'SAR', 'Bahrain': 'SAR', 'Oman': 'SAR',
+    'Turkey': 'TRY', 'Iran': 'TRY', 'Iraq': 'TRY', 'Jordan': 'SAR', 'Lebanon': 'SAR', 'Syria': 'SAR', 'Yemen': 'SAR',
+    'Egypt': 'EGP', 'Morocco': 'EGP', 'Tunisia': 'EGP', 'Algeria': 'EGP',
+    'South Africa': 'ZAR', 'Namibia': 'ZAR', 'Botswana': 'ZAR', 'Zambia': 'ZAR',
+    'Nigeria': 'USD', 'Kenya': 'USD', 'Tanzania': 'USD', 'Uganda': 'USD', 'Rwanda': 'USD', 'Ethiopia': 'USD',
+    'Ghana': 'USD', 'Senegal': 'USD', 'Madagascar': 'USD', 'Mauritius': 'USD',
+    'Maldives': 'INR', 'Liechtenstein': 'CHF'
+  };
+
   const fetchProfile = useCallback(async () => {
     if (!user) {
       setLoading(false);
@@ -434,7 +463,15 @@ function EditProfilePage() {
               </div>
               <div>
                 <label style={styles.label}>Country *</label>
-                <select required value={formData.country} onChange={(e) => setFormData({...formData, country: e.target.value, city: ''})} style={styles.input}>
+                <select required value={formData.country} onChange={(e) => {
+                    const newCountry = e.target.value;
+                    setFormData({ 
+                      ...formData, 
+                      country: newCountry, 
+                      city: '',
+                      currency: currencyByCountry[newCountry] || formData.currency
+                    });
+                  }} style={styles.input}>
                   {countries.map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
