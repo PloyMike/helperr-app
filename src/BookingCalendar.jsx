@@ -13,6 +13,8 @@ function BookingCalendar({ profile, onClose }) {
   const [endHour, setEndHour] = useState(11);
   const [endMinute, setEndMinute] = useState(0);
   const [customerName, setCustomerName] = useState('');
+  const [locationMethod, setLocationMethod] = useState('manual');
+  const [gpsLocation, setGpsLocation] = useState(null);
   const [address, setAddress] = useState({
     street: '',
     houseNumber: '',
@@ -126,8 +128,14 @@ function BookingCalendar({ profile, onClose }) {
         customer_phone: '',
         booking_date: selectedDate,
         time_slot: selectedTimeSlot,
-        service_address: `${address.street} ${address.houseNumber}, ${address.postalCode} ${address.city}`,
+        service_address: locationMethod === 'gps' 
+          ? `GPS Location: ${gpsLocation.latitude.toFixed(6)}, ${gpsLocation.longitude.toFixed(6)}`
+          : `${address.street} ${address.houseNumber}, ${address.postalCode} ${address.city}`,
         address_notes: address.notes,
+        location_type: locationMethod,
+        gps_latitude: locationMethod === 'gps' ? gpsLocation.latitude : null,
+        gps_longitude: locationMethod === 'gps' ? gpsLocation.longitude : null,
+        gps_accuracy: locationMethod === 'gps' ? gpsLocation.accuracy : null,
         message: message,
         total_price: profile.price,
         status: 'pending'
@@ -344,93 +352,233 @@ function BookingCalendar({ profile, onClose }) {
             <div>
               <h3 style={styles.stepTitle}>Service Location</h3>
               
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Street *</label>
-                <input 
-                  type="text"
-                  value={address.street} 
-                  onChange={(e) => setAddress({...address, street: e.target.value})} 
-                  style={styles.input}
-                  placeholder="e.g. Main Street"
-                  required
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 12, marginBottom: 16 }}>
-                <div>
-                  <label style={styles.label}>City *</label>
-                  <input 
-                    type="text"
-                    value={address.city} 
-                    onChange={(e) => setAddress({...address, city: e.target.value})} 
-                    style={styles.input}
-                    placeholder="e.g. Berlin"
-                    required
-                  />
-                </div>
-                <div>
-                  <label style={styles.label}>Postal Code *</label>
-                  <input 
-                    type="text"
-                    value={address.postalCode} 
-                    onChange={(e) => setAddress({...address, postalCode: e.target.value})} 
-                    style={styles.input}
-                    placeholder="e.g. 10115"
-                    required
-                  />
+              {/* Location Method Selection */}
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ display: 'flex', gap: 24, marginBottom: 20, flexWrap: 'wrap' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: 15 }}>
+                    <input 
+                      type="radio" 
+                      name="locationMethod"
+                      checked={locationMethod === 'manual'}
+                      onChange={() => setLocationMethod('manual')}
+                      style={{ marginRight: 8, cursor: 'pointer' }}
+                    />
+                    Enter address manually
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: 15 }}>
+                    <input 
+                      type="radio" 
+                      name="locationMethod"
+                      checked={locationMethod === 'gps'}
+                      onChange={() => setLocationMethod('gps')}
+                      style={{ marginRight: 8, cursor: 'pointer' }}
+                    />
+                    Share my location (GPS)
+                  </label>
                 </div>
               </div>
 
-              <div style={styles.formGroup}>
-                <label style={styles.label}>House Number *</label>
-                <input 
-                  type="text"
-                  value={address.houseNumber} 
-                  onChange={(e) => setAddress({...address, houseNumber: e.target.value})} 
-                  style={styles.input}
-                  placeholder="e.g. 42A"
-                  required
-                />
-              </div>
+              {/* GPS Location Section */}
+              {locationMethod === 'gps' && (
+                <div style={{ marginBottom: 24 }}>
+                  {!gpsLocation ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (navigator.geolocation) {
+                          navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                              setGpsLocation({
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude,
+                                accuracy: position.coords.accuracy
+                              });
+                            },
+                            (error) => {
+                              alert('Unable to get your location. Please enable location services or use manual address entry.');
+                              console.error('GPS Error:', error);
+                            }
+                          );
+                        } else {
+                          alert('Geolocation is not supported by your browser.');
+                        }
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '16px',
+                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: 12,
+                        fontSize: 16,
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 8
+                      }}
+                    >
+                      Share My Current Location
+                    </button>
+                  ) : (
+                    <div style={{ 
+                      padding: 20, 
+                      background: '#f0fdf4', 
+                      borderRadius: 12,
+                      border: '2px solid #86efac'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, color: '#166534', fontWeight: 600, fontSize: 16 }}>
+                        Location Captured
+                      </div>
+                      <div style={{ fontSize: 14, color: '#15803d', marginBottom: 6 }}>
+                        Latitude: {gpsLocation.latitude.toFixed(6)}
+                      </div>
+                      <div style={{ fontSize: 14, color: '#15803d', marginBottom: 6 }}>
+                        Longitude: {gpsLocation.longitude.toFixed(6)}
+                      </div>
+                      <div style={{ fontSize: 13, color: '#16a34a', marginTop: 8, padding: 8, background: 'white', borderRadius: 6 }}>
+                        Accuracy: ±{Math.round(gpsLocation.accuracy)} meters
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setGpsLocation(null)}
+                        style={{
+                          marginTop: 16,
+                          padding: '10px 20px',
+                          background: 'white',
+                          border: '2px solid #86efac',
+                          borderRadius: 8,
+                          color: '#166534',
+                          cursor: 'pointer',
+                          fontSize: 14,
+                          fontWeight: 500
+                        }}
+                      >
+                        Update Location
+                      </button>
+                      
+                      <div style={{ marginTop: 20, paddingTop: 20, borderTop: '2px solid #86efac' }}>
+                        <label style={{ ...styles.label, fontSize: 14, marginBottom: 8 }}>
+                          Additional notes (optional)
+                        </label>
+                        <textarea
+                          placeholder="e.g., Near the big mango tree, blue house with red roof..."
+                          value={address.notes}
+                          onChange={(e) => setAddress({...address, notes: e.target.value})}
+                          style={{
+                            ...styles.input,
+                            minHeight: 80,
+                            resize: 'vertical',
+                            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Additional Notes (Optional)</label>
-                <textarea 
-                  value={address.notes} 
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    const digitCount = (value.match(/\d/g) || []).length;
+              {/* Manual Address Section */}
+              {locationMethod === 'manual' && (
+                <>
+                  <div style={styles.formGroup}>
+                    <label style={styles.label}>Street *</label>
+                    <input 
+                      type="text"
+                      value={address.street} 
+                      onChange={(e) => setAddress({...address, street: e.target.value})} 
+                      style={styles.input}
+                      placeholder="e.g. Main Street"
+                      required
+                    />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: 16 }}>
+                    <div style={styles.formGroup}>
+                      <label style={styles.label}>City *</label>
+                      <input 
+                        type="text"
+                        value={address.city} 
+                        onChange={(e) => setAddress({...address, city: e.target.value})} 
+                        style={styles.input}
+                        placeholder="e.g. Bangkok"
+                        required
+                      />
+                    </div>
                     
-                    if (value.includes('@') || 
-                        value.includes('http') || 
-                        value.includes('www.') ||
-                        value.includes('+49') ||
-                        value.includes('+43') ||
-                        value.includes('+41') ||
-                        digitCount >= 7) {
-                      alert('⚠️ No emails, phone numbers or links allowed. All communication happens through Helperr Messages.');
-                      return;
-                    }
-                    setAddress({...address, notes: value});
-                  }} 
-                  style={{...styles.input, minHeight: 80, resize: 'vertical'}}
-                  placeholder="Floor, apartment number, entrance, etc."
-                />
-              </div>
+                    <div style={styles.formGroup}>
+                      <label style={styles.label}>Postal Code *</label>
+                      <input 
+                        type="text"
+                        value={address.postalCode} 
+                        onChange={(e) => setAddress({...address, postalCode: e.target.value})} 
+                        style={styles.input}
+                        placeholder="e.g. 10110"
+                        required
+                      />
+                    </div>
+                  </div>
 
-              <div style={styles.footer}>
-                <button onClick={() => setStep(2)} style={styles.btnSecondary}>
+                  <div style={styles.formGroup}>
+                    <label style={styles.label}>House/Building Number *</label>
+                    <input 
+                      type="text"
+                      value={address.houseNumber} 
+                      onChange={(e) => setAddress({...address, houseNumber: e.target.value})} 
+                      style={styles.input}
+                      placeholder="e.g. 123"
+                      required
+                    />
+                  </div>
+
+                  <div style={{ marginTop: 24 }}>
+                    <label style={styles.label}>Additional notes (optional)</label>
+                    <textarea
+                      placeholder="Any additional details..."
+                      value={address.notes}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value.length <= 500) {
+                          setAddress({...address, notes: value});
+                        }
+                      }}
+                      style={{
+                        ...styles.input,
+                        minHeight: 100,
+                        resize: 'vertical',
+                        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+                      }}
+                    />
+                    <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4, textAlign: 'right' }}>
+                      {address.notes.length}/500
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 32 }}>
+                <button 
+                  type="button"
+                  onClick={() => setStep(2)} 
+                  style={styles.btnBack}
+                >
                   ← Back
                 </button>
                 <button 
+                  type="button"
                   onClick={() => {
-                    if (!address.street || !address.city || !address.postalCode || !address.houseNumber) {
+                    if (locationMethod === 'manual' && (!address.street || !address.city || !address.postalCode || !address.houseNumber)) {
                       alert('Please fill in all required address fields');
+                      return;
+                    }
+                    if (locationMethod === 'gps' && !gpsLocation) {
+                      alert('Please share your location or switch to manual address entry');
                       return;
                     }
                     setStep(4);
                   }} 
-                  style={styles.btnPrimary}
+                  style={styles.btnNext}
                 >
                   Continue →
                 </button>
@@ -458,13 +606,39 @@ function BookingCalendar({ profile, onClose }) {
                 <div style={{...styles.summaryRow, alignItems: 'flex-start'}}>
                   <span style={styles.summaryLabel}>Address:</span>
                   <span style={styles.summaryValue}>
-                    {isMobile ? (
+                    {locationMethod === 'gps' ? (
                       <>
-                        <div>{address.street} {address.houseNumber}</div>
-                        <div style={{ marginTop: 4, textAlign: 'right' }}>{address.postalCode} {address.city}</div>
+                        <div style={{ color: '#10b981', fontWeight: 500, marginBottom: 6 }}>
+                          GPS Location Shared
+                        </div>
+                        <div style={{ fontSize: 13, color: '#6b7280' }}>
+                          Lat: {gpsLocation?.latitude.toFixed(6)}
+                        </div>
+                        <div style={{ fontSize: 13, color: '#6b7280' }}>
+                          Lng: {gpsLocation?.longitude.toFixed(6)}
+                        </div>
+                        {address.notes && (
+                          <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6, fontStyle: 'italic' }}>
+                            Note: {address.notes}
+                          </div>
+                        )}
                       </>
                     ) : (
-                      <>{address.street} {address.houseNumber}, {address.postalCode} {address.city}</>
+                      <>
+                        {isMobile ? (
+                          <>
+                            <div>{address.street} {address.houseNumber}</div>
+                            <div style={{ marginTop: 4, textAlign: 'right' }}>{address.postalCode} {address.city}</div>
+                          </>
+                        ) : (
+                          <>{address.street} {address.houseNumber}, {address.postalCode} {address.city}</>
+                        )}
+                        {address.notes && (
+                          <div style={{ fontSize: 12, color: '#6b7280', marginTop: 6, fontStyle: 'italic' }}>
+                            Note: {address.notes}
+                          </div>
+                        )}
+                      </>
                     )}
                   </span>
                 </div>
