@@ -11,47 +11,14 @@ function Header({ transparent, isScrolled }) {
   const [providerBookingsBadge, setProviderBookingsBadge] = useState(0);
   const [messagesBadge, setMessagesBadge] = useState(0);
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+  const [showMobileLanguageDropdown, setShowMobileLanguageDropdown] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState(() => {
-    return localStorage.getItem('selectedLanguage') || 'en';
+    // Always default to English
+    const saved = localStorage.getItem('selectedLanguage');
+    // Only use saved language if user explicitly selected it
+    return saved || 'en';
   });
-  const [currentFlag, setCurrentFlag] = useState(() => {
-    const savedLang = localStorage.getItem('selectedLanguage') || 'en';
-    const languages = [
-      { code: 'en', flag: '🇬🇧' },
-      { code: 'es', flag: '🇪🇸' },
-      { code: 'fr', flag: '🇫🇷' },
-      { code: 'de', flag: '🇩🇪' },
-      { code: 'it', flag: '🇮🇹' },
-      { code: 'pt', flag: '🇵🇹' },
-      { code: 'nl', flag: '🇳🇱' },
-      { code: 'ru', flag: '🇷🇺' },
-      { code: 'zh', flag: '🇨🇳' },
-      { code: 'ja', flag: '🇯🇵' },
-      { code: 'ko', flag: '🇰🇷' },
-      { code: 'ar', flag: '🇸🇦' },
-      { code: 'hi', flag: '🇮🇳' },
-      { code: 'th', flag: '🇹🇭' },
-      { code: 'vi', flag: '🇻🇳' },
-      { code: 'id', flag: '🇮🇩' },
-      { code: 'ms', flag: '🇲🇾' },
-      { code: 'tl', flag: '🇵🇭' },
-      { code: 'tr', flag: '🇹🇷' },
-      { code: 'pl', flag: '🇵🇱' },
-      { code: 'uk', flag: '🇺🇦' },
-      { code: 'cs', flag: '🇨🇿' },
-      { code: 'hu', flag: '🇭🇺' },
-      { code: 'ro', flag: '🇷🇴' },
-      { code: 'el', flag: '🇬🇷' },
-      { code: 'sv', flag: '🇸🇪' },
-      { code: 'no', flag: '🇳🇴' },
-      { code: 'da', flag: '🇩🇰' },
-      { code: 'fi', flag: '🇫🇮' },
-      { code: 'he', flag: '🇮🇱' },
-      { code: 'fa', flag: '🇮🇷' }
-    ];
-    const lang = languages.find(l => l.code === savedLang);
-    return lang ? lang.flag : '🇬🇧';
-  });
+  
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -206,10 +173,21 @@ function Header({ transparent, isScrolled }) {
     { code: 'fa', name: 'فارسی', flag: '🇮🇷' }
   ];
 
-    const translatePage = (langCode) => {
-    // Save to localStorage
-    localStorage.setItem('selectedLanguage', langCode);
     
+  const getFlag = (langCode) => {
+    const flagMap = {
+      'en': '🇬🇧', 'es': '🇪🇸', 'fr': '🇫🇷', 'de': '🇩🇪', 'it': '🇮🇹',
+      'pt': '🇵🇹', 'nl': '🇳🇱', 'ru': '🇷🇺', 'zh': '🇨🇳', 'ja': '🇯🇵',
+      'ko': '🇰🇷', 'ar': '🇸🇦', 'hi': '🇮🇳', 'th': '🇹🇭', 'vi': '🇻🇳',
+      'id': '🇮🇩', 'ms': '🇲🇾', 'tl': '🇵🇭', 'tr': '🇹🇷', 'pl': '🇵🇱',
+      'uk': '🇺🇦', 'cs': '🇨🇿', 'hu': '🇭🇺', 'ro': '🇷🇴', 'el': '🇬🇷',
+      'sv': '🇸🇪', 'no': '🇳🇴', 'da': '🇩🇰', 'fi': '🇫🇮', 'he': '🇮🇱', 'fa': '🇮🇷'
+    };
+    return flagMap[langCode] || '🇬🇧';
+  };
+
+  const translatePage = (langCode) => {
+    // localStorage already saved in onClick
     // Load Google Translate script if not already loaded
     if (!window.googleTranslateElementInit) {
       const script = document.createElement('script');
@@ -224,22 +202,29 @@ function Header({ transparent, isScrolled }) {
       };
     }
     
-    // Trigger translation
-    setTimeout(() => {
+    // Trigger translation with retry logic
+    const attemptTranslation = (attempts = 0) => {
       const selectElement = document.querySelector('.goog-te-combo');
       if (selectElement) {
         selectElement.value = langCode;
         selectElement.dispatchEvent(new Event('change'));
-      }
-    }, 500);
+        
+        // Restore Helperr text
+        setTimeout(() => {
+          const helperrElement = document.querySelector('h1[className*="notranslate"]');
+          if (helperrElement && helperrElement.textContent !== 'Helperr') {
+            helperrElement.textContent = 'Helperr';
+          }
+          }, 1500);
+      } else if (attempts < 5) {
+        // Retry if not loaded yet
+        setTimeout(() => attemptTranslation(attempts + 1), 500);
+      } else {
+        console.error('Google Translate failed to load');
+        }
+    };
     
-    // Force restore "Helperr" text after translation
-    setTimeout(() => {
-      const helperrElement = document.querySelector('h1[className*="notranslate"]');
-      if (helperrElement && helperrElement.textContent !== 'Helperr') {
-        helperrElement.textContent = 'Helperr';
-      }
-    }, 1500);
+    setTimeout(() => attemptTranslation(), 1000);
   };
 
   const handleLogout = async () => {
@@ -385,7 +370,7 @@ function Header({ transparent, isScrolled }) {
                         gap: 6
                       }}
                     >
-                      {currentFlag} {currentLanguage.toUpperCase()}
+                      {getFlag(currentLanguage)} {currentLanguage.toUpperCase()}
                     </button>
 
                     {showLanguageDropdown && (
@@ -409,10 +394,13 @@ function Header({ transparent, isScrolled }) {
                           <button
                             key={lang.code}
                             onClick={() => {
+                              // CRITICAL: Save to localStorage FIRST before translation
+                              localStorage.setItem('selectedLanguage', lang.code);
                               setCurrentLanguage(lang.code);
-                              setCurrentFlag(lang.flag);
                               setShowLanguageDropdown(false);
-                              translatePage(lang.code);
+                              
+                              // Give time for localStorage to save, then translate
+                              setTimeout(() => translatePage(lang.code), 200);
                             }}
                             style={{
                               width: '100%',
@@ -602,6 +590,59 @@ function Header({ transparent, isScrolled }) {
               <button onClick={() => { closeMobileMenu(); window.navigateTo('dashboard'); }} style={styles.mobileMenuItem}>
                 Dashboard
               </button>
+              <div style={styles.menuDivider}></div>
+              <button 
+                onClick={() => setShowMobileLanguageDropdown(!showMobileLanguageDropdown)} 
+                style={{
+                  ...styles.mobileMenuItem,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8
+                }}
+              >
+                {getFlag(currentLanguage)} {currentLanguage.toUpperCase()}
+              </button>
+
+              {showMobileLanguageDropdown && (
+                <div style={{
+                  maxHeight: 300,
+                  overflowY: 'auto',
+                  background: '#f9fafb',
+                  borderRadius: 8,
+                  margin: '8px 0'
+                }}>
+                  {languages.map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => {
+                        localStorage.setItem('selectedLanguage', lang.code);
+                        setCurrentLanguage(lang.code);
+                        setShowMobileLanguageDropdown(false);
+                        setShowMobileMenu(false);
+                        setTimeout(() => translatePage(lang.code), 200);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 16px',
+                        border: 'none',
+                        background: currentLanguage === lang.code ? '#e0f2fe' : 'transparent',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        fontSize: 14,
+                        color: currentLanguage === lang.code ? '#0369a1' : '#374151',
+                        fontWeight: currentLanguage === lang.code ? 600 : 400
+                      }}
+                    >
+                      <span>{lang.flag}</span>
+                      <span>{lang.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
               <div style={styles.menuDivider}></div>
               <button onClick={handleLogout} style={styles.mobileMenuLogout}>
                     Logout
