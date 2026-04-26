@@ -10,6 +10,48 @@ function Header({ transparent, isScrolled }) {
   const [myBookingsBadge, setMyBookingsBadge] = useState(0);
   const [providerBookingsBadge, setProviderBookingsBadge] = useState(0);
   const [messagesBadge, setMessagesBadge] = useState(0);
+  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState(() => {
+    return localStorage.getItem('selectedLanguage') || 'en';
+  });
+  const [currentFlag, setCurrentFlag] = useState(() => {
+    const savedLang = localStorage.getItem('selectedLanguage') || 'en';
+    const languages = [
+      { code: 'en', flag: '🇬🇧' },
+      { code: 'es', flag: '🇪🇸' },
+      { code: 'fr', flag: '🇫🇷' },
+      { code: 'de', flag: '🇩🇪' },
+      { code: 'it', flag: '🇮🇹' },
+      { code: 'pt', flag: '🇵🇹' },
+      { code: 'nl', flag: '🇳🇱' },
+      { code: 'ru', flag: '🇷🇺' },
+      { code: 'zh', flag: '🇨🇳' },
+      { code: 'ja', flag: '🇯🇵' },
+      { code: 'ko', flag: '🇰🇷' },
+      { code: 'ar', flag: '🇸🇦' },
+      { code: 'hi', flag: '🇮🇳' },
+      { code: 'th', flag: '🇹🇭' },
+      { code: 'vi', flag: '🇻🇳' },
+      { code: 'id', flag: '🇮🇩' },
+      { code: 'ms', flag: '🇲🇾' },
+      { code: 'tl', flag: '🇵🇭' },
+      { code: 'tr', flag: '🇹🇷' },
+      { code: 'pl', flag: '🇵🇱' },
+      { code: 'uk', flag: '🇺🇦' },
+      { code: 'cs', flag: '🇨🇿' },
+      { code: 'hu', flag: '🇭🇺' },
+      { code: 'ro', flag: '🇷🇴' },
+      { code: 'el', flag: '🇬🇷' },
+      { code: 'sv', flag: '🇸🇪' },
+      { code: 'no', flag: '🇳🇴' },
+      { code: 'da', flag: '🇩🇰' },
+      { code: 'fi', flag: '🇫🇮' },
+      { code: 'he', flag: '🇮🇱' },
+      { code: 'fa', flag: '🇮🇷' }
+    ];
+    const lang = languages.find(l => l.code === savedLang);
+    return lang ? lang.flag : '🇬🇧';
+  });
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -86,6 +128,120 @@ function Header({ transparent, isScrolled }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, profile, hasProviderProfile]);
 
+  // Protect Helperr logo from translation
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const logo = document.querySelector('h1[className*="notranslate"]');
+      if (logo && logo.textContent !== 'Helperr') {
+        logo.textContent = 'Helperr';
+      }
+    });
+
+    const logo = document.querySelector('h1[className*="notranslate"]');
+    if (logo) {
+      observer.observe(logo, { 
+        childList: true, 
+        characterData: true, 
+        subtree: true 
+      });
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+
+  // Protect Helperr logo from translation
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const logo = document.querySelector('h1[className*="notranslate"]');
+      if (logo && logo.textContent !== 'Helperr') {
+        logo.textContent = 'Helperr';
+      }
+    });
+
+    const logo = document.querySelector('h1[className*="notranslate"]');
+    if (logo) {
+      observer.observe(logo, { 
+        childList: true, 
+        characterData: true, 
+        subtree: true 
+      });
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+
+  const languages = [
+    { code: 'en', name: 'English', flag: '🇬🇧' },
+    { code: 'es', name: 'Español', flag: '🇪🇸' },
+    { code: 'fr', name: 'Français', flag: '🇫🇷' },
+    { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+    { code: 'it', name: 'Italiano', flag: '🇮🇹' },
+    { code: 'pt', name: 'Português', flag: '🇵🇹' },
+    { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
+    { code: 'ru', name: 'Русский', flag: '🇷🇺' },
+    { code: 'zh', name: '中文', flag: '🇨🇳' },
+    { code: 'ja', name: '日本語', flag: '🇯🇵' },
+    { code: 'ko', name: '한국어', flag: '🇰🇷' },
+    { code: 'ar', name: 'العربية', flag: '🇸🇦' },
+    { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' },
+    { code: 'th', name: 'ไทย', flag: '🇹🇭' },
+    { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳' },
+    { code: 'id', name: 'Bahasa Indonesia', flag: '🇮🇩' },
+    { code: 'ms', name: 'Bahasa Melayu', flag: '🇲🇾' },
+    { code: 'tl', name: 'Filipino', flag: '🇵🇭' },
+    { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
+    { code: 'pl', name: 'Polski', flag: '🇵🇱' },
+    { code: 'uk', name: 'Українська', flag: '🇺🇦' },
+    { code: 'cs', name: 'Čeština', flag: '🇨🇿' },
+    { code: 'hu', name: 'Magyar', flag: '🇭🇺' },
+    { code: 'ro', name: 'Română', flag: '🇷🇴' },
+    { code: 'el', name: 'Ελληνικά', flag: '🇬🇷' },
+    { code: 'sv', name: 'Svenska', flag: '🇸🇪' },
+    { code: 'no', name: 'Norsk', flag: '🇳🇴' },
+    { code: 'da', name: 'Dansk', flag: '🇩🇰' },
+    { code: 'fi', name: 'Suomi', flag: '🇫🇮' },
+    { code: 'he', name: 'עברית', flag: '🇮🇱' },
+    { code: 'fa', name: 'فارسی', flag: '🇮🇷' }
+  ];
+
+    const translatePage = (langCode) => {
+    // Save to localStorage
+    localStorage.setItem('selectedLanguage', langCode);
+    
+    // Load Google Translate script if not already loaded
+    if (!window.googleTranslateElementInit) {
+      const script = document.createElement('script');
+      script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+      document.body.appendChild(script);
+      
+      window.googleTranslateElementInit = () => {
+        new window.google.translate.TranslateElement(
+          { pageLanguage: 'en', autoDisplay: false },
+          'google_translate_element'
+        );
+      };
+    }
+    
+    // Trigger translation
+    setTimeout(() => {
+      const selectElement = document.querySelector('.goog-te-combo');
+      if (selectElement) {
+        selectElement.value = langCode;
+        selectElement.dispatchEvent(new Event('change'));
+      }
+    }, 500);
+    
+    // Force restore "Helperr" text after translation
+    setTimeout(() => {
+      const helperrElement = document.querySelector('h1[className*="notranslate"]');
+      if (helperrElement && helperrElement.textContent !== 'Helperr') {
+        helperrElement.textContent = 'Helperr';
+      }
+    }, 1500);
+  };
+
   const handleLogout = async () => {
     setShowMobileMenu(false);
     setUser(null);
@@ -122,6 +278,8 @@ function Header({ transparent, isScrolled }) {
 
           <h1 
             onClick={() => window.navigateTo('home')} 
+            className="notranslate"
+            translate="no"
             style={{
               ...styles.logo,
              ...(transparent ? styles.logoTransparent : {})
@@ -215,6 +373,72 @@ function Header({ transparent, isScrolled }) {
                     </button>
                   )}
                   
+                  {/* Language Selector */}
+                  <div style={{ position: 'relative' }}>
+                    <button 
+                      onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
+                      style={{
+                        ...styles.navBtn,
+                        ...(transparent ? styles.navBtnTransparent : {}),
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6
+                      }}
+                    >
+                      {currentFlag} {currentLanguage.toUpperCase()}
+                    </button>
+
+                    {showLanguageDropdown && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '100%',
+                        right: 0,
+                        marginTop: 8,
+                        background: 'white',
+                        borderRadius: 12,
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                        minWidth: 200,
+                        maxHeight: 400,
+                        overflowY: 'auto',
+                        zIndex: 1000
+                      }}>
+                        <div style={{ padding: '12px 16px', borderBottom: '1px solid #e5e7eb', fontWeight: 600 }}>
+                          Select Language
+                        </div>
+                        {languages.map((lang) => (
+                          <button
+                            key={lang.code}
+                            onClick={() => {
+                              setCurrentLanguage(lang.code);
+                              setCurrentFlag(lang.flag);
+                              setShowLanguageDropdown(false);
+                              translatePage(lang.code);
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '10px 16px',
+                              border: 'none',
+                              background: currentLanguage === lang.code ? '#f0fdf4' : 'transparent',
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 8,
+                              fontSize: 14,
+                              color: currentLanguage === lang.code ? '#065f46' : '#374151',
+                              fontWeight: currentLanguage === lang.code ? 600 : 400
+                            }}
+                            onMouseEnter={(e) => e.target.style.background = '#f9fafb'}
+                            onMouseLeave={(e) => e.target.style.background = currentLanguage === lang.code ? '#f0fdf4' : 'transparent'}
+                          >
+                            <span>{lang.flag}</span>
+                            <span>{lang.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                   <div style={{ position: 'relative' }}>
                     <button 
                       onClick={() => setShowDropdown(!showDropdown)}
@@ -281,6 +505,8 @@ function Header({ transparent, isScrolled }) {
             </nav>
           )}
         </div>
+            {/* Hidden Google Translate Element */}
+      <div id="google_translate_element" style={{ display: 'none' }}></div>
       </header>
 
       {isMobile && showMobileMenu && (
@@ -399,7 +625,22 @@ function Header({ transparent, isScrolled }) {
   );
 }
 
-const styles = {
+// Hide Google Translate toolbar
+  if (typeof document !== 'undefined') {
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .goog-te-banner-frame { display: none !important; }
+      .goog-te-balloon-frame { display: none !important; }
+      body { top: 0 !important; }
+      .skiptranslate { display: none !important; }
+    `;
+    if (!document.querySelector('style[data-translate-hide]')) {
+      style.setAttribute('data-translate-hide', 'true');
+      document.head.appendChild(style);
+    }
+  }
+
+  const styles = {
   header: {
     position: 'fixed',
     top: 0,
