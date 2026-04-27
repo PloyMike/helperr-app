@@ -24,6 +24,7 @@ function BookingCalendar({ profile, onClose }) {
   });
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [bookedSlots, setBookedSlots] = useState([]);
   const [isMobile, setIsMobile] = useState(false);
 
   const startHourRef = useRef(null);
@@ -39,6 +40,33 @@ function BookingCalendar({ profile, onClose }) {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Fetch booked slots when date changes
+  useEffect(() => {
+    const fetchBookedSlots = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('bookings')
+          .select('time_slot, status')
+          .eq('profile_id', profile.id)
+          .eq('booking_date', selectedDate)
+          .in('status', ['pending', 'accepted']);
+        
+        if (error) throw error;
+        
+        const slots = data?.map(b => b.time_slot) || [];
+        setBookedSlots(slots);
+        console.log('Booked slots for', selectedDate, ':', slots);
+      } catch (error) {
+        console.error('Error fetching booked slots:', error);
+        setBookedSlots([]);
+      }
+    };
+
+    if (selectedDate && profile?.id) {
+      fetchBookedSlots();
+    }
+  }, [selectedDate, profile?.id]);
 
   useEffect(() => {
     const initCustomerName = async () => {
@@ -90,18 +118,65 @@ function BookingCalendar({ profile, onClose }) {
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const minutes = [0, 15, 30, 45];
 
+  const sh = startHour.toString().padStart(2, '0');
+  const sm = startMinute.toString().padStart(2, '0');
+  const eh = endHour.toString().padStart(2, '0');
+  const em = endMinute.toString().padStart(2, '0');
+
   const getTimeString = () => {
-    const sh = startHour.toString().padStart(2, '0');
-    const sm = startMinute.toString().padStart(2, '0');
-    const eh = endHour.toString().padStart(2, '0');
-    const em = endMinute.toString().padStart(2, '0');
     return `${sh}:${sm} - ${eh}:${em}`;
+  };
+
+  const getValidationError = () => {
+    const start = startHour * 60 + startMinute;
+    const end = endHour * 60 + endMinute;
+    
+    if (end <= start) {
+      return 'End time must be after start time';
+    }
+    
+    // Check for booked slot overlap
+    const overlappingSlot = bookedSlots.find(bookedSlot => {
+      const [bookedStart, bookedEnd] = bookedSlot.split(' - ');
+      const [bsH, bsM] = bookedStart.split(':').map(Number);
+      const [beH, beM] = bookedEnd.split(':').map(Number);
+      
+      const bookedStartMin = bsH * 60 + bsM;
+      const bookedEndMin = beH * 60 + beM;
+      
+      return (start < bookedEndMin && end > bookedStartMin);
+    });
+    
+    if (overlappingSlot) {
+      return `Unavailable - Already booked ${overlappingSlot}`;
+    }
+    
+    return null;
   };
 
   const isValidTimeRange = () => {
     const start = startHour * 60 + startMinute;
     const end = endHour * 60 + endMinute;
-    return end > start;
+    
+    if (end <= start) return false;
+    
+    // Check if time slot overlaps with any booked slots
+    const isBooked = bookedSlots.some(bookedSlot => {
+      const [bookedStart, bookedEnd] = bookedSlot.split(' - ');
+      const [bsH, bsM] = bookedStart.split(':').map(Number);
+      const [beH, beM] = bookedEnd.split(':').map(Number);
+      
+      const bookedStartMin = bsH * 60 + bsM;
+      const bookedEndMin = beH * 60 + beM;
+      
+      return (start < bookedEndMin && end > bookedStartMin);
+    });
+    
+    if (isBooked) {
+      return false;
+    }
+    
+    return true;
   };
 
   const formatDateFull = (date) => {
@@ -315,9 +390,9 @@ function BookingCalendar({ profile, onClose }) {
                 </div>
               </div>
 
-              {!isValidTimeRange() && (
+              {!isValidTimeRange() && getValidationError() && (
                 <div style={styles.errorBox}>
-                  ⚠️ End time must be after start time
+                  ⚠️ {getValidationError()}
                 </div>
               )}
 
