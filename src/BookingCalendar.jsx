@@ -180,6 +180,11 @@ function BookingCalendar({ profile, onClose }) {
   };
 
   const formatDateFull = (date) => {
+    // If date is a string (ISO format), parse it in local timezone
+    if (typeof date === 'string') {
+      const [year, month, day] = date.split('-').map(Number);
+      date = new Date(year, month - 1, day); // month is 0-indexed
+    }
     return date.toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
   };
 
@@ -366,7 +371,7 @@ function BookingCalendar({ profile, onClose }) {
           {step === 2 && (
             <div>
               <h3 style={styles.stepTitle}>Select Time</h3>
-              <p style={styles.selectedInfo}>{formatDateFull(new Date(selectedDate))}</p>
+              <p style={styles.selectedInfo}>{formatDateFull(selectedDate)}</p>
               
               <div style={isMobile ? styles.mobileTimeContainer : styles.desktopTimeContainer}>
                 <div style={isMobile ? styles.timeSectionMobile : styles.timeSection}>
@@ -672,7 +677,7 @@ function BookingCalendar({ profile, onClose }) {
                 </div>
                 <div style={styles.summaryRow}>
                   <span style={styles.summaryLabel}>Date:</span>
-                  <span style={styles.summaryValue}>{formatDateFull(new Date(selectedDate))}</span>
+                  <span style={styles.summaryValue}>{formatDateFull(selectedDate)}</span>
                 </div>
                 <div style={styles.summaryRow}>
                   <span style={styles.summaryLabel}>Time:</span>
