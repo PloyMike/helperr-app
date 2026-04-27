@@ -14,6 +14,8 @@ function Helperr() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showBooking, setShowBooking] = useState(false);
   const [userLocation, setUserLocation] = useState(null);
+  const [userCity, setUserCity] = useState(null);
+  const [userCountry, setUserCountry] = useState(null);
   const [locationError, setLocationError] = useState(false);
 
   const CATEGORIES = ['All', 'Massage & Wellness', 'Tours & Adventures', 'Yoga & Fitness', 'Cooking Classes', 'Diving & Water Sports', 'Photography'];
@@ -44,6 +46,7 @@ function Helperr() {
 
   useEffect(() => {
     fetchProfiles();
+    fetchUserCity();
     
     // Get user location
     if (navigator.geolocation) {
@@ -61,6 +64,28 @@ function Helperr() {
       );
     }
   }, []);
+
+  const fetchUserCity = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('city, country')
+          .eq('email', user.email)
+          .single();
+        
+        if (data?.city) {
+          setUserCity(data.city);
+        }
+        if (data?.country) {
+          setUserCountry(data.country);
+        }
+      }
+    } catch (error) {
+      console.log('Could not fetch user city:', error);
+    }
+  };
 
   const fetchProfiles = async () => {
     try {
@@ -88,12 +113,28 @@ function Helperr() {
     return R * c;
   };
 
-  const profilesWithDistance = profiles.map(profile => ({
-    ...profile,
-    distance: userLocation 
-      ? calculateDistance(userLocation.lat, userLocation.lng, profile.latitude, profile.longitude)
-      : 999
-  }));
+  const profilesWithDistance = profiles.map(profile => {
+    let distance = 999;
+    
+    // Same city = 0 km (top priority)
+    if (userCity && profile.city && profile.city.toLowerCase() === userCity.toLowerCase()) {
+      distance = 0;
+    } 
+    // Different city but has GPS = calculate real distance
+    else if (userLocation && profile.latitude && profile.longitude) {
+      distance = calculateDistance(userLocation.lat, userLocation.lng, profile.latitude, profile.longitude);
+    }
+    // No GPS data = far away
+    else {
+      distance = 999;
+    }
+    
+    return {
+      ...profile,
+      distance,
+      sameCity: userCity && profile.city && profile.city.toLowerCase() === userCity.toLowerCase()
+    };
+  });
 
   const filteredProfiles = profilesWithDistance.filter(profile => {
     const matchesSearch = !search || 
@@ -111,10 +152,52 @@ function Helperr() {
     return matchesSearch && matchesCat && matchesAvail;
   });
 
-  const nearbyProfiles = filteredProfiles.filter(p => p.distance <= 10).sort((a, b) => a.distance - b.distance);
-  const closeProfiles = filteredProfiles.filter(p => p.distance > 10 && p.distance <= 20).sort((a, b) => a.distance - b.distance);
-  const mediumProfiles = filteredProfiles.filter(p => p.distance > 20 && p.distance <= 50).sort((a, b) => a.distance - b.distance);
-  const farProfiles = filteredProfiles.filter(p => p.distance > 50).sort((a, b) => a.distance - b.distance);
+  // Group by country, then by city
+  const countriesMap = {};
+  filteredProfiles.forEach(p => {
+    const country = p.country || 'Unknown';
+    const city = p.city || 'Unknown';
+    
+    if (!countriesMap[country]) {
+      countriesMap[country] = {};
+    }
+    if (!countriesMap[country][city]) {
+      countriesMap[country][city] = [];
+    }
+    countriesMap[country][city].push(p);
+  });
+
+  // Sort countries: user's country first, then by total provider count
+  const sortedCountries = Object.keys(countriesMap).sort((a, b) => {
+    if (userCountry && a === userCountry) return -1;
+    if (userCountry && b === userCountry) return 1;
+    
+    const aTotal = Object.values(countriesMap[a]).flat().length;
+    const bTotal = Object.values(countriesMap[b]).flat().length;
+    return bTotal - aTotal;
+  });
+
+  // Create sorted cities array grouped by country
+  const sortedCities = [];
+  sortedCountries.forEach(country => {
+    const cities = Object.keys(countriesMap[country]).sort((a, b) => {
+      // User's city first within their country
+      if (userCity && a.toLowerCase() === userCity.toLowerCase()) return -1;
+      if (userCity && b.toLowerCase() === userCity.toLowerCase()) return 1;
+      // Then by provider count
+      return countriesMap[country][b].length - countriesMap[country][a].length;
+    });
+    
+    cities.forEach(city => {
+      sortedCities.push({
+        country,
+        city,
+        providers: countriesMap[country][city],
+        isUserCountry: userCountry && country === userCountry,
+        isUserCity: userCity && city.toLowerCase() === userCity.toLowerCase()
+      });
+    });
+  });
 
   const trackProfileView = async (profileId) => {
     try {
@@ -225,37 +308,37 @@ function Helperr() {
           </div>
         ) : (
           <>
-            {nearbyProfiles.length > 0 && (
-              <DistanceRow
-                title="Within 10 km"
-                profiles={nearbyProfiles}
-                onSelect={(profile) => { setSelected(profile); trackProfileView(profile.id); }}
-              />
-            )}
-
-            {closeProfiles.length > 0 && (
-              <DistanceRow
-                title="10-20 km"
-                profiles={closeProfiles}
-                onSelect={(profile) => { setSelected(profile); trackProfileView(profile.id); }}
-              />
-            )}
-
-            {mediumProfiles.length > 0 && (
-              <DistanceRow
-                title="20-50 km"
-                profiles={mediumProfiles}
-                onSelect={(profile) => { setSelected(profile); trackProfileView(profile.id); }}
-              />
-            )}
-
-            {farProfiles.length > 0 && (
-              <DistanceRow
-                title="50+ km"
-                profiles={farProfiles}
-                onSelect={(profile) => { setSelected(profile); trackProfileView(profile.id); }}
-              />
-            )}
+            {sortedCities.map((cityData, index) => {
+              const { country, city, providers, isUserCity, isUserCountry } = cityData;
+              
+              // Show country header for first city in each country
+              const isFirstInCountry = index === 0 || sortedCities[index - 1].country !== country;
+              
+              return (
+                <div key={`${country}-${city}`}>
+                  {isFirstInCountry && (
+                    <div style={{
+                      padding: '20px 0 12px 0',
+                      fontSize: 18,
+                      fontWeight: 700,
+                      color: isUserCountry ? '#059669' : '#374151',
+                      borderTop: index > 0 ? '2px solid #e5e7eb' : 'none',
+                      marginTop: index > 0 ? 24 : 0
+                    }}>
+                      {country}
+                    </div>
+                  )}
+                  
+                  {providers.length > 0 && (
+                    <DistanceRow
+                      title={isUserCity ? 'Near Me - ' + city : city}
+                      profiles={providers}
+                      onSelect={(profile) => { setSelected(profile); trackProfileView(profile.id); }}
+                    />
+                  )}
+                </div>
+              );
+            })}
           </>
         )}
       </div>
