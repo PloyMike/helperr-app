@@ -52,10 +52,13 @@ function Helperr() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          
+          setUserLocation({ lat, lng });
+          
+          // Get city from GPS coordinates for ALL users
+          getCityFromCoordinates(lat, lng);
         },
         (error) => {
           console.log('Location error:', error);
@@ -64,6 +67,28 @@ function Helperr() {
       );
     }
   }, []);
+
+  
+  const getCityFromCoordinates = async (lat, lng) => {
+    try {
+      // Using BigDataCloud free API (no key required)
+      const response = await fetch(
+        `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`
+      );
+      const data = await response.json();
+      
+      if (data.city || data.locality) {
+        const city = data.city || data.locality;
+        const country = data.countryName;
+        
+        console.log('Detected location:', city, country);
+        setUserCity(city);
+        setUserCountry(country);
+      }
+    } catch (error) {
+      console.log('Reverse geocoding error:', error);
+    }
+  };
 
   const fetchUserCity = async () => {
     try {
