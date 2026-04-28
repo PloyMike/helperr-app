@@ -19,6 +19,17 @@ function MyBookings() {
   });
   const [submittingReview, setSubmittingReview] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  
+  // Check if booking is expired (48 hours after booking CREATION)
+  const isBookingExpired = (booking) => {
+    if (booking.status !== 'pending') return false;
+    
+    const createdAt = new Date(booking.created_at);
+    const now = new Date();
+    const hoursSinceCreation = (now - createdAt) / (1000 * 60 * 60);
+    
+    return hoursSinceCreation > 48;
+  };
   const [bookingsWithReviews, setBookingsWithReviews] = useState([]);
 
   useEffect(() => {
@@ -62,6 +73,29 @@ function MyBookings() {
     }
   }, [user]);
 
+  
+  // Auto-cancel expired bookings (48h after creation)
+  const autoCancelExpiredBookings = async () => {
+    try {
+      const fortyEightHoursAgo = new Date();
+      fortyEightHoursAgo.setHours(fortyEightHoursAgo.getHours() - 48);
+      
+      const { error } = await supabase
+        .from('bookings')
+        .update({ status: 'cancelled' })
+        .eq('status', 'pending')
+        .lt('created_at', fortyEightHoursAgo.toISOString());
+      
+      if (error) {
+        console.error('Error auto-cancelling expired bookings:', error);
+      } else {
+        console.log('Auto-cancelled expired bookings');
+      }
+    } catch (error) {
+      console.error('Error in autoCancelExpiredBookings:', error);
+    }
+  };
+
   const fetchBookings = useCallback(async () => {
     if (!user) {
       setLoading(false);
@@ -70,6 +104,9 @@ function MyBookings() {
 
     try {
       let data;
+
+      // Auto-cancel expired bookings first
+      await autoCancelExpiredBookings();
 
       if (true) {
         const { data: customerData, error: customerError } = await supabase
@@ -233,19 +270,30 @@ function MyBookings() {
     }
   };
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (booking) => {
+    const status = booking.status;
     switch(status) {
       case 'confirmed': return '#065f46';
-      case 'pending': return '#f59e0b';
+      case 'pending': 
+        const createdAtColor = new Date(booking.created_at);
+        const nowColor = new Date();
+        const hoursSinceBookingColor = (nowColor - createdAtColor) / (1000 * 60 * 60);
+        return hoursSinceBookingColor > 48 ? '#6b7280' : '#f59e0b';
       case 'cancelled': return '#dc2626';
       default: return '#6b7280';
     }
   };
 
-  const getStatusLabel = (status) => {
+  const getStatusLabel = (booking) => {
+    const status = booking.status;
     switch(status) {
       case 'confirmed': return '✓ Confirmed';
-      case 'pending': return '⏳ Pending';
+      case 'pending': 
+        // Check if expired
+        const createdAt = new Date(booking.created_at);
+        const now = new Date();
+        const hoursSinceBooking = (now - createdAt) / (1000 * 60 * 60);
+        return hoursSinceBooking > 48 ? '⌛ Expired - No response' : '⏳ Pending';
       case 'cancelled': return '✕ Cancelled';
       default: return status;
     }
@@ -359,8 +407,8 @@ function MyBookings() {
                       </div>
                     </div>
                   )}
-                  <span style={{...styles.statusBadge, background: getStatusColor(booking.status)}}>
-                    {getStatusLabel(booking.status)}
+                  <span style={{...styles.statusBadge, background: getStatusColor(booking)}}>
+                    {getStatusLabel(booking)}
                   </span>
                 </div>
 
@@ -421,7 +469,7 @@ function MyBookings() {
                 </div>
 
                 <div style={styles.cardActions}>
-                  {true && booking.status === 'pending' && (
+                  {!isBookingExpired(booking) && booking.status === 'pending' && (
                     <button onClick={() => handleCancel(booking.id)} style={styles.btnCancel}>
                       Cancel Booking
                     </button>
