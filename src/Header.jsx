@@ -488,6 +488,70 @@ function Header({ transparent, isScrolled }) {
                   <button onClick={() => window.navigateTo('signup')} style={styles.btnPrimary}>
                     Sign Up
                   </button>
+                  
+                  {/* Language Selector */}
+                  <div style={{ position: 'relative' }}>
+                    <button 
+                      onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
+                      style={{
+                        ...styles.navBtn,
+                        ...(transparent ? styles.navBtnTransparent : {}),
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6
+                      }}
+                    >
+                      {getFlag(currentLanguage)} {currentLanguage.toUpperCase()}
+                    </button>
+
+                    {showLanguageDropdown && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '100%',
+                        right: 0,
+                        marginTop: 8,
+                        background: 'white',
+                        borderRadius: 12,
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                        minWidth: 200,
+                        maxHeight: 400,
+                        overflowY: 'auto',
+                        zIndex: 1000,
+                        padding: 8
+                      }}>
+                        {languages.map((lang) => (
+                          <button
+                            key={lang.code}
+                            onClick={() => {
+                              localStorage.setItem('selectedLanguage', lang.code);
+                              setCurrentLanguage(lang.code);
+                              setShowLanguageDropdown(false);
+                              setTimeout(() => translatePage(lang.code), 200);
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '10px 16px',
+                              border: 'none',
+                              background: currentLanguage === lang.code ? '#f0fdf4' : 'transparent',
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 8,
+                              fontSize: 14,
+                              color: currentLanguage === lang.code ? '#065f46' : '#374151',
+                              fontWeight: currentLanguage === lang.code ? 600 : 400
+                            }}
+                            onMouseEnter={(e) => e.target.style.background = '#f9fafb'}
+                            onMouseLeave={(e) => e.target.style.background = currentLanguage === lang.code ? '#f0fdf4' : 'transparent'}
+                          >
+                            <span>{lang.flag}</span>
+                            <span>{lang.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </>
               )}
             </nav>
@@ -656,6 +720,60 @@ function Header({ transparent, isScrolled }) {
                   <button onClick={() => { closeMobileMenu(); window.navigateTo('signup'); }} style={styles.mobileMenuItem}>
                     Sign Up
                   </button>
+                  
+                  <div style={styles.menuDivider}></div>
+                  
+                  <button 
+                    onClick={() => setShowMobileLanguageDropdown(!showMobileLanguageDropdown)} 
+                    style={{
+                      ...styles.mobileMenuItem,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8
+                    }}
+                  >
+                    {getFlag(currentLanguage)} {currentLanguage.toUpperCase()}
+                  </button>
+
+                  {showMobileLanguageDropdown && (
+                    <div style={{
+                      maxHeight: 300,
+                      overflowY: 'auto',
+                      background: '#f9fafb',
+                      borderRadius: 8,
+                      margin: '8px 0'
+                    }}>
+                      {languages.map((lang) => (
+                        <button
+                          key={lang.code}
+                          onClick={() => {
+                            localStorage.setItem('selectedLanguage', lang.code);
+                            setCurrentLanguage(lang.code);
+                            setShowMobileLanguageDropdown(false);
+                            setShowMobileMenu(false);
+                            setTimeout(() => translatePage(lang.code), 200);
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '10px 16px',
+                            border: 'none',
+                            background: currentLanguage === lang.code ? '#e0f2fe' : 'transparent',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            fontSize: 14,
+                            color: currentLanguage === lang.code ? '#0369a1' : '#374151',
+                            fontWeight: currentLanguage === lang.code ? 600 : 400
+                          }}
+                        >
+                          <span>{lang.flag}</span>
+                          <span>{lang.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </>
               )}
             </div>
