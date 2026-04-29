@@ -46,7 +46,6 @@ function Helperr() {
 
   useEffect(() => {
     fetchProfiles();
-    fetchUserCity();
     
     // Get user location
     if (navigator.geolocation) {
@@ -63,6 +62,9 @@ function Helperr() {
         (error) => {
           console.log('Location error:', error);
           setLocationError(true);
+          
+          // GPS failed - use profile city as fallback
+          fetchUserCity();
         }
       );
     }
