@@ -20,6 +20,7 @@ function Helperr() {
 
   const CATEGORIES = ['All', 'Massage & Wellness', 'Tours & Adventures', 'Yoga & Fitness', 'Cooking Classes', 'Diving & Water Sports', 'Photography'];
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 100);
@@ -62,9 +63,7 @@ function Helperr() {
         (error) => {
           console.log('Location error:', error);
           setLocationError(true);
-          
-          // GPS failed - use profile city as fallback
-          fetchUserCity();
+          getLocationFromIP();
         }
       );
     }
@@ -111,6 +110,23 @@ function Helperr() {
       }
     } catch (error) {
       console.log('Could not fetch user city:', error);
+    }
+  };
+
+  const getLocationFromIP = async () => {
+    try {
+      const response = await fetch('https://ipapi.co/json/');
+      const data = await response.json();
+      if (data.city && data.country_name) {
+        setUserCity(data.city);
+        setUserCountry(data.country_name);
+      } else {
+        // IP didn't return city - try profile fallback
+        fetchUserCity();
+      }
+    } catch (error) {
+      console.log('IP location failed - trying profile');
+      fetchUserCity();
     }
   };
 
