@@ -18,7 +18,7 @@ function Helperr() {
   const [userCountry, setUserCountry] = useState(null);
   const [locationError, setLocationError] = useState(false);
 
-  const CATEGORIES = ['All', 'Massage & Wellness', 'Tours & Adventures', 'Yoga & Fitness', 'Cooking Classes', 'Diving & Water Sports', 'Photography'];
+  const CATEGORIES = ['All', 'Nanny', 'Plumber', 'Handyman', 'Electrician', 'Massage', 'Pool Boy', 'Gardener', 'Petsitter', 'AC Cleaner', 'Water Delivery', 'Private Cook'];
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -186,10 +186,14 @@ function Helperr() {
       profile.city?.toLowerCase().includes(search.toLowerCase()) ||
       profile.category?.toLowerCase().includes(search.toLowerCase()) ||
       profile.subcategory?.toLowerCase().includes(search.toLowerCase()) ||
-      profile.tags?.some(tag => tag.toLowerCase().includes(search.toLowerCase())) ||
+      (typeof profile.tags === 'string' ? profile.tags.toLowerCase().includes(search.toLowerCase()) : profile.tags?.some(tag => tag.toLowerCase().includes(search.toLowerCase()))) ||
       profile.bio?.toLowerCase().includes(search.toLowerCase());
     
-    const matchesCat = category === 'All' || profile.category === category;
+    const matchesCat = category === 'All' || 
+      profile.job?.toLowerCase() === category.toLowerCase() || 
+      profile.category?.toLowerCase() === category.toLowerCase() ||
+      profile.subcategory?.toLowerCase() === category.toLowerCase() ||
+      (typeof profile.tags === 'string' ? profile.tags.toLowerCase().includes(category.toLowerCase()) : profile.tags?.some(tag => tag.toLowerCase() === category.toLowerCase()));
     const matchesAvail = !onlyAvailable || profile.available;
     
     return matchesSearch && matchesCat && matchesAvail;
