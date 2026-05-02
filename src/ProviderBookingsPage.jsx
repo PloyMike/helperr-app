@@ -63,12 +63,42 @@ function ProviderBookingsPage() {
 
   const handleAccept = async (bookingId) => {
     try {
+      // Get booking details first
+      const { data: booking } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('id', bookingId)
+        .single();
+
+      // Update status
       const { error } = await supabase
         .from('bookings')
         .update({ status: 'confirmed' })
         .eq('id', bookingId);
 
       if (error) throw error;
+
+      // Send acceptance email
+      try {
+        await fetch('https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            template: 'booking-accepted',
+            to: booking.customer_email,
+            variables: {
+              customer_name: booking.customer_name,
+              provider_name: userProfile.name,
+              booking_date: booking.booking_date,
+              time_slot: booking.time_slot,
+              address: booking.service_address,
+            },
+          }),
+        });
+      } catch (emailError) {
+        console.error('Email error:', emailError);
+      }
+
       alert('Booking confirmed!');
       fetchBookings();
     } catch (error) {
@@ -79,12 +109,41 @@ function ProviderBookingsPage() {
 
   const handleDecline = async (bookingId) => {
     try {
+      // Get booking details first
+      const { data: booking } = await supabase
+        .from('bookings')
+        .select('*')
+        .eq('id', bookingId)
+        .single();
+
+      // Update status
       const { error } = await supabase
         .from('bookings')
         .update({ status: 'cancelled' })
         .eq('id', bookingId);
 
       if (error) throw error;
+
+      // Send declined email
+      try {
+        await fetch('https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            template: 'booking-declined',
+            to: booking.customer_email,
+            variables: {
+              customer_name: booking.customer_name,
+              provider_name: userProfile.name,
+              booking_date: booking.booking_date,
+              time_slot: booking.time_slot,
+            },
+          }),
+        });
+      } catch (emailError) {
+        console.error('Email error:', emailError);
+      }
+
       alert('Booking declined');
       fetchBookings();
     } catch (error) {

@@ -80,16 +80,42 @@ function MyBookings() {
       const fortyEightHoursAgo = new Date();
       fortyEightHoursAgo.setHours(fortyEightHoursAgo.getHours() - 48);
       
-      const { error } = await supabase
+      // Get expired bookings first
+      const { data: expiredBookings } = await supabase
         .from('bookings')
-        .update({ status: 'cancelled' })
+        .select('*, profiles(name)')
         .eq('status', 'pending')
         .lt('created_at', fortyEightHoursAgo.toISOString());
       
-      if (error) {
-        console.error('Error auto-cancelling expired bookings:', error);
-      } else {
-        console.log('Auto-cancelled expired bookings');
+      if (expiredBookings && expiredBookings.length > 0) {
+        // Cancel each booking and send email
+        for (const booking of expiredBookings) {
+          await supabase
+            .from('bookings')
+            .update({ status: 'cancelled' })
+            .eq('id', booking.id);
+          
+          // Send 48h cancellation email
+          try {
+            await fetch('https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                template: 'booking-cancelled-48h',
+                to: booking.customer_email,
+                variables: {
+                  customer_name: booking.customer_name,
+                  provider_name: booking.profiles?.name || 'Provider',
+                  booking_date: booking.booking_date,
+                  time_slot: booking.time_slot,
+                },
+              }),
+            });
+          } catch (emailError) {
+            console.error('Email error:', emailError);
+          }
+        }
+        console.log('Auto-cancelled expired bookings:', expiredBookings.length);
       }
     } catch (error) {
       console.error('Error in autoCancelExpiredBookings:', error);
@@ -224,12 +250,41 @@ function MyBookings() {
     if (!window.confirm('Cancel this booking?')) return;
     
     try {
+      // Get booking details first
+      const { data: booking } = await supabase
+        .from('bookings')
+        .select('*, profiles(name)')
+        .eq('id', bookingId)
+        .single();
+
+      // Update status
       const { error } = await supabase
         .from('bookings')
         .update({ status: 'cancelled' })
         .eq('id', bookingId);
 
       if (error) throw error;
+
+      // Send customer cancel email
+      try {
+        await fetch('https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            template: 'booking-cancelled-by-customer',
+            to: booking.customer_email,
+            variables: {
+              customer_name: booking.customer_name,
+              provider_name: booking.profiles?.name || 'Provider',
+              booking_date: booking.booking_date,
+              time_slot: booking.time_slot,
+            },
+          }),
+        });
+      } catch (emailError) {
+        console.error('Email error:', emailError);
+      }
+
       alert('Booking cancelled');
       fetchBookings();
     } catch (error) {

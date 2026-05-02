@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking Declined - Helperr</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f3f4f6;">
+  
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); overflow: hidden;">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); padding: 40px 30px; text-align: center;">
+              <img src="https://helperr.co/logo.jpeg" alt="Helperr" style="height: 60px; margin-bottom: 15px;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">Booking Declined</h1>
+            </td>
+          </tr>
+          
+          <!-- Content -->
+          <tr>
+            <td style="padding: 40px 30px;">
+              
+              <p style="margin: 0 0 20px; color: #374151; font-size: 16px; line-height: 1.6;">
+                Hi <strong>{{{customer_name}}}</strong>,
+              </p>
+              
+              <p style="margin: 0 0 30px; color: #374151; font-size: 16px; line-height: 1.6;">
+                Unfortunately, <strong>{{{provider_name}}}</strong> was unable to accept your booking request for the selected date and time.
+              </p>
+              
+              <!-- Booking Details -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fffbeb; border-radius: 8px; padding: 20px; margin-bottom: 30px; border-left: 4px solid #F59E0B;">
+                <tr>
+                  <td>
+                    <p style="margin: 0 0 12px; color: #92400E; font-size: 14px; font-weight: 600; text-transform: uppercase;">Declined Booking</p>
+                    
+                    <p style="margin: 0 0 10px; color: #111827; font-size: 16px;">
+                      <strong>Provider:</strong> {{{provider_name}}}
+                    </p>
+                    <p style="margin: 0 0 10px; color: #111827; font-size: 16px;">
+                      <strong>Date:</strong> {{{booking_date}}}
+                    </p>
+                    <p style="margin: 0; color: #111827; font-size: 16px;">
+                      <strong>Time:</strong> {{{time_slot}}}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+              
+              <p style="margin: 0 0 30px; color: #374151; font-size: 16px; line-height: 1.6;">
+                You can try booking a different time slot or browse other service providers.
+              </p>
+              
+              <!-- CTA -->
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" style="padding: 20px 0;">
+                    <a href="https://helperr.co" style="display: inline-block; background: linear-gradient(135deg, #14B8A6 0%, #0D9488 100%); color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">Browse Providers</a>
+                  </td>
+                </tr>
+              </table>
+              
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f9fafb; padding: 30px; text-align: center; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0 0 10px; color: #6b7280; font-size: 14px;">
+                Need help? Contact <a href="mailto:support@helperr.co" style="color: #14B8A6; text-decoration: none;">support@helperr.co</a>
+              </p>
+              <p style="margin: 0; color: #9ca3af; font-size: 12px;">
+                © 2025 Helperr. Find Local Experts.
+              </p>
+            </td>
+          </tr>
+          
+        </table>
+        
+      </td>
+    </tr>
+  </table>
+  
+</body>
+</html>
