@@ -248,6 +248,7 @@ function BookingCalendar({ profile, onClose }) {
       } catch (emailError) {
         console.error("Email error:", emailError);
 
+      }
       // Send new booking request email to provider
       try {
         await fetch("https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email", {
