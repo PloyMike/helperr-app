@@ -225,6 +225,30 @@ function BookingCalendar({ profile, onClose }) {
       }]);
 
       if (error) throw error;
+
+      // Send booking confirmation email
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        await fetch("https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            template: "booking-confirmation",
+            to: user.email,
+            variables: {
+              customer_name: customerName,
+              provider_name: profile.name,
+              service: profile.job || profile.category,
+              booking_date: selectedDate,
+              time_slot: selectedTimeSlot,
+              address: locationMethod === "gps" ? `GPS: ${gpsLocation.latitude.toFixed(6)}, ${gpsLocation.longitude.toFixed(6)}` : `${address.street} ${address.houseNumber}, ${address.postalCode} ${address.city}`,
+            },
+          }),
+        });
+      } catch (emailError) {
+        console.error("Email error:", emailError);
+      }
+
       alert('✅ Booking request sent successfully!');
       onClose();
     } catch (error) {
