@@ -247,6 +247,29 @@ function BookingCalendar({ profile, onClose }) {
         });
       } catch (emailError) {
         console.error("Email error:", emailError);
+
+      // Send new booking request email to provider
+      try {
+        await fetch("https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dWF0b2pwa2x1eWlkcGVmenViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTI1MzcsImV4cCI6MjA4Njk2ODUzN30.l9IOEIzM3Z6abB87ZOERYBcYNgFWIIRju0bUxyWrNgY", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dWF0b2pwa2x1eWlkcGVmenViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTI1MzcsImV4cCI6MjA4Njk2ODUzN30.l9IOEIzM3Z6abB87ZOERYBcYNgFWIIRju0bUxyWrNgY" },
+          body: JSON.stringify({
+            template: "new-booking-request",
+            to: profile.email,
+            variables: {
+              provider_name: profile.name,
+              customer_name: customerName,
+              service: profile.job || profile.category,
+              booking_date: selectedDate,
+              time_slot: selectedTimeSlot,
+              address: locationMethod === "gps" ? `GPS: ${gpsLocation.latitude.toFixed(6)}, ${gpsLocation.longitude.toFixed(6)}` : `${address.street} ${address.houseNumber}, ${address.postalCode} ${address.city}`,
+            },
+          }),
+        });
+      } catch (emailError) {
+        console.error("Provider email error:", emailError);
+      }
+
       }
 
       alert('✅ Booking request sent successfully!');
