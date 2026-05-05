@@ -268,7 +268,6 @@ function BookingCalendar({ profile, onClose }) {
         });
       } catch (emailError) {
         console.error("Provider email error:", emailError);
-      }
 
       }
 
