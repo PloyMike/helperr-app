@@ -72,6 +72,7 @@ function getTemplateHtml(template: string, vars: any): string {
     'booking-cancelled-by-provider': BOOKING_CANCELLED_BY_PROVIDER_TEMPLATE,
     'booking-cancelled-by-customer': BOOKING_CANCELLED_BY_CUSTOMER_TEMPLATE,
     'booking-cancelled-notification-provider': BOOKING_CANCELLED_NOTIFICATION_PROVIDER,
+    'customer-cancellation-confirmation': CUSTOMER_CANCELLATION_CONFIRMATION,
   }
   
   let html = templates[template] || ''
@@ -152,7 +153,7 @@ const BOOKING_ACCEPTED_TEMPLATE = `<!DOCTYPE html>
 <p style="margin:0 0 30px;color:#374151"><strong>{{{provider_name}}}</strong> has accepted your booking!</p>
 <table width="100%" style="background:#f0fdf4;border-radius:8px;padding:20px;margin-bottom:30px;border-left:4px solid #059669">
 <tr><td>
-<p style="margin:0 0 10px"><strong>Provider:</strong> {{{provider_name}}}</p>
+<p style="margin:0 0 10px"><strong>Customer:</strong> {{{customer_name}}}</p>
 <p style="margin:0 0 10px"><strong>Date:</strong> {{{booking_date}}}</p>
 <p style="margin:0 0 10px"><strong>Time:</strong> {{{time_slot}}}</p>
 <p style="margin:0"><strong>Location:</strong> {{{address}}}</p>
@@ -171,14 +172,14 @@ const BOOKING_CANCELLED_48H_TEMPLATE = `<!DOCTYPE html>
 <table width="600" style="background:#fff;border-radius:12px">
 <tr><td style="background:linear-gradient(135deg,#DC2626,#B91C1C);padding:40px 30px;text-align:center">
 <img src="https://helperr.co/logo.jpeg" style="height:60px;margin-bottom:15px">
-<h1 style="margin:0;color:#fff;font-size:28px">Booking Cancelled</h1>
+<h1 style="margin:0;color:#fff;font-size:28px">❌ Booking Cancelled by Customer</h1>
 </td></tr>
 <tr><td style="padding:40px 30px">
-<p style="margin:0 0 20px">Hi <strong>{{{customer_name}}}</strong>,</p>
+<p style="margin:0 0 20px">Hi <strong>{{{provider_name}}}</strong>,</p>
 <p style="margin:0 0 30px">Your booking was automatically cancelled (no response within 48h).</p>
 <table width="100%" style="background:#fef2f2;border-radius:8px;padding:20px;margin-bottom:30px;border-left:4px solid #DC2626">
 <tr><td>
-<p style="margin:0 0 10px"><strong>Provider:</strong> {{{provider_name}}}</p>
+<p style="margin:0 0 10px"><strong>Customer:</strong> {{{customer_name}}}</p>
 <p style="margin:0 0 10px"><strong>Date:</strong> {{{booking_date}}}</p>
 <p style="margin:0"><strong>Time:</strong> {{{time_slot}}}</p>
 </td></tr></table>
@@ -199,11 +200,11 @@ const BOOKING_DECLINED_TEMPLATE = `<!DOCTYPE html>
 <h1 style="margin:0;color:#fff;font-size:28px">Booking Declined</h1>
 </td></tr>
 <tr><td style="padding:40px 30px">
-<p style="margin:0 0 20px">Hi <strong>{{{customer_name}}}</strong>,</p>
+<p style="margin:0 0 20px">Hi <strong>{{{provider_name}}}</strong>,</p>
 <p style="margin:0 0 30px"><strong>{{{provider_name}}}</strong> was unable to accept your booking.</p>
 <table width="100%" style="background:#fffbeb;border-radius:8px;padding:20px;margin-bottom:30px;border-left:4px solid #F59E0B">
 <tr><td>
-<p style="margin:0 0 10px"><strong>Provider:</strong> {{{provider_name}}}</p>
+<p style="margin:0 0 10px"><strong>Customer:</strong> {{{customer_name}}}</p>
 <p style="margin:0 0 10px"><strong>Date:</strong> {{{booking_date}}}</p>
 <p style="margin:0"><strong>Time:</strong> {{{time_slot}}}</p>
 </td></tr></table>
@@ -221,14 +222,14 @@ const BOOKING_CANCELLED_BY_PROVIDER_TEMPLATE = `<!DOCTYPE html>
 <table width="600" style="background:#fff;border-radius:12px">
 <tr><td style="background:linear-gradient(135deg,#DC2626,#B91C1C);padding:40px 30px;text-align:center">
 <img src="https://helperr.co/logo.jpeg" style="height:60px;margin-bottom:15px">
-<h1 style="margin:0;color:#fff;font-size:28px">Booking Cancelled</h1>
+<h1 style="margin:0;color:#fff;font-size:28px">❌ Booking Cancelled by Customer</h1>
 </td></tr>
 <tr><td style="padding:40px 30px">
-<p style="margin:0 0 20px">Hi <strong>{{{customer_name}}}</strong>,</p>
+<p style="margin:0 0 20px">Hi <strong>{{{provider_name}}}</strong>,</p>
 <p style="margin:0 0 30px"><strong>{{{provider_name}}}</strong> had to cancel your booking.</p>
 <table width="100%" style="background:#fef2f2;border-radius:8px;padding:20px;margin-bottom:30px;border-left:4px solid #DC2626">
 <tr><td>
-<p style="margin:0 0 10px"><strong>Provider:</strong> {{{provider_name}}}</p>
+<p style="margin:0 0 10px"><strong>Customer:</strong> {{{customer_name}}}</p>
 <p style="margin:0 0 10px"><strong>Date:</strong> {{{booking_date}}}</p>
 <p style="margin:0"><strong>Time:</strong> {{{time_slot}}}</p>
 </td></tr></table>
@@ -244,16 +245,16 @@ const BOOKING_CANCELLED_BY_CUSTOMER_TEMPLATE = `<!DOCTYPE html>
 <html><body style="margin:0;padding:0;font-family:sans-serif;background:#f3f4f6">
 <table width="100%" style="padding:40px 20px"><tr><td align="center">
 <table width="600" style="background:#fff;border-radius:12px">
-<tr><td style="background:linear-gradient(135deg,#6B7280,#4B5563);padding:40px 30px;text-align:center">
+<tr><td style="background:linear-gradient(135deg,#DC2626,#991B1B);padding:40px 30px;text-align:center">
 <img src="https://helperr.co/logo.jpeg" style="height:60px;margin-bottom:15px">
-<h1 style="margin:0;color:#fff;font-size:28px">Booking Cancelled</h1>
+<h1 style="margin:0;color:#fff;font-size:28px">❌ Booking Cancelled by Customer</h1>
 </td></tr>
 <tr><td style="padding:40px 30px">
-<p style="margin:0 0 20px">Hi <strong>{{{customer_name}}}</strong>,</p>
-<p style="margin:0 0 30px">Your booking has been cancelled as requested.</p>
-<table width="100%" style="background:#f9fafb;border-radius:8px;padding:20px;margin-bottom:30px;border-left:4px solid #6B7280">
+<p style="margin:0 0 20px">Hi <strong>{{{provider_name}}}</strong>,</p>
+<p style="margin:0 0 30px"><strong>{{{customer_name}}}</strong> has cancelled their booking with you.</p>
+<table width="100%" style="background:#f9fafb;border-radius:8px;padding:20px;margin-bottom:30px;border-left:4px solid #DC2626">
 <tr><td>
-<p style="margin:0 0 10px"><strong>Provider:</strong> {{{provider_name}}}</p>
+<p style="margin:0 0 10px"><strong>Customer:</strong> {{{customer_name}}}</p>
 <p style="margin:0 0 10px"><strong>Date:</strong> {{{booking_date}}}</p>
 <p style="margin:0"><strong>Time:</strong> {{{time_slot}}}</p>
 </td></tr></table>
@@ -327,6 +328,31 @@ const BOOKING_CANCELLED_NOTIFICATION_PROVIDER = `<!DOCTYPE html>
 <tr><td style="background-color:#f9fafb;padding:30px;text-align:center;border-top:1px solid #e5e7eb">
 <p style="margin:0 0 10px;color:#6b7280;font-size:14px">Need help? Email <a href="mailto:support@helperr.co" style="color:#14B8A6">support@helperr.co</a></p>
 <p style="margin:0;color:#9ca3af;font-size:12px">© 2025 Helperr</p>
+</td></tr>
+</table>
+</td></tr></table>
+</body></html>`
+
+const CUSTOMER_CANCELLATION_CONFIRMATION = `<!DOCTYPE html>
+<html><body style="margin:0;padding:0;font-family:sans-serif;background:#f3f4f6">
+<table width="100%" style="padding:40px 20px"><tr><td align="center">
+<table width="600" style="background:#fff;border-radius:12px">
+<tr><td style="background:linear-gradient(135deg,#14B8A6,#0D9488);padding:40px 30px;text-align:center">
+<img src="https://helperr.co/logo.jpeg" style="height:60px;margin-bottom:15px">
+<h1 style="margin:0;color:#fff;font-size:28px">✓ Cancellation Confirmed</h1>
+</td></tr>
+<tr><td style="padding:40px 30px">
+<p style="margin:0 0 20px">Hi <strong>{{{customer_name}}}</strong>,</p>
+<p style="margin:0 0 30px">Your booking has been successfully cancelled.</p>
+<table width="100%" style="background:#f9fafb;border-radius:8px;padding:20px;margin-bottom:30px;border-left:4px solid #14B8A6">
+<tr><td>
+<p style="margin:0 0 10px"><strong>Provider:</strong> {{{provider_name}}}</p>
+<p style="margin:0 0 10px"><strong>Date:</strong> {{{booking_date}}}</p>
+<p style="margin:0"><strong>Time:</strong> {{{time_slot}}}</p>
+</td></tr></table>
+<table width="100%"><tr><td align="center" style="padding:20px 0">
+<a href="https://helperr.co" style="display:inline-block;background:linear-gradient(135deg,#14B8A6,#0D9488);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600">Browse Providers</a>
+</td></tr></table>
 </td></tr>
 </table>
 </td></tr></table>
