@@ -283,6 +283,27 @@ function MyBookings() {
         });
       } catch (emailError) {
         console.error('Email error:', emailError);
+
+      // Notify provider about cancellation
+      try {
+        await fetch('https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dWF0b2pwa2x1eWlkcGVmenViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTI1MzcsImV4cCI6MjA4Njk2ODUzN30.l9IOEIzM3Z6abB87ZOERYBcYNgFWIIRju0bUxyWrNgY', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dWF0b2pwa2x1eWlkcGVmenViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTI1MzcsImV4cCI6MjA4Njk2ODUzN30.l9IOEIzM3Z6abB87ZOERYBcYNgFWIIRju0bUxyWrNgY' },
+          body: JSON.stringify({
+            template: 'booking-cancelled-notification-provider',
+            to: booking.profiles?.email,
+            variables: {
+              provider_name: booking.profiles?.name || 'Provider',
+              customer_name: booking.customer_name,
+              booking_date: booking.booking_date,
+              time_slot: booking.time_slot,
+            },
+          }),
+        });
+      } catch (emailError) {
+        console.error('Provider notification error:', emailError);
+      }
+
       }
 
       alert('Booking cancelled');
