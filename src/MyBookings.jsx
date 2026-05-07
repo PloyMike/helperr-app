@@ -307,7 +307,6 @@ function MyBookings() {
       }
 
       alert('Booking cancelled');
-      fetchBookings();
     } catch (error) {
       console.error('Error:', error);
       alert('Error cancelling booking');
