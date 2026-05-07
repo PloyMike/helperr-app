@@ -83,7 +83,7 @@ function MyBookings() {
       // Get expired bookings first
       const { data: expiredBookings } = await supabase
         .from('bookings')
-        .select('*, profiles(name)')
+        .select('*, profiles(name, email)')
         .eq('status', 'pending')
         .lt('created_at', fortyEightHoursAgo.toISOString());
       
@@ -253,7 +253,7 @@ function MyBookings() {
       // Get booking details first
       const { data: booking } = await supabase
         .from('bookings')
-        .select('*, profiles(name)')
+        .select('*, profiles(name, email)')
         .eq('id', bookingId)
         .single();
 
