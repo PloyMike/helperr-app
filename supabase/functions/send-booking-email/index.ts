@@ -56,6 +56,7 @@ function getSubject(template: string, vars: any): string {
     'booking-declined': `Booking Declined - ${vars.provider_name} | Helperr`,
     'booking-cancelled-by-provider': `Booking Cancelled - ${vars.provider_name} | Helperr`,
     'booking-cancelled-by-customer': 'Booking Cancelled | Helperr',
+    'booking-cancelled-notification-provider': 'Booking Cancelled by Customer | Helperr',
   }
   return subjects[template] || 'Helperr Notification'
 }
