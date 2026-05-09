@@ -99,7 +99,7 @@ const BOOKING_CONFIRMATION_TEMPLATE = `<!DOCTYPE html>
 </td></tr>
 <tr><td style="padding:40px 30px">
 <p style="margin:0 0 20px;color:#374151;font-size:16px">Hi <strong>{{{customer_name}}}</strong>,</p>
-<p style="margin:0 0 30px;color:#374151;font-size:16px">Your booking request has been sent to the provider. You will receive a confirmation email once they accept.</p>
+<p style="margin:0 0 30px;color:#374151;font-size:16px">Your booking request has been sent to the expert. You will receive a confirmation email once they accept.</p>
 <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-radius:8px;padding:20px;margin-bottom:30px">
 <tr><td>
 <p style="margin:0 0 12px;color:#6b7280;font-size:14px;font-weight:600">BOOKING DETAILS</p>

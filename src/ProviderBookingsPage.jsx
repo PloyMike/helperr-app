@@ -180,13 +180,13 @@ function ProviderBookingsPage() {
         <Header transparent={true} isScrolled={isScrolled} />
         <div style={styles.hero}>
           <div style={styles.heroInner}>
-            <h1 style={styles.heroTitle}>Provider Bookings</h1>
+            <h1 style={styles.heroTitle}>Expert Bookings</h1>
             <p style={styles.heroSub}>Manage bookings for your services</p>
           </div>
         </div>
         <div style={styles.loginRequired}>
           <h2>Login Required</h2>
-          <p>Please login to view your provider bookings</p>
+          <p>Please login to view your expert bookings</p>
           <button onClick={() => window.location.href = '/login?redirect=/provider-bookings'} style={styles.btnPrimary}>
             Login
           </button>
@@ -201,7 +201,7 @@ function ProviderBookingsPage() {
         <Header transparent={true} isScrolled={isScrolled} />
         <div style={styles.hero}>
           <div style={styles.heroInner}>
-            <h1 style={styles.heroTitle}>Provider Bookings</h1>
+            <h1 style={styles.heroTitle}>Expert Bookings</h1>
             <p style={styles.heroSub}>Manage bookings for your services</p>
           </div>
         </div>
@@ -235,7 +235,7 @@ function ProviderBookingsPage() {
       
       <div style={styles.hero}>
         <div style={styles.heroInner}>
-          <h1 style={styles.heroTitle}>Provider Bookings</h1>
+          <h1 style={styles.heroTitle}>Expert Bookings</h1>
           <p style={styles.heroSub}>Manage bookings for your services</p>
         </div>
       </div>

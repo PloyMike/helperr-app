@@ -336,7 +336,7 @@ function Header({ transparent, isScrolled }) {
                       ...styles.navBtn,
                      ...(transparent ? styles.navBtnTransparent : {})
                     }}>
-                      Provider Bookings
+                      Expert Bookings
                       {providerBookingsBadge > 0 && (
                         <span style={{
                           marginLeft: 6,
@@ -458,7 +458,7 @@ function Header({ transparent, isScrolled }) {
                             onClick={() => { setShowDropdown(false); window.navigateTo('register'); }}
                             style={styles.dropdownItem}
                           >
-                            Become a Provider
+                            Become an Expert
                           </button>
                         )}
                         <button 
@@ -620,7 +620,7 @@ function Header({ transparent, isScrolled }) {
             </button>
               {hasProviderProfile && (
                 <button onClick={() => { closeMobileMenu(); window.navigateTo('provider-bookings'); }} style={styles.mobileMenuItem}>
-                Provider Bookings
+                Expert Bookings
                 {providerBookingsBadge > 0 && (
                   <span style={{
                     marginLeft: 'auto',
@@ -648,7 +648,7 @@ function Header({ transparent, isScrolled }) {
               </button>
               {!hasProviderProfile && (
                 <button onClick={() => { closeMobileMenu(); window.navigateTo('register'); }} style={styles.mobileMenuItem}>
-                  Become a Provider
+                  Become an Expert
                 </button>
               )}
               <button onClick={() => { closeMobileMenu(); window.navigateTo('dashboard'); }} style={styles.mobileMenuItem}>

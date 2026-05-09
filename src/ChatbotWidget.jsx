@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 const FAQ_RESPONSES = {
   'book': 'To book a service:\n1. Search for a provider on the homepage\n2. Click on their profile\n3. Click "Book Now"\n4. Select date and time\n5. Confirm your booking! ✅',
   'provider': 'To become a provider:\n1. Click "Become a Provider" in the header\n2. Register or login\n3. Fill out your provider profile\n4. Done! Customers can now book you! 🚀',
-  'cost': 'Helperr is completely FREE! 🎉\n- For customers: $0\n- For providers: $0\n- No hidden fees!',
+  'cost': 'Helperr is completely FREE! 🎉\n- For customers: $0\n- For experts: $0\n- No hidden fees!',
   'cities': 'Available cities:\n🇹🇭 Bangkok, Phuket, Koh Samui, Chiang Mai\n🇻🇳 Ho Chi Minh, Hanoi\n🇮🇩 Bali, Jakarta\n🇵🇭 Manila, Cebu\n+ many more!',
   'contact': 'You can reach us at:\n📧 helperrapp@gmail.com\n\nWe respond within 24 hours!',
   'review': 'After a booking you can rate the provider:\n⭐ 1-5 stars\n💬 Write a review\nHelp other customers!',

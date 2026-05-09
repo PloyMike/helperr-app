@@ -78,7 +78,7 @@ function Favorites() {
             <h3>No favorites yet</h3>
             <p>Start adding providers to your favorites for quick access</p>
             <button onClick={() => window.navigateTo('home')} style={styles.btnPrimary}>
-              Browse Providers
+              Browse Experts
             </button>
           </div>
         ) : (

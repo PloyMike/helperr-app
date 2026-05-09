@@ -290,7 +290,7 @@ function Helperr() {
             fontSize: window.innerWidth <= 768 ? 36 : 60,
             fontWeight: window.innerWidth <= 768 ? 700 : 800
           }}>Find Local Experts</h1>
-          <p style={styles.heroSub}>Book verified local guides, instructors & service providers</p>
+          <p style={styles.heroSub}>Book verified local guides, instructors & experts</p>
           {userLocation && !locationError && (
             <p style={{ color: '#d1fae5', fontSize: 14, margin: '8px 0 0' }}>
               📍 Showing results near you
