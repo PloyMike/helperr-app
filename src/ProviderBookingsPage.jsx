@@ -187,7 +187,7 @@ function ProviderBookingsPage() {
         <div style={styles.loginRequired}>
           <h2>Login Required</h2>
           <p>Please login to view your provider bookings</p>
-          <button onClick={() => window.navigateTo('login')} style={styles.btnPrimary}>
+          <button onClick={() => window.location.href = '/login?redirect=/provider-bookings'} style={styles.btnPrimary}>
             Login
           </button>
         </div>
