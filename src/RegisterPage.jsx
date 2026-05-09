@@ -326,7 +326,7 @@ function RegisterPage() {
           ← Back to Home
         </button>
 
-        <h1 style={styles.title}>Become a Provider</h1>
+        <h1 style={styles.title}>Become an Expert</h1>
         <p style={styles.subtitle}>Create your account and start offering services</p>
 
         <form onSubmit={handleSubmit}>
