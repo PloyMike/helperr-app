@@ -153,7 +153,7 @@ const BOOKING_ACCEPTED_TEMPLATE = `<!DOCTYPE html>
 <p style="margin:0 0 30px;color:#374151"><strong>{{{provider_name}}}</strong> has accepted your booking!</p>
 <table width="100%" style="background:#f0fdf4;border-radius:8px;padding:20px;margin-bottom:30px;border-left:4px solid #059669">
 <tr><td>
-<p style="margin:0 0 10px"><strong>Customer:</strong> {{{customer_name}}}</p>
+<p style="margin:0 0 10px"><strong>Expert:</strong> {{{provider_name}}}</p>
 <p style="margin:0 0 10px"><strong>Date:</strong> {{{booking_date}}}</p>
 <p style="margin:0 0 10px"><strong>Time:</strong> {{{time_slot}}}</p>
 <p style="margin:0"><strong>Location:</strong> {{{address}}}</p>
@@ -179,7 +179,7 @@ const BOOKING_CANCELLED_48H_TEMPLATE = `<!DOCTYPE html>
 <p style="margin:0 0 30px">Your booking was automatically cancelled (no response within 48h).</p>
 <table width="100%" style="background:#fef2f2;border-radius:8px;padding:20px;margin-bottom:30px;border-left:4px solid #DC2626">
 <tr><td>
-<p style="margin:0 0 10px"><strong>Customer:</strong> {{{customer_name}}}</p>
+<p style="margin:0 0 10px"><strong>Expert:</strong> {{{provider_name}}}</p>
 <p style="margin:0 0 10px"><strong>Date:</strong> {{{booking_date}}}</p>
 <p style="margin:0"><strong>Time:</strong> {{{time_slot}}}</p>
 </td></tr></table>
@@ -229,7 +229,7 @@ const BOOKING_CANCELLED_BY_PROVIDER_TEMPLATE = `<!DOCTYPE html>
 <p style="margin:0 0 30px"><strong>{{{provider_name}}}</strong> had to cancel your booking.</p>
 <table width="100%" style="background:#fef2f2;border-radius:8px;padding:20px;margin-bottom:30px;border-left:4px solid #DC2626">
 <tr><td>
-<p style="margin:0 0 10px"><strong>Customer:</strong> {{{customer_name}}}</p>
+<p style="margin:0 0 10px"><strong>Expert:</strong> {{{provider_name}}}</p>
 <p style="margin:0 0 10px"><strong>Date:</strong> {{{booking_date}}}</p>
 <p style="margin:0"><strong>Time:</strong> {{{time_slot}}}</p>
 </td></tr></table>
