@@ -172,10 +172,10 @@ const BOOKING_CANCELLED_48H_TEMPLATE = `<!DOCTYPE html>
 <table width="600" style="background:#fff;border-radius:12px">
 <tr><td style="background:linear-gradient(135deg,#DC2626,#B91C1C);padding:40px 30px;text-align:center">
 <img src="https://helperr.co/logo.jpeg" style="height:60px;margin-bottom:15px">
-<h1 style="margin:0;color:#fff;font-size:28px">❌ Booking Cancelled by Customer</h1>
+<h1 style="margin:0;color:#fff;font-size:28px">❌ Booking Cancelled - No Response</h1>
 </td></tr>
 <tr><td style="padding:40px 30px">
-<p style="margin:0 0 20px">Hi <strong>{{{provider_name}}}</strong>,</p>
+<p style="margin:0 0 20px">Hi <strong>{{{customer_name}}}</strong>,</p>
 <p style="margin:0 0 30px">Your booking was automatically cancelled (no response within 48h).</p>
 <table width="100%" style="background:#fef2f2;border-radius:8px;padding:20px;margin-bottom:30px;border-left:4px solid #DC2626">
 <tr><td>
@@ -222,10 +222,10 @@ const BOOKING_CANCELLED_BY_PROVIDER_TEMPLATE = `<!DOCTYPE html>
 <table width="600" style="background:#fff;border-radius:12px">
 <tr><td style="background:linear-gradient(135deg,#DC2626,#B91C1C);padding:40px 30px;text-align:center">
 <img src="https://helperr.co/logo.jpeg" style="height:60px;margin-bottom:15px">
-<h1 style="margin:0;color:#fff;font-size:28px">❌ Booking Cancelled by Customer</h1>
+<h1 style="margin:0;color:#fff;font-size:28px">❌ Booking Cancelled by Provider</h1>
 </td></tr>
 <tr><td style="padding:40px 30px">
-<p style="margin:0 0 20px">Hi <strong>{{{provider_name}}}</strong>,</p>
+<p style="margin:0 0 20px">Hi <strong>{{{customer_name}}}</strong>,</p>
 <p style="margin:0 0 30px"><strong>{{{provider_name}}}</strong> had to cancel your booking.</p>
 <table width="100%" style="background:#fef2f2;border-radius:8px;padding:20px;margin-bottom:30px;border-left:4px solid #DC2626">
 <tr><td>
