@@ -103,7 +103,7 @@ const BOOKING_CONFIRMATION_TEMPLATE = `<!DOCTYPE html>
 <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-radius:8px;padding:20px;margin-bottom:30px">
 <tr><td>
 <p style="margin:0 0 12px;color:#6b7280;font-size:14px;font-weight:600">BOOKING DETAILS</p>
-<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Provider:</strong> {{{provider_name}}}</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Expert:</strong> {{{provider_name}}}</p>
 <p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Service:</strong> {{{service}}}</p>
 <p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Date:</strong> {{{booking_date}}}</p>
 <p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Time:</strong> {{{time_slot}}}</p>
@@ -131,7 +131,7 @@ const WELCOME_EMAIL_TEMPLATE = `<!DOCTYPE html>
 </td></tr>
 <tr><td style="padding:40px 30px">
 <p style="margin:0 0 20px;color:#374151;font-size:16px">Hi <strong>{{{user_name}}}</strong>,</p>
-<p style="margin:0 0 30px;color:#374151;font-size:16px">Thanks for joining! Find trusted local service providers.</p>
+<p style="margin:0 0 30px;color:#374151;font-size:16px">Thanks for joining! Find trusted local experts.</p>
 <table width="100%"><tr><td align="center" style="padding:20px 0">
 <a href="https://helperr.co" style="display:inline-block;background:linear-gradient(135deg,#14B8A6 0%,#0D9488 100%);color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600">Start Browsing</a>
 </td></tr></table>
@@ -184,7 +184,7 @@ const BOOKING_CANCELLED_48H_TEMPLATE = `<!DOCTYPE html>
 <p style="margin:0"><strong>Time:</strong> {{{time_slot}}}</p>
 </td></tr></table>
 <table width="100%"><tr><td align="center" style="padding:20px 0">
-<a href="https://helperr.co" style="display:inline-block;background:linear-gradient(135deg,#14B8A6,#0D9488);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600">Find Another Provider</a>
+<a href="https://helperr.co" style="display:inline-block;background:linear-gradient(135deg,#14B8A6,#0D9488);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600">Find Another Expert</a>
 </td></tr></table>
 </td></tr>
 </table>
@@ -200,16 +200,16 @@ const BOOKING_DECLINED_TEMPLATE = `<!DOCTYPE html>
 <h1 style="margin:0;color:#fff;font-size:28px">Booking Declined</h1>
 </td></tr>
 <tr><td style="padding:40px 30px">
-<p style="margin:0 0 20px">Hi <strong>{{{provider_name}}}</strong>,</p>
+<p style="margin:0 0 20px">Hi <strong>{{{customer_name}}}</strong>,</p>
 <p style="margin:0 0 30px"><strong>{{{provider_name}}}</strong> was unable to accept your booking.</p>
 <table width="100%" style="background:#fffbeb;border-radius:8px;padding:20px;margin-bottom:30px;border-left:4px solid #F59E0B">
 <tr><td>
-<p style="margin:0 0 10px"><strong>Customer:</strong> {{{customer_name}}}</p>
+<p style="margin:0 0 10px"><strong>Expert:</strong> {{{provider_name}}}</p>
 <p style="margin:0 0 10px"><strong>Date:</strong> {{{booking_date}}}</p>
 <p style="margin:0"><strong>Time:</strong> {{{time_slot}}}</p>
 </td></tr></table>
 <table width="100%"><tr><td align="center" style="padding:20px 0">
-<a href="https://helperr.co" style="display:inline-block;background:linear-gradient(135deg,#14B8A6,#0D9488);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600">Browse Providers</a>
+<a href="https://helperr.co" style="display:inline-block;background:linear-gradient(135deg,#14B8A6,#0D9488);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600">Browse Experts</a>
 </td></tr></table>
 </td></tr>
 </table>
@@ -234,7 +234,7 @@ const BOOKING_CANCELLED_BY_PROVIDER_TEMPLATE = `<!DOCTYPE html>
 <p style="margin:0"><strong>Time:</strong> {{{time_slot}}}</p>
 </td></tr></table>
 <table width="100%"><tr><td align="center" style="padding:20px 0">
-<a href="https://helperr.co" style="display:inline-block;background:linear-gradient(135deg,#14B8A6,#0D9488);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600">Find Another Provider</a>
+<a href="https://helperr.co" style="display:inline-block;background:linear-gradient(135deg,#14B8A6,#0D9488);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600">Find Another Expert</a>
 </td></tr></table>
 </td></tr>
 </table>
@@ -259,7 +259,7 @@ const BOOKING_CANCELLED_BY_CUSTOMER_TEMPLATE = `<!DOCTYPE html>
 <p style="margin:0"><strong>Time:</strong> {{{time_slot}}}</p>
 </td></tr></table>
 <table width="100%"><tr><td align="center" style="padding:20px 0">
-<a href="https://helperr.co" style="display:inline-block;background:linear-gradient(135deg,#14B8A6,#0D9488);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600">Browse Providers</a>
+<a href="https://helperr.co" style="display:inline-block;background:linear-gradient(135deg,#14B8A6,#0D9488);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600">Browse Experts</a>
 </td></tr></table>
 </td></tr>
 </table>
@@ -346,12 +346,12 @@ const CUSTOMER_CANCELLATION_CONFIRMATION = `<!DOCTYPE html>
 <p style="margin:0 0 30px">Your booking has been successfully cancelled.</p>
 <table width="100%" style="background:#f9fafb;border-radius:8px;padding:20px;margin-bottom:30px;border-left:4px solid #14B8A6">
 <tr><td>
-<p style="margin:0 0 10px"><strong>Provider:</strong> {{{provider_name}}}</p>
+<p style="margin:0 0 10px"><strong>Expert:</strong> {{{provider_name}}}</p>
 <p style="margin:0 0 10px"><strong>Date:</strong> {{{booking_date}}}</p>
 <p style="margin:0"><strong>Time:</strong> {{{time_slot}}}</p>
 </td></tr></table>
 <table width="100%"><tr><td align="center" style="padding:20px 0">
-<a href="https://helperr.co" style="display:inline-block;background:linear-gradient(135deg,#14B8A6,#0D9488);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600">Browse Providers</a>
+<a href="https://helperr.co" style="display:inline-block;background:linear-gradient(135deg,#14B8A6,#0D9488);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600">Browse Experts</a>
 </td></tr></table>
 </td></tr>
 </table>
