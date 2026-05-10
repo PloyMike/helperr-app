@@ -722,7 +722,7 @@ function BookingCalendar({ profile, onClose }) {
               
               <div style={styles.summary}>
                 <div style={styles.summaryRow}>
-                  <span style={styles.summaryLabel}>Provider:</span>
+                  <span style={styles.summaryLabel}>Expert:</span>
                   <span style={styles.summaryValue}>{profile.name}</span>
                 </div>
                 <div style={styles.summaryRow}>
@@ -833,7 +833,7 @@ function BookingCalendar({ profile, onClose }) {
                     ...styles.textarea,
                     ...(isMobile ? { height: 50, minHeight: 50 } : {})
                   }} 
-                  placeholder="Any special requests or notes for the provider..." 
+                  placeholder="Any special requests or notes for the expert..." 
                   rows={4}
                 />
               </div>

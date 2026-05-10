@@ -403,7 +403,7 @@ function Helperr() {
                 )}
                 <div>
                   <h2 style={{ margin: 0, fontSize: 24 }}>{selected.name}</h2>
-                  <p style={{ color: '#6b7280', margin: '4px 0' }}>{selected.subcategory}</p>
+                  <p style={{ color: '#6b7280', margin: '4px 0' }}>{selected.job ? `${selected.job} · ` : ''}{selected.subcategory}</p>
                   {selected.distance < 999 && (
                     <p style={{ color: '#065f46', fontSize: 13, fontWeight: 600, margin: '4px 0' }}>
                       📍 {selected.distance.toFixed(1)} km away
@@ -442,7 +442,7 @@ function Helperr() {
                     fontFamily: '"Outfit", sans-serif'
                   }}
                 >
-                  Message Provider
+                  Message
                 </button>
                 <button 
                   onClick={() => setShowBooking(true)} 
@@ -519,7 +519,7 @@ function DistanceRow({ title, profiles, onSelect }) {
                   <h3 style={styles.cardName}>{p.name}</h3>
                   {p.verified && <span style={styles.verified}>✓</span>}
                 </div>
-                <p style={styles.cardSub}>{p.subcategory || p.category}</p>
+                <p style={styles.cardSub}>{p.job ? `${p.job} · ` : ''}{p.subcategory || p.category}</p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
                   <span style={{ color: '#f59e0b' }}>⭐</span>
                   <span style={{ fontSize: 12, color: '#6b7280' }}>
@@ -628,3 +628,4 @@ const styles = {
 };
 
 export default Helperr;
+
