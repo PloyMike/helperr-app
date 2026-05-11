@@ -45,7 +45,6 @@ function SignupPage() {
             <div style={styles.formGroup}>
               <label style={styles.label}>Full Name</label>
               <div style={styles.inputWrapper}>
-                <span style={styles.inputIcon}>👤</span>
                 <input 
                   required 
                   type="text" 
@@ -60,7 +59,6 @@ function SignupPage() {
             <div style={styles.formGroup}>
               <label style={styles.label}>Email Address</label>
               <div style={styles.inputWrapper}>
-                <span style={styles.inputIcon}>📧</span>
                 <input 
                   required 
                   type="email" 
@@ -75,7 +73,6 @@ function SignupPage() {
             <div style={styles.formGroup}>
               <label style={styles.label}>Password</label>
               <div style={styles.inputWrapper}>
-                <span style={styles.inputIcon}>🔒</span>
                 <input 
                   required 
                   type="password" 
@@ -225,7 +222,7 @@ const styles = {
   },
   input: {
     width: '100%',
-    padding: '14px 16px 14px 48px',
+    padding: '14px 16px',
     border: '2px solid #e5e7eb',
     borderRadius: 12,
     fontSize: 15,
