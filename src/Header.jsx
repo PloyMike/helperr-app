@@ -298,7 +298,7 @@ function Header({ transparent, isScrolled }) {
                         height: 18,
                         padding: '0 5px',
                         fontSize: 11,
-                        fontWeight: 700,
+                        fontWeight: 400,
                         display: 'inline-flex',
                         alignItems: 'center',
                         justifyContent: 'center'
@@ -322,7 +322,7 @@ function Header({ transparent, isScrolled }) {
                         height: 18,
                         padding: '0 5px',
                         fontSize: 11,
-                        fontWeight: 700,
+                        fontWeight: 400,
                         display: 'inline-flex',
                         alignItems: 'center',
                         justifyContent: 'center'
@@ -347,7 +347,7 @@ function Header({ transparent, isScrolled }) {
                           height: 18,
                           padding: '0 5px',
                           fontSize: 11,
-                          fontWeight: 700,
+                          fontWeight: 400,
                           display: 'inline-flex',
                           alignItems: 'center',
                           justifyContent: 'center'
@@ -587,7 +587,7 @@ function Header({ transparent, isScrolled }) {
                     height: 20,
                     padding: '0 6px',
                     fontSize: 11,
-                    fontWeight: 700,
+                    fontWeight: 400,
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center'
@@ -609,7 +609,7 @@ function Header({ transparent, isScrolled }) {
                   height: 20,
                   padding: '0 6px',
                   fontSize: 11,
-                  fontWeight: 700,
+                  fontWeight: 400,
                   display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center'
@@ -632,7 +632,7 @@ function Header({ transparent, isScrolled }) {
                     height: 20,
                     padding: '0 6px',
                     fontSize: 11,
-                    fontWeight: 700,
+                    fontWeight: 400,
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center'
