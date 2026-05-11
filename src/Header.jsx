@@ -642,7 +642,6 @@ function Header({ transparent, isScrolled }) {
                 )}
               </button>
               )}
-              <div style={styles.menuDivider}></div>
               <button onClick={() => { closeMobileMenu(); window.navigateTo('edit-profile'); }} style={styles.mobileMenuItem}>
                 Edit Profile
               </button>
@@ -654,7 +653,6 @@ function Header({ transparent, isScrolled }) {
               <button onClick={() => { closeMobileMenu(); window.navigateTo('dashboard'); }} style={styles.mobileMenuItem}>
                 Dashboard
               </button>
-              <div style={styles.menuDivider}></div>
               <button 
                 onClick={() => setShowMobileLanguageDropdown(!showMobileLanguageDropdown)} 
                 style={{
