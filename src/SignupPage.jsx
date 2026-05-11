@@ -97,7 +97,7 @@ function SignupPage() {
                 ...(loading ? styles.submitBtnLoading : {})
               }}
             >
-              {loading ? '⏳ Creating account...' : 'Create Account'}
+              {loading ? 'Creating account...' : 'Create Account'}
             </button>
 
             <div style={styles.divider}>

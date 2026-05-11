@@ -273,7 +273,7 @@ function Helperr() {
   };
 
   if (loading) {
-    return <div style={styles.loading}><div style={{ fontSize: 48 }}>🔍</div><h2>Loading experts...</h2></div>;
+    return <div style={styles.loading}><h2>Loading experts...</h2></div>;
   }
 
   return (
@@ -574,7 +574,7 @@ const styles = {
     pointerEvents: 'none'
   },
   app: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh' },
-  loading: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 },
+  loading: { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: '#6b7280' },
   hero: { 
     background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 70%, #14b8a6 100%)', 
     padding: '100px 20px 64px', 

@@ -96,7 +96,7 @@ function LoginPage() {
                 ...(loading ? styles.submitBtnLoading : {})
               }}
             >
-              {loading ? '⏳ Signing in...' : 'Sign In'}
+              {loading ? 'Signing in...' : 'Sign In'}
             </button>
 
             <div style={styles.divider}>

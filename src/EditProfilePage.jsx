@@ -368,7 +368,6 @@ function EditProfilePage() {
       <div style={styles.app}>
         <Header transparent={true} isScrolled={isScrolled} />
         <div style={styles.loading}>
-          <div style={{ fontSize: 48 }}>✏️</div>
           <h2>Loading profile...</h2>
         </div>
       </div>
@@ -612,7 +611,7 @@ function EditProfilePage() {
 
 const styles = {
   app: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh', paddingTop: 0 },
-  loading: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 },
+  loading: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: '#6b7280' },
   hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 70%, #14b8a6 100%)', padding: '120px 20px 64px', marginBottom: 40, position: 'relative', overflow: 'hidden', clipPath: 'ellipse(120% 100% at 50% 0%)' },
   heroInner: { maxWidth: 800, margin: '0 auto', textAlign: 'center' },
   heroTitle: { color: '#fff', fontSize: 42, fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.02em' },

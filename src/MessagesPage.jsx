@@ -211,8 +211,7 @@ function MessagesPage() {
       <div style={styles.page}>
         <Header />
         <div style={styles.loading}>
-          <div style={{ fontSize: 48 }}>💬</div>
-          <p>Loading messages...</p>
+          <h2>Loading messages...</h2>
         </div>
       </div>
     );
@@ -310,7 +309,6 @@ function MessagesPage() {
           <div style={styles.chatArea}>
             {!selectedConversation ? (
               <div style={styles.emptyChat}>
-                <div style={styles.emptyChatIcon}>💬</div>
                 <h3 style={styles.emptyChatTitle}>Your Messages</h3>
                 <p style={styles.emptyChatText}>Select a conversation to start chatting</p>
               </div>

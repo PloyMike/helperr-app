@@ -252,7 +252,7 @@ function FavoritesPage() {
 
 const styles = {
   page: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh', paddingTop: 80 },
-  loading: { minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 },
+  loading: { minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: '#6b7280' },
   container: { maxWidth: 1200, margin: '0 auto', padding: '40px 20px' },
   title: { fontSize: 32, fontWeight: 800, marginBottom: 32, color: '#111827' },
   empty: { textAlign: 'center', padding: '80px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 },

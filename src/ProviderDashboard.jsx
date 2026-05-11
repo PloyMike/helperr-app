@@ -117,7 +117,7 @@ function ProviderDashboard() {
     return (
       <div style={styles.page}>
         <Header />
-        <div style={styles.loading}>Loading dashboard...</div>
+        <div style={styles.loading}><h2>Loading dashboard...</h2></div>
       </div>
     );
   }
@@ -340,13 +340,7 @@ const styles = {
     minHeight: '100vh', 
     paddingTop: 70 
   },
-  loading: { 
-    minHeight: '60vh', 
-    display: 'flex', 
-    alignItems: 'center', 
-    justifyContent: 'center', 
-    fontSize: 18 
-  },
+  loading: { minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: '#6b7280' },
   container: { 
     maxWidth: 1200, 
     margin: '0 auto', 
@@ -607,3 +601,4 @@ const styles = {
 };
 
 export default ProviderDashboard;
+
