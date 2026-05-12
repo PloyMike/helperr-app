@@ -108,6 +108,8 @@ function MyBookings() {
                   provider_name: booking.profiles?.name || 'Provider',
                   booking_date: booking.booking_date,
                   time_slot: booking.time_slot,
+                  service: booking.service_name,
+                  address: booking.service_address,
                 },
               }),
             });
