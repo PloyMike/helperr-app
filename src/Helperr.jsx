@@ -18,7 +18,7 @@ function Helperr() {
   const [userCountry, setUserCountry] = useState(null);
   const [locationError, setLocationError] = useState(false);
 
-  const CATEGORIES = ['All', 'Nanny', 'Plumber', 'Handyman', 'Electrician', 'Massage', 'Pool Boy', 'Gardener', 'Petsitter', 'AC Cleaner', 'Water Delivery', 'Private Cook'];
+  const CATEGORIES = ['All', 'Yoga & Fitness', 'Cooking Classes', 'Beauty & Spa', 'Photography', 'Teaching & Tutoring', 'Home Services', 'Transportation', 'Diving & Water Sports', 'Other'];
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
