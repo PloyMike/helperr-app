@@ -705,7 +705,6 @@ function Header({ transparent, isScrolled }) {
                 </div>
               )}
 
-              <div style={styles.menuDivider}></div>
               <button onClick={handleLogout} style={styles.mobileMenuLogout}>
                     Logout
                   </button>
@@ -719,7 +718,6 @@ function Header({ transparent, isScrolled }) {
                     Sign Up
                   </button>
                   
-                  <div style={styles.menuDivider}></div>
                   
                   <button 
                     onClick={() => setShowMobileLanguageDropdown(!showMobileLanguageDropdown)} 
