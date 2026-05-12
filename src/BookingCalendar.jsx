@@ -215,6 +215,7 @@ function BookingCalendar({ profile, onClose }) {
           ? `GPS Location: ${gpsLocation.latitude.toFixed(6)}, ${gpsLocation.longitude.toFixed(6)}`
           : `${address.street} ${address.houseNumber}, ${address.postalCode} ${address.city}`,
         address_notes: address.notes,
+        service_name: profile.subcategory || profile.job || "Service",
         location_type: locationMethod,
         gps_latitude: locationMethod === 'gps' ? gpsLocation.latitude : null,
         gps_longitude: locationMethod === 'gps' ? gpsLocation.longitude : null,
