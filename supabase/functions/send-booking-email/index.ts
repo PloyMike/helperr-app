@@ -86,7 +86,6 @@ function getTemplateHtml(template: string, vars: any): string {
   return html
 }
 
-// Email Templates
 const BOOKING_CONFIRMATION_TEMPLATE = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background-color:#f3f4f6">
@@ -115,7 +114,7 @@ const BOOKING_CONFIRMATION_TEMPLATE = `<!DOCTYPE html>
 </td></tr>
 <tr><td style="background-color:#f9fafb;padding:30px;text-align:center;border-top:1px solid #e5e7eb">
 <p style="margin:0 0 10px;color:#6b7280;font-size:14px">Need help? Email <a href="mailto:support@helperr.co" style="color:#14B8A6">support@helperr.co</a></p>
-<p style="margin:0;color:#9ca3af;font-size:12px">© 2025 Helperr</p>
+<p style="margin:0;color:#9ca3af;font-size:12px">©️ 2025 Helperr</p>
 </td></tr>
 </table>
 </td></tr></table>
@@ -141,126 +140,170 @@ const WELCOME_EMAIL_TEMPLATE = `<!DOCTYPE html>
 </body></html>`
 
 const BOOKING_ACCEPTED_TEMPLATE = `<!DOCTYPE html>
-<html><body style="margin:0;padding:0;font-family:sans-serif;background-color:#f3f4f6">
-<table width="100%" style="padding:40px 20px"><tr><td align="center">
-<table width="600" style="background:#fff;border-radius:12px">
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background-color:#f3f4f6">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;padding:40px 20px">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.1);overflow:hidden">
 <tr><td style="background:linear-gradient(135deg,#059669 0%,#047857 100%);padding:40px 30px;text-align:center">
-<img src="https://helperr.co/logo.jpeg" style="height:60px;margin-bottom:15px">
-<h1 style="margin:0;color:#fff;font-size:28px">✓ Booking Accepted!</h1>
+<img src="https://helperr.co/logo.jpeg" alt="Helperr" style="height:60px;margin-bottom:15px">
+<h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700">✓ Booking Accepted!</h1>
 </td></tr>
 <tr><td style="padding:40px 30px">
-<p style="margin:0 0 20px;color:#374151">Great news, <strong>{{{customer_name}}}</strong>!</p>
-<p style="margin:0 0 30px;color:#374151"><strong>{{{provider_name}}}</strong> has accepted your booking!</p>
-<table width="100%" style="background:#f0fdf4;border-radius:8px;padding:20px;margin-bottom:30px;border-left:4px solid #059669">
+<p style="margin:0 0 20px;color:#374151;font-size:16px">Great news, <strong>{{{customer_name}}}</strong>!</p>
+<p style="margin:0 0 30px;color:#374151;font-size:16px"><strong>{{{provider_name}}}</strong> has accepted your booking!</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-radius:8px;padding:20px;margin-bottom:30px">
 <tr><td>
-<p style="margin:0 0 10px"><strong>Expert:</strong> {{{provider_name}}}</p>
-<p style="margin:0 0 10px"><strong>Date:</strong> {{{booking_date}}}</p>
-<p style="margin:0 0 10px"><strong>Time:</strong> {{{time_slot}}}</p>
-<p style="margin:0"><strong>Location:</strong> {{{address}}}</p>
+<p style="margin:0 0 12px;color:#6b7280;font-size:14px;font-weight:600">BOOKING DETAILS</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Expert:</strong> {{{provider_name}}}</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Service:</strong> {{{service}}}</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Date:</strong> {{{booking_date}}}</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Time:</strong> {{{time_slot}}}</p>
+<p style="margin:0;color:#111827;font-size:16px"><strong>Location:</strong> {{{address}}}</p>
 </td></tr></table>
 <table width="100%"><tr><td align="center" style="padding:20px 0">
-<a href="https://helperr.co/my-bookings" style="display:inline-block;background:linear-gradient(135deg,#059669,#047857);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600">View Details</a>
+<a href="https://helperr.co/my-bookings" style="display:inline-block;background:linear-gradient(135deg,#059669,#047857);color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600;font-size:16px">View Details</a>
 </td></tr></table>
+</td></tr>
+<tr><td style="background-color:#f9fafb;padding:30px;text-align:center;border-top:1px solid #e5e7eb">
+<p style="margin:0 0 10px;color:#6b7280;font-size:14px">Need help? Email <a href="mailto:support@helperr.co" style="color:#14B8A6">support@helperr.co</a></p>
+<p style="margin:0;color:#9ca3af;font-size:12px">©️ 2025 Helperr</p>
 </td></tr>
 </table>
 </td></tr></table>
 </body></html>`
 
 const BOOKING_CANCELLED_48H_TEMPLATE = `<!DOCTYPE html>
-<html><body style="margin:0;padding:0;font-family:sans-serif;background:#f3f4f6">
-<table width="100%" style="padding:40px 20px"><tr><td align="center">
-<table width="600" style="background:#fff;border-radius:12px">
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background-color:#f3f4f6">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;padding:40px 20px">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.1);overflow:hidden">
 <tr><td style="background:linear-gradient(135deg,#DC2626,#B91C1C);padding:40px 30px;text-align:center">
-<img src="https://helperr.co/logo.jpeg" style="height:60px;margin-bottom:15px">
-<h1 style="margin:0;color:#fff;font-size:28px">❌ Booking Cancelled - No Response</h1>
+<img src="https://helperr.co/logo.jpeg" alt="Helperr" style="height:60px;margin-bottom:15px">
+<h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700">❌ Booking Cancelled - No Response</h1>
 </td></tr>
 <tr><td style="padding:40px 30px">
-<p style="margin:0 0 20px">Hi <strong>{{{customer_name}}}</strong>,</p>
-<p style="margin:0 0 30px">Your booking was automatically cancelled (no response within 48h).</p>
-<table width="100%" style="background:#fef2f2;border-radius:8px;padding:20px;margin-bottom:30px;border-left:4px solid #DC2626">
+<p style="margin:0 0 20px;color:#374151;font-size:16px">Hi <strong>{{{customer_name}}}</strong>,</p>
+<p style="margin:0 0 30px;color:#374151;font-size:16px">Your booking was automatically cancelled (no response within 48h).</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-radius:8px;padding:20px;margin-bottom:30px">
 <tr><td>
-<p style="margin:0 0 10px"><strong>Expert:</strong> {{{provider_name}}}</p>
-<p style="margin:0 0 10px"><strong>Date:</strong> {{{booking_date}}}</p>
-<p style="margin:0"><strong>Time:</strong> {{{time_slot}}}</p>
+<p style="margin:0 0 12px;color:#6b7280;font-size:14px;font-weight:600">BOOKING DETAILS</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Expert:</strong> {{{provider_name}}}</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Service:</strong> {{{service}}}</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Date:</strong> {{{booking_date}}}</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Time:</strong> {{{time_slot}}}</p>
+<p style="margin:0;color:#111827;font-size:16px"><strong>Location:</strong> {{{address}}}</p>
 </td></tr></table>
 <table width="100%"><tr><td align="center" style="padding:20px 0">
-<a href="https://helperr.co" style="display:inline-block;background:linear-gradient(135deg,#14B8A6,#0D9488);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600">Find Another Expert</a>
+<a href="https://helperr.co" style="display:inline-block;background:linear-gradient(135deg,#14B8A6,#0D9488);color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600;font-size:16px">Find Another Expert</a>
 </td></tr></table>
+</td></tr>
+<tr><td style="background-color:#f9fafb;padding:30px;text-align:center;border-top:1px solid #e5e7eb">
+<p style="margin:0 0 10px;color:#6b7280;font-size:14px">Need help? Email <a href="mailto:support@helperr.co" style="color:#14B8A6">support@helperr.co</a></p>
+<p style="margin:0;color:#9ca3af;font-size:12px">©️ 2025 Helperr</p>
 </td></tr>
 </table>
 </td></tr></table>
 </body></html>`
 
 const BOOKING_DECLINED_TEMPLATE = `<!DOCTYPE html>
-<html><body style="margin:0;padding:0;font-family:sans-serif;background:#f3f4f6">
-<table width="100%" style="padding:40px 20px"><tr><td align="center">
-<table width="600" style="background:#fff;border-radius:12px">
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background-color:#f3f4f6">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;padding:40px 20px">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.1);overflow:hidden">
 <tr><td style="background:linear-gradient(135deg,#F59E0B,#D97706);padding:40px 30px;text-align:center">
-<img src="https://helperr.co/logo.jpeg" style="height:60px;margin-bottom:15px">
-<h1 style="margin:0;color:#fff;font-size:28px">Booking Declined</h1>
+<img src="https://helperr.co/logo.jpeg" alt="Helperr" style="height:60px;margin-bottom:15px">
+<h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700">Booking Declined</h1>
 </td></tr>
 <tr><td style="padding:40px 30px">
-<p style="margin:0 0 20px">Hi <strong>{{{customer_name}}}</strong>,</p>
-<p style="margin:0 0 30px"><strong>{{{provider_name}}}</strong> was unable to accept your booking.</p>
-<table width="100%" style="background:#fffbeb;border-radius:8px;padding:20px;margin-bottom:30px;border-left:4px solid #F59E0B">
+<p style="margin:0 0 20px;color:#374151;font-size:16px">Hi <strong>{{{customer_name}}}</strong>,</p>
+<p style="margin:0 0 30px;color:#374151;font-size:16px"><strong>{{{provider_name}}}</strong> was unable to accept your booking.</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-radius:8px;padding:20px;margin-bottom:30px">
 <tr><td>
-<p style="margin:0 0 10px"><strong>Expert:</strong> {{{provider_name}}}</p>
-<p style="margin:0 0 10px"><strong>Date:</strong> {{{booking_date}}}</p>
-<p style="margin:0"><strong>Time:</strong> {{{time_slot}}}</p>
+<p style="margin:0 0 12px;color:#6b7280;font-size:14px;font-weight:600">BOOKING DETAILS</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Expert:</strong> {{{provider_name}}}</strong>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Service:</strong> {{{service}}}</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Date:</strong> {{{booking_date}}}</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Time:</strong> {{{time_slot}}}</p>
+<p style="margin:0;color:#111827;font-size:16px"><strong>Location:</strong> {{{address}}}</p>
 </td></tr></table>
 <table width="100%"><tr><td align="center" style="padding:20px 0">
-<a href="https://helperr.co" style="display:inline-block;background:linear-gradient(135deg,#14B8A6,#0D9488);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600">Browse Experts</a>
+<a href="https://helperr.co" style="display:inline-block;background:linear-gradient(135deg,#14B8A6,#0D9488);color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600;font-size:16px">Browse Experts</a>
 </td></tr></table>
+</td></tr>
+<tr><td style="background-color:#f9fafb;padding:30px;text-align:center;border-top:1px solid #e5e7eb">
+<p style="margin:0 0 10px;color:#6b7280;font-size:14px">Need help? Email <a href="mailto:support@helperr.co" style="color:#14B8A6">support@helperr.co</a></p>
+<p style="margin:0;color:#9ca3af;font-size:12px">©️ 2025 Helperr</p>
 </td></tr>
 </table>
 </td></tr></table>
 </body></html>`
 
 const BOOKING_CANCELLED_BY_PROVIDER_TEMPLATE = `<!DOCTYPE html>
-<html><body style="margin:0;padding:0;font-family:sans-serif;background:#f3f4f6">
-<table width="100%" style="padding:40px 20px"><tr><td align="center">
-<table width="600" style="background:#fff;border-radius:12px">
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background-color:#f3f4f6">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;padding:40px 20px">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.1);overflow:hidden">
 <tr><td style="background:linear-gradient(135deg,#DC2626,#B91C1C);padding:40px 30px;text-align:center">
-<img src="https://helperr.co/logo.jpeg" style="height:60px;margin-bottom:15px">
-<h1 style="margin:0;color:#fff;font-size:28px">❌ Booking Cancelled by Provider</h1>
+<img src="https://helperr.co/logo.jpeg" alt="Helperr" style="height:60px;margin-bottom:15px">
+<h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700">❌ Booking Cancelled by Provider</h1>
 </td></tr>
 <tr><td style="padding:40px 30px">
-<p style="margin:0 0 20px">Hi <strong>{{{customer_name}}}</strong>,</p>
-<p style="margin:0 0 30px"><strong>{{{provider_name}}}</strong> had to cancel your booking.</p>
-<table width="100%" style="background:#fef2f2;border-radius:8px;padding:20px;margin-bottom:30px;border-left:4px solid #DC2626">
+<p style="margin:0 0 20px;color:#374151;font-size:16px">Hi <strong>{{{customer_name}}}</strong>,</p>
+<p style="margin:0 0 30px;color:#374151;font-size:16px"><strong>{{{provider_name}}}</strong> had to cancel your booking.</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-radius:8px;padding:20px;margin-bottom:30px">
 <tr><td>
-<p style="margin:0 0 10px"><strong>Expert:</strong> {{{provider_name}}}</p>
-<p style="margin:0 0 10px"><strong>Date:</strong> {{{booking_date}}}</p>
-<p style="margin:0"><strong>Time:</strong> {{{time_slot}}}</p>
+<p style="margin:0 0 12px;color:#6b7280;font-size:14px;font-weight:600">BOOKING DETAILS</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Expert:</strong> {{{provider_name}}}</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Service:</strong> {{{service}}}</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Date:</strong> {{{booking_date}}}</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Time:</strong> {{{time_slot}}}</p>
+<p style="margin:0;color:#111827;font-size:16px"><strong>Location:</strong> {{{address}}}</p>
 </td></tr></table>
 <table width="100%"><tr><td align="center" style="padding:20px 0">
-<a href="https://helperr.co" style="display:inline-block;background:linear-gradient(135deg,#14B8A6,#0D9488);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600">Find Another Expert</a>
+<a href="https://helperr.co" style="display:inline-block;background:linear-gradient(135deg,#14B8A6,#0D9488);color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600;font-size:16px">Find Another Expert</a>
 </td></tr></table>
+</td></tr>
+<tr><td style="background-color:#f9fafb;padding:30px;text-align:center;border-top:1px solid #e5e7eb">
+<p style="margin:0 0 10px;color:#6b7280;font-size:14px">Need help? Email <a href="mailto:support@helperr.co" style="color:#14B8A6">support@helperr.co</a></p>
+<p style="margin:0;color:#9ca3af;font-size:12px">©️ 2025 Helperr</p>
 </td></tr>
 </table>
 </td></tr></table>
 </body></html>`
 
 const BOOKING_CANCELLED_BY_CUSTOMER_TEMPLATE = `<!DOCTYPE html>
-<html><body style="margin:0;padding:0;font-family:sans-serif;background:#f3f4f6">
-<table width="100%" style="padding:40px 20px"><tr><td align="center">
-<table width="600" style="background:#fff;border-radius:12px">
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background-color:#f3f4f6">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;padding:40px 20px">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.1);overflow:hidden">
 <tr><td style="background:linear-gradient(135deg,#DC2626,#991B1B);padding:40px 30px;text-align:center">
-<img src="https://helperr.co/logo.jpeg" style="height:60px;margin-bottom:15px">
-<h1 style="margin:0;color:#fff;font-size:28px">❌ Booking Cancelled by Customer</h1>
+<img src="https://helperr.co/logo.jpeg" alt="Helperr" style="height:60px;margin-bottom:15px">
+<h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700">❌ Booking Cancelled by Customer</h1>
 </td></tr>
 <tr><td style="padding:40px 30px">
-<p style="margin:0 0 20px">Hi <strong>{{{provider_name}}}</strong>,</p>
-<p style="margin:0 0 30px"><strong>{{{customer_name}}}</strong> has cancelled their booking with you.</p>
-<table width="100%" style="background:#f9fafb;border-radius:8px;padding:20px;margin-bottom:30px;border-left:4px solid #DC2626">
+<p style="margin:0 0 20px;color:#374151;font-size:16px">Hi <strong>{{{provider_name}}}</strong>,</p>
+<p style="margin:0 0 30px;color:#374151;font-size:16px"><strong>{{{customer_name}}}</strong> has cancelled their booking with you.</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-radius:8px;padding:20px;margin-bottom:30px">
 <tr><td>
-<p style="margin:0 0 10px"><strong>Customer:</strong> {{{customer_name}}}</p>
-<p style="margin:0 0 10px"><strong>Date:</strong> {{{booking_date}}}</p>
-<p style="margin:0"><strong>Time:</strong> {{{time_slot}}}</p>
+<p style="margin:0 0 12px;color:#6b7280;font-size:14px;font-weight:600">BOOKING DETAILS</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Customer:</strong> {{{customer_name}}}</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Service:</strong> {{{service}}}</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Date:</strong> {{{booking_date}}}</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Time:</strong> {{{time_slot}}}</p>
+<p style="margin:0;color:#111827;font-size:16px"><strong>Location:</strong> {{{address}}}</p>
 </td></tr></table>
 <table width="100%"><tr><td align="center" style="padding:20px 0">
-<a href="https://helperr.co" style="display:inline-block;background:linear-gradient(135deg,#14B8A6,#0D9488);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600">Browse Experts</a>
+<a href="https://helperr.co/provider-bookings" style="display:inline-block;background:linear-gradient(135deg,#14B8A6,#0D9488);color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600;font-size:16px">View My Bookings</a>
 </td></tr></table>
+</td></tr>
+<tr><td style="background-color:#f9fafb;padding:30px;text-align:center;border-top:1px solid #e5e7eb">
+<p style="margin:0 0 10px;color:#6b7280;font-size:14px">Need help? Email <a href="mailto:support@helperr.co" style="color:#14B8A6">support@helperr.co</a></p>
+<p style="margin:0;color:#9ca3af;font-size:12px">©️ 2025 Helperr</p>
 </td></tr>
 </table>
 </td></tr></table>
@@ -295,7 +338,7 @@ const NEW_BOOKING_REQUEST_TEMPLATE = `<!DOCTYPE html>
 </td></tr>
 <tr><td style="background-color:#f9fafb;padding:30px;text-align:center;border-top:1px solid #e5e7eb">
 <p style="margin:0 0 10px;color:#6b7280;font-size:14px">Need help? Email <a href="mailto:support@helperr.co" style="color:#14B8A6">support@helperr.co</a></p>
-<p style="margin:0;color:#9ca3af;font-size:12px">© 2025 Helperr</p>
+<p style="margin:0;color:#9ca3af;font-size:12px">©️ 2025 Helperr</p>
 </td></tr>
 </table>
 </td></tr></table>
@@ -314,12 +357,14 @@ const BOOKING_CANCELLED_NOTIFICATION_PROVIDER = `<!DOCTYPE html>
 <tr><td style="padding:40px 30px">
 <p style="margin:0 0 20px;color:#374151;font-size:16px">Hi <strong>{{{provider_name}}}</strong>,</p>
 <p style="margin:0 0 30px;color:#374151;font-size:16px"><strong>{{{customer_name}}}</strong> has cancelled their booking.</p>
-<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#FEE2E2;border-radius:8px;padding:20px;margin-bottom:30px">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-radius:8px;padding:20px;margin-bottom:30px">
 <tr><td>
-<p style="margin:0 0 12px;color:#991B1B;font-size:14px;font-weight:600">CANCELLED BOOKING</p>
+<p style="margin:0 0 12px;color:#6b7280;font-size:14px;font-weight:600">BOOKING DETAILS</p>
 <p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Customer:</strong> {{{customer_name}}}</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Service:</strong> {{{service}}}</p>
 <p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Date:</strong> {{{booking_date}}}</p>
-<p style="margin:0;color:#111827;font-size:16px"><strong>Time:</strong> {{{time_slot}}}</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Time:</strong> {{{time_slot}}}</p>
+<p style="margin:0;color:#111827;font-size:16px"><strong>Location:</strong> {{{address}}}</p>
 </td></tr></table>
 <table width="100%"><tr><td align="center" style="padding:20px 0">
 <a href="https://helperr.co/provider-bookings" style="display:inline-block;background:linear-gradient(135deg,#14B8A6 0%,#0D9488 100%);color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600;font-size:16px">View My Bookings</a>
@@ -327,32 +372,41 @@ const BOOKING_CANCELLED_NOTIFICATION_PROVIDER = `<!DOCTYPE html>
 </td></tr>
 <tr><td style="background-color:#f9fafb;padding:30px;text-align:center;border-top:1px solid #e5e7eb">
 <p style="margin:0 0 10px;color:#6b7280;font-size:14px">Need help? Email <a href="mailto:support@helperr.co" style="color:#14B8A6">support@helperr.co</a></p>
-<p style="margin:0;color:#9ca3af;font-size:12px">© 2025 Helperr</p>
+<p style="margin:0;color:#9ca3af;font-size:12px">©️ 2025 Helperr</p>
 </td></tr>
 </table>
 </td></tr></table>
 </body></html>`
 
 const CUSTOMER_CANCELLATION_CONFIRMATION = `<!DOCTYPE html>
-<html><body style="margin:0;padding:0;font-family:sans-serif;background:#f3f4f6">
-<table width="100%" style="padding:40px 20px"><tr><td align="center">
-<table width="600" style="background:#fff;border-radius:12px">
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background-color:#f3f4f6">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f3f4f6;padding:40px 20px">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.1);overflow:hidden">
 <tr><td style="background:linear-gradient(135deg,#14B8A6,#0D9488);padding:40px 30px;text-align:center">
-<img src="https://helperr.co/logo.jpeg" style="height:60px;margin-bottom:15px">
-<h1 style="margin:0;color:#fff;font-size:28px">✓ Cancellation Confirmed</h1>
+<img src="https://helperr.co/logo.jpeg" alt="Helperr" style="height:60px;margin-bottom:15px">
+<h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:700">✓ Cancellation Confirmed</h1>
 </td></tr>
 <tr><td style="padding:40px 30px">
-<p style="margin:0 0 20px">Hi <strong>{{{customer_name}}}</strong>,</p>
-<p style="margin:0 0 30px">Your booking has been successfully cancelled.</p>
-<table width="100%" style="background:#f9fafb;border-radius:8px;padding:20px;margin-bottom:30px;border-left:4px solid #14B8A6">
+<p style="margin:0 0 20px;color:#374151;font-size:16px">Hi <strong>{{{customer_name}}}</strong>,</p>
+<p style="margin:0 0 30px;color:#374151;font-size:16px">Your booking has been successfully cancelled.</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-radius:8px;padding:20px;margin-bottom:30px">
 <tr><td>
-<p style="margin:0 0 10px"><strong>Expert:</strong> {{{provider_name}}}</p>
-<p style="margin:0 0 10px"><strong>Date:</strong> {{{booking_date}}}</p>
-<p style="margin:0"><strong>Time:</strong> {{{time_slot}}}</p>
+<p style="margin:0 0 12px;color:#6b7280;font-size:14px;font-weight:600">BOOKING DETAILS</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Expert:</strong> {{{provider_name}}}</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Service:</strong> {{{service}}}</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Date:</strong> {{{booking_date}}}</p>
+<p style="margin:0 0 10px;color:#111827;font-size:16px"><strong>Time:</strong> {{{time_slot}}}</p>
+<p style="margin:0;color:#111827;font-size:16px"><strong>Location:</strong> {{{address}}}</p>
 </td></tr></table>
 <table width="100%"><tr><td align="center" style="padding:20px 0">
-<a href="https://helperr.co" style="display:inline-block;background:linear-gradient(135deg,#14B8A6,#0D9488);color:#fff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600">Browse Experts</a>
+<a href="https://helperr.co" style="display:inline-block;background:linear-gradient(135deg,#14B8A6,#0D9488);color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:600;font-size:16px">Browse Experts</a>
 </td></tr></table>
+</td></tr>
+<tr><td style="background-color:#f9fafb;padding:30px;text-align:center;border-top:1px solid #e5e7eb">
+<p style="margin:0 0 10px;color:#6b7280;font-size:14px">Need help? Email <a href="mailto:support@helperr.co" style="color:#14B8A6">support@helperr.co</a></p>
+<p style="margin:0;color:#9ca3af;font-size:12px">©️ 2025 Helperr</p>
 </td></tr>
 </table>
 </td></tr></table>
