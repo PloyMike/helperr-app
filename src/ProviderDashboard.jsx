@@ -307,7 +307,7 @@ function ProviderDashboard() {
                   <div style={styles.bookingInfo}>
                     <div style={styles.bookingName}>{booking.customer_name}</div>
                     <div style={styles.bookingDate}>
-                      {new Date(booking.date).toLocaleDateString('en-US', { 
+                      {new Date(booking.booking_date).toLocaleDateString('en-US', { 
                         month: 'short', 
                         day: 'numeric', 
                         year: 'numeric' 
