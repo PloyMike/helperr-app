@@ -92,8 +92,8 @@ function ProviderBookingsPage() {
               booking_date: booking.booking_date,
               time_slot: booking.time_slot,
               address: booking.service_address,
-            },
               service: booking.service_name,
+            },
           }),
         });
       } catch (emailError) {
