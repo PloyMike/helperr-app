@@ -465,7 +465,7 @@ function MyBookings() {
                       <div>
                         <span style={styles.infoLabel}>Service Address</span>
                         <span style={styles.infoValue}>
-                          {booking.service_address}
+                          {booking.service_address?.startsWith("GPS Location:") ? (() => { const coords = booking.service_address.replace("GPS Location: ", "").split(", "); return <a href={`https://www.google.com/maps?q=${coords[0]},${coords[1]}`} target="_blank" rel="noopener noreferrer" style={{ color: "#14B8A6", textDecoration: "underline" }}>📍 {booking.service_address}</a>; })() : booking.service_address}
                           {booking.address_notes && <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>Note: {booking.address_notes}</div>}
                         </span>
                       </div>
