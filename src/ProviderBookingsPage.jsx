@@ -25,7 +25,7 @@ function ProviderBookingsPage() {
       if (user) {
         const { data } = await supabase
           .from('profiles')
-          .select('id, name')
+          .select('id, name, email')
           .eq('email', user.email)
           .single();
         
@@ -78,21 +78,21 @@ function ProviderBookingsPage() {
 
       if (error) throw error;
 
-      // Send acceptance email
+      // Send confirmation email
       try {
         await fetch('https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email', {
           method: 'POST',
           headers: { "Content-Type": "application/json", "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dWF0b2pwa2x1eWlkcGVmenViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTI1MzcsImV4cCI6MjA4Njk2ODUzN30.l9IOEIzM3Z6abB87ZOERYBcYNgFWIIRju0bUxyWrNgY", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dWF0b2pwa2x1eWlkcGVmenViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTI1MzcsImV4cCI6MjA4Njk2ODUzN30.l9IOEIzM3Z6abB87ZOERYBcYNgFWIIRju0bUxyWrNgY" },
           body: JSON.stringify({
-            template: 'booking-accepted',
+            template: 'booking-confirmed',
             to: booking.customer_email,
             variables: {
               customer_name: booking.customer_name,
               provider_name: userProfile.name,
               booking_date: booking.booking_date,
               time_slot: booking.time_slot,
-              address: booking.service_address,
               service: booking.service_name,
+              address: booking.service_address,
             },
           }),
         });
@@ -155,6 +155,19 @@ function ProviderBookingsPage() {
     }
   };
 
+  const handleArchive = async (bookingId) => {
+    if (!window.confirm("Archive this booking? It will be hidden from your list.")) return;
+    
+    try {
+      const { error } = await supabase.from("bookings").update({ status: "archived" }).eq("id", bookingId);
+      if (error) throw error;
+      fetchBookings();
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Error archiving booking");
+    }
+  };
+
   const getStatusColor = (status) => {
     switch(status) {
       case 'confirmed': return '#065f46';
@@ -173,9 +186,11 @@ function ProviderBookingsPage() {
     }
   };
 
-  const filteredBookings = bookings.filter(b => 
-    statusFilter === 'all' || b.status === statusFilter
-  );
+  const filteredBookings = bookings.filter(b => {
+    if (statusFilter === "archived") return b.status === "archived";
+    if (statusFilter === "all") return b.status !== "archived";
+    return b.status === statusFilter;
+  });
 
   if (!user) {
     return (
@@ -184,35 +199,14 @@ function ProviderBookingsPage() {
         <div style={styles.hero}>
           <div style={styles.heroInner}>
             <h1 style={styles.heroTitle}>Expert Bookings</h1>
-            <p style={styles.heroSub}>Manage bookings for your services</p>
+            <p style={styles.heroSub}>Manage your customer bookings</p>
           </div>
         </div>
         <div style={styles.loginRequired}>
           <h2>Login Required</h2>
-          <p>Please login to view your expert bookings</p>
-          <button onClick={() => window.location.href = '/login?redirect=/provider-bookings'} style={styles.btnPrimary}>
+          <p>Please login to view your bookings</p>
+          <button onClick={() => window.navigateTo('login')} style={styles.btnPrimary}>
             Login
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!userProfile) {
-    return (
-      <div style={styles.app}>
-        <Header transparent={true} isScrolled={isScrolled} />
-        <div style={styles.hero}>
-          <div style={styles.heroInner}>
-            <h1 style={styles.heroTitle}>Expert Bookings</h1>
-            <p style={styles.heroSub}>Manage bookings for your services</p>
-          </div>
-        </div>
-        <div style={styles.noProfile}>
-          <h2>No Provider Profile</h2>
-          <p>Create a provider profile to receive bookings</p>
-          <button onClick={() => window.navigateTo('edit-profile')} style={styles.btnPrimary}>
-            Create Profile
           </button>
         </div>
       </div>
@@ -224,7 +218,6 @@ function ProviderBookingsPage() {
       <div style={styles.app}>
         <Header transparent={true} isScrolled={isScrolled} />
         <div style={styles.loading}>
-          
           <h2>Loading bookings...</h2>
         </div>
       </div>
@@ -239,13 +232,13 @@ function ProviderBookingsPage() {
       <div style={styles.hero}>
         <div style={styles.heroInner}>
           <h1 style={styles.heroTitle}>Expert Bookings</h1>
-          <p style={styles.heroSub}>Manage bookings for your services</p>
+          <p style={styles.heroSub}>Manage your customer bookings</p>
         </div>
       </div>
 
       <div style={styles.container}>
         <div style={styles.filters}>
-          {['all', 'pending', 'confirmed', 'cancelled'].map(status => (
+          {['all', 'pending', 'confirmed', 'cancelled', 'archived'].map(status => (
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
@@ -261,14 +254,13 @@ function ProviderBookingsPage() {
 
         {filteredBookings.length === 0 ? (
           <div style={styles.empty}>
-            
             <h3>No bookings found</h3>
             <p>You don't have any {statusFilter !== 'all' ? statusFilter : ''} bookings yet</p>
           </div>
         ) : (
           <div style={styles.grid}>
             {filteredBookings.map(booking => (
-              <div key={booking.id} style={styles.card}>
+              <div key={booking.id} style={{...styles.card, position: "relative"}}>
                 <div style={styles.cardHeader}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                     <div style={styles.customerPlaceholder}>
@@ -282,11 +274,11 @@ function ProviderBookingsPage() {
                   <span style={{...styles.statusBadge, background: getStatusColor(booking.status)}}>
                     {getStatusLabel(booking.status)}
                   </span>
+                  <button onClick={() => handleArchive(booking.id)} style={styles.archiveBtn} title="Archive booking">✕</button>
                 </div>
 
                 <div style={styles.cardBody}>
                   <div style={styles.infoRow}>
-                    
                     <div>
                       <span style={styles.infoLabel}>Date</span>
                       <span style={styles.infoValue}>{new Date(booking.booking_date).toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span>
@@ -294,48 +286,32 @@ function ProviderBookingsPage() {
                   </div>
 
                   <div style={styles.infoRow}>
-                    
                     <div>
                       <span style={styles.infoLabel}>Time</span>
                       <span style={styles.infoValue}>{booking.time_slot}</span>
                     </div>
                   </div>
 
-                  <div style={styles.infoRow}>
-                    
-                    <div>
-                      <span style={styles.infoLabel}>Address</span>
-                      <span style={styles.infoValue}>
-                        {booking.service_address?.startsWith("GPS Location:") ? (() => { const coords = booking.service_address.replace("GPS Location: ", "").split(", "); return <a href={`https://www.google.com/maps?q=${coords[0]},${coords[1]}`} target="_blank" rel="noopener noreferrer" style={{ color: "#14B8A6", textDecoration: "underline" }}>📍 {booking.service_address}</a>; })() : (booking.service_address || "No address provided")}
-                        {booking.address_notes && <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>Note: {booking.address_notes}</div>}
-                      </span>
+                  {booking.service_address && (
+                    <div style={styles.infoRow}>
+                      <div>
+                        <span style={styles.infoLabel}>Address</span>
+                        <span style={styles.infoValue}>
+                          {booking.service_address?.startsWith("GPS Location:") ? (() => { const coords = booking.service_address.replace("GPS Location: ", "").split(", "); return <a href={`https://www.google.com/maps?q=${coords[0]},${coords[1]}`} target="_blank" rel="noopener noreferrer" style={{ color: "#14B8A6", textDecoration: "underline" }}>📍 {booking.service_address}</a>; })() : (booking.service_address || "No address provided")}
+                          {booking.address_notes && <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>Note: {booking.address_notes}</div>}
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   <div style={styles.infoRow}>
-                    
                     <div>
                       <span style={styles.infoLabel}>Contact</span>
-                      <button 
-                        onClick={() => window.navigateTo('messages')}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#065f46',
-                          fontSize: 15,
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          textDecoration: 'underline',
-                          padding: 0
-                        }}
-                      >
-                        Contact via Helperr Messages
-                      </button>
+                      <span style={styles.infoValue}>{booking.customer_email}</span>
                     </div>
                   </div>
 
                   <div style={styles.infoRow}>
-                    
                     <div>
                       <span style={styles.infoLabel}>Price</span>
                       <span style={styles.infoValue}>{booking.total_price}</span>
@@ -387,22 +363,21 @@ const styles = {
   customerPlaceholder: { width: 48, height: 48, borderRadius: 12, background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 20, fontWeight: 700 },
   cardTitle: { margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' },
   cardSub: { margin: '4px 0 0', fontSize: 13, color: '#6b7280' },
-  statusBadge: { padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, color: 'white' },
+  statusBadge: { padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, color: 'white', marginRight: 32 },
+  archiveBtn: { position: "absolute", top: 20, right: 12, background: "rgba(107, 114, 128, 0.1)", border: "none", borderRadius: "50%", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 14, color: "#6b7280", transition: "all 0.2s", zIndex: 10 },
   cardBody: { padding: 20 },
   infoRow: { display: 'flex', gap: 12, marginBottom: 12, alignItems: 'flex-start' },
-  infoIcon: { fontSize: 18 },
   infoLabel: { display: 'block', fontSize: 12, color: '#6b7280', fontWeight: 600 },
   infoValue: { display: 'block', fontSize: 14, color: '#111827', fontWeight: 500, marginTop: 2 },
   messageBox: { marginTop: 16, padding: 12, background: '#f9fafb', borderRadius: 10 },
   messageText: { margin: '4px 0 0', fontSize: 13, color: '#374151', lineHeight: 1.6 },
-  cardActions: { padding: '0 20px 20px' },
+  cardActions: { padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: 8 },
   btnAccept: { flex: 1, padding: '12px', background: '#065f46', color: 'white', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)' },
   btnDecline: { flex: 1, padding: '12px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' },
   empty: { textAlign: 'center', padding: '60px 20px', background: 'white', borderRadius: 16, border: '1.5px solid #e5e7eb', boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)' },
   btnPrimary: { padding: '12px 24px', background: '#065f46', color: 'white', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', marginTop: 16 },
-  loading: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16 },
-  loginRequired: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 20 },
-  noProfile: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 20 }
+  loading: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: '#6b7280' },
+  loginRequired: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 20 }
 };
 
 export default ProviderBookingsPage;

@@ -300,6 +300,19 @@ function MyBookings() {
     }
   };
 
+  const handleArchive = async (bookingId) => {
+    if (!window.confirm("Archive this booking? It will be hidden from your list.")) return;
+    
+    try {
+      const { error } = await supabase.from("bookings").update({ status: "archived" }).eq("id", bookingId);
+      if (error) throw error;
+      fetchBookings();
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Error archiving booking");
+    }
+  };
+
   const getStatusColor = (booking) => {
     const status = booking.status;
     switch(status) {
@@ -329,9 +342,11 @@ function MyBookings() {
     }
   };
 
-  const filteredBookings = bookings.filter(b => 
-    statusFilter === 'all' || b.status === statusFilter
-  );
+  const filteredBookings = bookings.filter(b => {
+    if (statusFilter === "archived") return b.status === "archived";
+    if (statusFilter === "all") return b.status !== "archived";
+    return b.status === statusFilter;
+  });
 
   if (!user) {
     return (
@@ -382,7 +397,7 @@ function MyBookings() {
         
 
         <div style={styles.filters}>
-          {['all', 'pending', 'confirmed', 'cancelled'].map(status => (
+          {['all', 'pending', 'confirmed', 'cancelled', 'archived'].map(status => (
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
@@ -410,7 +425,7 @@ function MyBookings() {
         ) : (
           <div style={styles.grid}>
             {filteredBookings.map(booking => (
-              <div key={booking.id} style={styles.card}>
+              <div key={booking.id} style={{...styles.card, position: "relative"}}>
                 <div style={styles.cardHeader}>
                   {true ? (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -440,6 +455,7 @@ function MyBookings() {
                   <span style={{...styles.statusBadge, background: getStatusColor(booking)}}>
                     {getStatusLabel(booking)}
                   </span>
+                  <button onClick={() => handleArchive(booking.id)} style={styles.archiveBtn} title="Archive booking">✕</button>
                 </div>
 
                 <div style={styles.cardBody}>
@@ -614,7 +630,8 @@ const styles = {
   providerPlaceholder: { width: 48, height: 48, borderRadius: 12, background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 20, fontWeight: 700 },
   cardTitle: { margin: 0, fontSize: 16, fontWeight: 700, color: '#111827' },
   cardSub: { margin: '4px 0 0', fontSize: 13, color: '#6b7280' },
-  statusBadge: { padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, color: 'white' },
+  statusBadge: { padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 700, color: 'white', marginRight: 32 },
+  archiveBtn: { position: "absolute", top: 20, right: 12, background: "rgba(107, 114, 128, 0.1)", border: "none", borderRadius: "50%", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 14, color: "#6b7280", transition: "all 0.2s", zIndex: 10 },
   cardBody: { padding: 20 },
   infoRow: { display: 'flex', gap: 12, marginBottom: 12, alignItems: 'flex-start' },
   infoIcon: { fontSize: 18 },
