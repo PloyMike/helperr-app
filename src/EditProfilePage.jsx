@@ -29,6 +29,24 @@ function EditProfilePage() {
     image_url: ''
   });
 
+  const handleDeleteAccount = async () => {
+    if (!window.confirm("Are you absolutely sure? This will permanently delete your account, all your bookings, and reviews. This action cannot be undone.")) return;
+    if (!window.confirm("Last warning: Delete your account forever?")) return;
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      
+      await supabase.from("profiles").delete().eq("email", user.email);
+      await supabase.auth.signOut();
+      alert("Account deleted successfully");
+      window.navigateTo("home");
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Error deleting account");
+    }
+  };
+
   const subcategories = {
     'Massage & Wellness': ['Traditional Thai Massage', 'Oil Massage', 'Foot Massage', 'Aromatherapy', 'Deep Tissue', 'Sports Massage'],
     'Tours & Adventures': ['Island Tours', 'Snorkeling', 'Diving', 'Kayaking', 'Hiking', 'Food Tours', 'Cultural Tours'],
@@ -603,6 +621,14 @@ function EditProfilePage() {
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
+
+        <div style={{ marginTop: 40, paddingTop: 40, borderTop: "2px solid #fee2e2" }}>
+          <h3 style={{ color: "#dc2626", marginBottom: 12 }}>Warning</h3>
+          <p style={{ color: "#6b7280", fontSize: 14, marginBottom: 16 }}>Once you delete your account, there is no going back. Please be certain.</p>
+          <button type="button" onClick={handleDeleteAccount} style={styles.btnDanger}>
+            Delete Account
+          </button>
+        </div>
         </form>
       </div>
     </div>
@@ -628,6 +654,7 @@ const styles = {
   checkboxTitle: { fontWeight: 600, color: '#1F2937', fontSize: 14 },
   checkboxSub: { fontSize: 12, color: '#6B7280', marginTop: 2 },
   btnPrimary: { padding: '14px 24px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 12, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6,95,70,0.3)' },
+  btnDanger: { padding: '12px 24px', background: '#dc2626', color: 'white', border: 'none', borderRadius: 12, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' },
   btnSecondary: { padding: '14px 24px', background: 'white', color: '#374151', border: '2px solid #E5E7EB', borderRadius: 12, fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(0, 0, 0, 0.06)', transition: 'all 0.2s' },
   loginRequired: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 20 },
   noProfile: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 20 }
