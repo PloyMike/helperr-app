@@ -8,7 +8,6 @@ function MyBookings() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
-  // Removed viewMode - customer only now
   const [userProfile, setUserProfile] = useState(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
@@ -20,7 +19,6 @@ function MyBookings() {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   
-  // Check if booking is expired (48 hours after booking CREATION)
   const isBookingExpired = (booking) => {
     if (booking.status !== 'pending') return false;
     
@@ -74,13 +72,11 @@ function MyBookings() {
   }, [user]);
 
   
-  // Auto-cancel expired bookings (48h after creation)
   const autoCancelExpiredBookings = async () => {
     try {
       const fortyEightHoursAgo = new Date();
       fortyEightHoursAgo.setHours(fortyEightHoursAgo.getHours() - 48);
       
-      // Get expired bookings first
       const { data: expiredBookings } = await supabase
         .from('bookings')
         .select('*, profiles(name, email)')
@@ -88,18 +84,21 @@ function MyBookings() {
         .lt('created_at', fortyEightHoursAgo.toISOString());
       
       if (expiredBookings && expiredBookings.length > 0) {
-        // Cancel each booking and send email
+        const { data: { session } } = await supabase.auth.getSession();
+        
         for (const booking of expiredBookings) {
           await supabase
             .from('bookings')
             .update({ status: 'cancelled' })
             .eq('id', booking.id);
           
-          // Send 48h cancellation email
           try {
             await fetch('https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dWF0b2pwa2x1eWlkcGVmenViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTI1MzcsImV4cCI6MjA4Njk2ODUzN30.l9IOEIzM3Z6abB87ZOERYBcYNgFWIIRju0bUxyWrNgY', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dWF0b2pwa2x1eWlkcGVmenViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTI1MzcsImV4cCI6MjA4Njk2ODUzN30.l9IOEIzM3Z6abB87ZOERYBcYNgFWIIRju0bUxyWrNgY' },
+              headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session?.access_token}`
+              },
               body: JSON.stringify({
                 template: 'booking-cancelled-48h',
                 to: booking.customer_email,
@@ -133,7 +132,6 @@ function MyBookings() {
     try {
       let data;
 
-      // Auto-cancel expired bookings first
       await autoCancelExpiredBookings();
 
       if (true) {
@@ -165,7 +163,6 @@ function MyBookings() {
 
       setBookings(data || []);
       
-      // Check which bookings already have reviews
       const bookingIds = data?.map(b => b.id).filter(Boolean) || [];
       if (bookingIds.length > 0) {
         await checkExistingReviews(bookingIds);
@@ -219,7 +216,6 @@ function MyBookings() {
 
       if (error) throw error;
 
-      // Update profile rating
       const { data: existingReviews } = await supabase
         .from('reviews')
         .select('rating')
@@ -236,7 +232,7 @@ function MyBookings() {
         .eq('id', selectedBooking.profile_id);
 
       alert('Review submitted successfully!');
-      fetchBookings(); // Refresh to hide the review button
+      fetchBookings();
       setShowReviewModal(false);
       setReviewForm({ rating: 5, review_text: '', author_name: reviewForm.author_name });
       setSelectedBooking(null);
@@ -256,8 +252,51 @@ function MyBookings() {
       const { error } = await supabase.from('bookings').update({ status: 'cancelled' }).eq('id', bookingId);
       if (error) throw error;
 
-      try { await fetch("https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email", { method: "POST", headers: { "Content-Type": "application/json", "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dWF0b2pwa2x1eWlkcGVmenViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTI1MzcsImV4cCI6MjA4Njk2ODUzN30.l9IOEIzM3Z6abB87ZOERYBcYNgFWIIRju0bUxyWrNgY", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dWF0b2pwa2x1eWlkcGVmenViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTI1MzcsImV4cCI6MjA4Njk2ODUzN30.l9IOEIzM3Z6abB87ZOERYBcYNgFWIIRju0bUxyWrNgY" }, body: JSON.stringify({ template: "customer-cancellation-confirmation", to: booking.customer_email, variables: { customer_name: booking.customer_name, provider_name: booking.profiles?.name || "Provider", booking_date: booking.booking_date, time_slot: booking.time_slot, service: booking.service_name, address: booking.service_address } }) }); } catch (e) {}
-      try { await fetch("https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email", { method: "POST", headers: { "Content-Type": "application/json", "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dWF0b2pwa2x1eWlkcGVmenViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTI1MzcsImV4cCI6MjA4Njk2ODUzN30.l9IOEIzM3Z6abB87ZOERYBcYNgFWIIRju0bUxyWrNgY", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dWF0b2pwa2x1eWlkcGVmenViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTI1MzcsImV4cCI6MjA4Njk2ODUzN30.l9IOEIzM3Z6abB87ZOERYBcYNgFWIIRju0bUxyWrNgY" }, body: JSON.stringify({ template: "booking-cancelled-by-customer", to: booking.profiles?.email, variables: { customer_name: booking.customer_name, provider_name: booking.profiles?.name || "Provider", booking_date: booking.booking_date, time_slot: booking.time_slot, service: booking.service_name, address: booking.service_address } }) }); } catch (e) {}
+      const { data: { session } } = await supabase.auth.getSession();
+
+      try { 
+        await fetch("https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email", { 
+          method: "POST", 
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session?.access_token}`
+          }, 
+          body: JSON.stringify({ 
+            template: "customer-cancellation-confirmation", 
+            to: booking.customer_email, 
+            variables: { 
+              customer_name: booking.customer_name, 
+              provider_name: booking.profiles?.name || "Provider", 
+              booking_date: booking.booking_date, 
+              time_slot: booking.time_slot, 
+              service: booking.service_name, 
+              address: booking.service_address 
+            } 
+          }) 
+        }); 
+      } catch (e) {}
+      
+      try { 
+        await fetch("https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email", { 
+          method: "POST", 
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session?.access_token}`
+          }, 
+          body: JSON.stringify({ 
+            template: "booking-cancelled-by-customer", 
+            to: booking.profiles?.email, 
+            variables: { 
+              customer_name: booking.customer_name, 
+              provider_name: booking.profiles?.name || "Provider", 
+              booking_date: booking.booking_date, 
+              time_slot: booking.time_slot, 
+              service: booking.service_name, 
+              address: booking.service_address 
+            } 
+          }) 
+        }); 
+      } catch (e) {}
 
       alert('Booking cancelled');
       fetchBookings();
@@ -332,7 +371,6 @@ function MyBookings() {
     switch(status) {
       case 'confirmed': return '✓ Confirmed';
       case 'pending': 
-        // Check if expired
         const createdAt = new Date(booking.created_at);
         const now = new Date();
         const hoursSinceBooking = (now - createdAt) / (1000 * 60 * 60);
@@ -374,7 +412,6 @@ function MyBookings() {
       <div style={styles.app}>
         <Header transparent={true} isScrolled={isScrolled} />
         <div style={styles.loading}>
-          
           <h2>Loading bookings...</h2>
         </div>
       </div>
@@ -394,8 +431,6 @@ function MyBookings() {
       </div>
 
       <div style={styles.container}>
-        
-
         <div style={styles.filters}>
           {['all', 'pending', 'confirmed', 'cancelled', 'archived'].map(status => (
             <button
@@ -413,7 +448,6 @@ function MyBookings() {
 
         {filteredBookings.length === 0 ? (
           <div style={styles.empty}>
-            
             <h3>No bookings found</h3>
             <p>You don't have any {statusFilter !== 'all' ? statusFilter : ''} bookings yet</p>
             {true && (
@@ -460,7 +494,6 @@ function MyBookings() {
 
                 <div style={styles.cardBody}>
                   <div style={styles.infoRow}>
-                    
                     <div>
                       <span style={styles.infoLabel}>Date</span>
                       <span style={styles.infoValue}>{new Date(booking.booking_date).toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span>
@@ -468,7 +501,6 @@ function MyBookings() {
                   </div>
 
                   <div style={styles.infoRow}>
-                    
                     <div>
                       <span style={styles.infoLabel}>Time</span>
                       <span style={styles.infoValue}>{booking.time_slot}</span>
@@ -477,7 +509,6 @@ function MyBookings() {
 
                   {booking.service_address && (
                     <div style={styles.infoRow}>
-                      
                       <div>
                         <span style={styles.infoLabel}>Service Address</span>
                         <span style={styles.infoValue}>
@@ -488,18 +519,7 @@ function MyBookings() {
                     </div>
                   )}
 
-                  {false && (
-                    <div style={styles.infoRow}>
-                      
-                      <div>
-                        <span style={styles.infoLabel}>Contact</span>
-                        <span style={styles.infoValue}>{booking.customer_email}</span>
-                      </div>
-                    </div>
-                  )}
-
                   <div style={styles.infoRow}>
-                    
                     <div>
                       <span style={styles.infoLabel}>Price</span>
                       <span style={styles.infoValue}>{booking.total_price}</span>
@@ -526,17 +546,6 @@ function MyBookings() {
                       Write Review
                     </button>
                   )}
-                  
-                  {false && booking.status === 'pending' && (
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <button onClick={() => handleAccept(booking.id)} style={styles.btnAccept}>
-                        Accept
-                      </button>
-                      <button onClick={() => handleDecline(booking.id)} style={styles.btnDecline}>
-                        Decline
-                      </button>
-                    </div>
-                  )}
                 </div>
               </div>
             ))}
@@ -544,7 +553,6 @@ function MyBookings() {
         )}
       </div>
 
-      {/* Review Modal */}
       {showReviewModal && selectedBooking && (
         <div onClick={() => setShowReviewModal(false)} style={styles.modalBackdrop}>
           <div onClick={(e) => e.stopPropagation()} style={styles.modal}>
@@ -617,9 +625,6 @@ const styles = {
   heroTitle: { color: '#fff', fontSize: 42, fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.02em' },
   heroSub: { color: '#d1fae5', fontSize: 16, margin: 0 },
   container: { maxWidth: 1100, margin: '0 auto', padding: '0 20px 60px' },
-  viewToggle: { display: 'flex', gap: 12, marginBottom: 32, flexWrap: 'wrap', background: '#fff', padding: 20, borderRadius: 16, boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)' },
-  toggleBtn: { padding: '12px 24px', background: '#f9fafb', border: '2px solid #e5e7eb', borderRadius: 12, fontSize: 15, fontWeight: 600, color: '#6b7280', cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)' },
-  toggleBtnActive: { background: '#065f46', borderColor: '#065f46', color: 'white', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)', transform: 'translateY(-1px)' },
   filters: { display: 'flex', gap: 12, marginBottom: 32, flexWrap: 'wrap', background: '#fff', padding: 20, borderRadius: 16, boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)' },
   filterBtn: { padding: '10px 20px', background: '#f9fafb', border: '2px solid #e5e7eb', borderRadius: 10, fontSize: 14, fontWeight: 600, color: '#6b7280', cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)' },
   filterBtnActive: { background: '#065f46', borderColor: '#065f46', color: 'white', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)', transform: 'translateY(-1px)' },
@@ -634,7 +639,6 @@ const styles = {
   archiveBtn: { position: "absolute", top: 20, right: 12, background: "rgba(107, 114, 128, 0.1)", border: "none", borderRadius: "50%", width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 14, color: "#6b7280", transition: "all 0.2s", zIndex: 10 },
   cardBody: { padding: 20 },
   infoRow: { display: 'flex', gap: 12, marginBottom: 12, alignItems: 'flex-start' },
-  infoIcon: { fontSize: 18 },
   infoLabel: { display: 'block', fontSize: 12, color: '#6b7280', fontWeight: 600 },
   infoValue: { display: 'block', fontSize: 14, color: '#111827', fontWeight: 500, marginTop: 2 },
   messageBox: { marginTop: 16, padding: 12, background: '#f9fafb', borderRadius: 10 },
@@ -642,8 +646,6 @@ const styles = {
   cardActions: { padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: 8 },
   btnCancel: { width: '100%', padding: '12px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' },
   btnReview: { width: '100%', padding: '12px', background: '#065f46', color: 'white', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)' },
-  btnAccept: { flex: 1, padding: '12px', background: '#065f46', color: 'white', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)' },
-  btnDecline: { flex: 1, padding: '12px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' },
   empty: { textAlign: 'center', padding: '60px 20px', background: 'white', borderRadius: 16, border: '1.5px solid #e5e7eb', boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)' },
   btnPrimary: { padding: '12px 24px', background: '#065f46', color: 'white', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', marginTop: 16 },
   loading: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: '#6b7280' },
