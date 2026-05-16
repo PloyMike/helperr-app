@@ -18,7 +18,6 @@ function RegisterPage() {
     setLoading(true);
 
     try {
-      // 1. Sign up the user
       const { data: authData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -31,7 +30,6 @@ function RegisterPage() {
 
       if (signUpError) throw signUpError;
 
-      // 2. Create profile in profiles table
       const { error: profileError } = await supabase
         .from('profiles')
         .insert([{
@@ -45,7 +43,6 @@ function RegisterPage() {
         console.error('Profile creation error:', profileError);
       }
 
-      // 3. Send welcome email
       try {
         const { data: { session } } = await supabase.auth.getSession();
 
@@ -56,7 +53,7 @@ function RegisterPage() {
             "Authorization": `Bearer ${session?.access_token}`
           },
           body: JSON.stringify({
-            template: "welcome",
+            template: "welcome-email",
             to: email,
             variables: {
               user_name: name,
