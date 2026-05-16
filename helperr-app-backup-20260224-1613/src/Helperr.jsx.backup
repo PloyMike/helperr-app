@@ -1,0 +1,900 @@
+import { useState, useEffect, useRef, useCallback } from "react";
+
+/* ================================================================
+   HELPERR – Find Help Near You
+   Global marketplace for local services
+   ================================================================ */
+
+// ── SEO meta injection (Google-friendly) ──────────────────────────
+function injectSEO(city, job) {
+  const title = job && city
+    ? `${job} in ${city} finden – Helperr`
+    : city
+    ? `Lokale Helfer in ${city} – Helperr`
+    : "Helperr – Find Help Near You | Putzfrau, Babysitter, Masseur & mehr";
+
+  const desc = job && city
+    ? `${job} in ${city} direkt buchen. Verifizierte Anbieter, sichere Zahlung. Helperr – die weltweite Plattform für lokale Dienstleistungen.`
+    : "Finde Putzfrau, Babysitter, Masseur, Kellner, Fotograf & mehr in deiner Stadt. Verifiziert, sicher buchbar. Weltweit – Helperr.app";
+
+  document.title = title;
+  let meta = document.querySelector('meta[name="description"]');
+  if (!meta) { meta = document.createElement("meta"); meta.name = "description"; document.head.appendChild(meta); }
+  meta.content = desc;
+
+  // Open Graph for social sharing
+  const og = (prop, val) => {
+    let el = document.querySelector(`meta[property="${prop}"]`);
+    if (!el) { el = document.createElement("meta"); el.setAttribute("property", prop); document.head.appendChild(el); }
+    el.content = val;
+  };
+  og("og:title", title);
+  og("og:description", desc);
+  og("og:site_name", "Helperr");
+  og("og:type", "website");
+}
+
+// ── TRANSLATIONS ──────────────────────────────────────────────────
+const I18N = {
+  de: {
+    appName:"Helperr", tagline:"Find Help Near You",
+    heroTitle:"Finde Hilfe in deiner Nähe", heroSub:"Putzfrau, Babysitter, Masseur, Kellner, Fotograf — alles direkt buchbar in deiner Stadt.",
+    searchPlaceholder:"z.B. Putzfrau, Babysitter, Masseur, Kellner…",
+    nearby:"In deiner Nähe", worldwide:"Weltweit", results:"Ergebnisse",
+    experts:"Helfer", available:"Verfügbar", busy:"Ausgebucht",
+    viewProfile:"Profil ansehen →", verified:"Verifiziert", idPending:"ID ausstehend",
+    tabAbout:"Profil", tabPhotos:"Fotos & Video", tabDocs:"Dokumente", tabSocial:"Kontakt & Links", tabBook:"Buchen & Zahlen", tabReviews:"Bewertungen", tabDispute:"Problem melden",
+    photos:"Fotos", videoIntro:"Video-Vorstellung", cv:"Lebenslauf", certificate:"Arbeitszeugnis / Zertifikat",
+    noDoc:"Nicht hochgeladen", optionalDoc:"(optional)",
+    socialLinks:"Social Media & Kontakt",
+    whatsapp:"WhatsApp", line:"LINE", facebook:"Facebook", instagram:"Instagram", tiktok:"TikTok", telegram:"Telegram", grab:"Grab / Uber Profil",
+    bookNow:"Jetzt buchen", payWith:"Bezahlen mit", card:"Kreditkarte / SEPA", paypal:"PayPal", crypto:"Krypto",
+    yourPay:"Du zahlst", providerGets:"Anbieter erhält", platformFee:"Plattformgebühr (9%)",
+    bookingDone:"Buchung bestätigt! 🎉", bookingText:"Du erhältst eine E-Mail-Bestätigung. Der Anbieter wurde benachrichtigt.",
+    leaveReview:"Bewertung abgeben", submitReview:"Abschicken", reviewPlaceholder:"Wie war deine Erfahrung?",
+    disputeTitle:"Problem melden", disputeText:"Beschreibe das Problem. Unser Support antwortet innerhalb 24h.",
+    disputeSend:"Melden", disputeDone:"Danke! Wir melden uns bald.",
+    chatTitle:"Helperr Assistent", chatPlaceholder:"Wie kann ich helfen?", chatSend:"Senden",
+    chatWelcome:"👋 Hallo! Ich bin der Helperr-Assistent. Frag mich: Wie buche ich? Wie zahle ich? Sicherheit? Gebühren?",
+    legalStrip:"Helperr ist eine Vermittlungsplattform – kein Arbeitgeber. Alle Anbieter werden ID-verifiziert.",
+    terms:"AGB", imprint:"Impressum", changeLocation:"Standort ändern", detectGPS:"GPS",
+    noResults:"Keine Treffer für", noResultsSub:"Versuche einen anderen Begriff.", resetSearch:"Zurücksetzen",
+    done:"Fertig", cancel:"Abbrechen", confirm:"OK", send:"Senden",
+    locationPlaceholder:"Stadt eingeben…",
+    disclaimer:"Helperr vermittelt ausschließlich zwischen Kunden und Anbietern und ist nicht Vertragspartei. Helperr haftet nicht für Betrug oder Schäden durch Dritte, soweit zumutbare Schutzmaßnahmen getroffen wurden.",
+  },
+  en: {
+    appName:"Helperr", tagline:"Find Help Near You",
+    heroTitle:"Find Help Near You", heroSub:"Cleaner, babysitter, masseur, waiter, photographer — book verified locals in any city.",
+    searchPlaceholder:"e.g. cleaner, babysitter, masseur, waiter…",
+    nearby:"Near You", worldwide:"Worldwide", results:"Results",
+    experts:"Helpers", available:"Available", busy:"Booked Out",
+    viewProfile:"View Profile →", verified:"Verified", idPending:"ID Pending",
+    tabAbout:"Profile", tabPhotos:"Photos & Video", tabDocs:"Documents", tabSocial:"Contact & Links", tabBook:"Book & Pay", tabReviews:"Reviews", tabDispute:"Report Issue",
+    photos:"Photos", videoIntro:"Video Introduction", cv:"CV / Résumé", certificate:"Work Certificate / Diploma",
+    noDoc:"Not uploaded", optionalDoc:"(optional)",
+    socialLinks:"Social Media & Contact",
+    whatsapp:"WhatsApp", line:"LINE", facebook:"Facebook", instagram:"Instagram", tiktok:"TikTok", telegram:"Telegram", grab:"Grab / Uber Profile",
+    bookNow:"Book Now", payWith:"Pay with", card:"Credit Card / SEPA", paypal:"PayPal", crypto:"Crypto",
+    yourPay:"You pay", providerGets:"Provider receives", platformFee:"Platform fee (9%)",
+    bookingDone:"Booking Confirmed! 🎉", bookingText:"You'll receive an email confirmation. The provider has been notified.",
+    leaveReview:"Leave a Review", submitReview:"Submit", reviewPlaceholder:"How was your experience?",
+    disputeTitle:"Report a Problem", disputeText:"Describe the issue. Our support team responds within 24h.",
+    disputeSend:"Report", disputeDone:"Thank you! We'll be in touch soon.",
+    chatTitle:"Helperr Assistant", chatPlaceholder:"How can I help?", chatSend:"Send",
+    chatWelcome:"👋 Hello! I'm the Helperr assistant. Ask me: How do I book? How do I pay? Safety? Fees?",
+    legalStrip:"Helperr is a marketplace platform – not an employer. All providers are ID-verified.",
+    terms:"Terms", imprint:"Legal Notice", changeLocation:"Change location", detectGPS:"GPS",
+    noResults:"No results for", noResultsSub:"Try a different search term.", resetSearch:"Reset",
+    done:"Done", cancel:"Cancel", confirm:"OK", send:"Send",
+    locationPlaceholder:"Enter city…",
+    disclaimer:"Helperr acts solely as an intermediary between customers and providers and is not a party to any contract. Helperr is not liable for fraud or damages caused by third parties where reasonable precautions have been taken.",
+  },
+  th: {
+    appName:"Helperr", tagline:"Find Help Near You",
+    heroTitle:"หาความช่วยเหลือใกล้บ้านคุณ", heroSub:"แม่บ้าน พี่เลี้ยง นวดแผนไทย ไกด์ ช่างภาพ — จองได้เลยในเมืองของคุณ",
+    searchPlaceholder:"เช่น แม่บ้าน พี่เลี้ยง นวด ไกด์…",
+    nearby:"ใกล้คุณ", worldwide:"ทั่วโลก", results:"ผลลัพธ์",
+    experts:"ผู้ช่วย", available:"พร้อมบริการ", busy:"ไม่ว่าง",
+    viewProfile:"ดูโปรไฟล์ →", verified:"ยืนยันแล้ว", idPending:"รอยืนยัน",
+    tabAbout:"โปรไฟล์", tabPhotos:"รูปและวิดีโอ", tabDocs:"เอกสาร", tabSocial:"ติดต่อ", tabBook:"จองและชำระ", tabReviews:"รีวิว", tabDispute:"รายงานปัญหา",
+    photos:"รูปภาพ", videoIntro:"วิดีโอแนะนำตัว", cv:"เรซูเม่", certificate:"ใบรับรองการทำงาน",
+    noDoc:"ยังไม่ได้อัปโหลด", optionalDoc:"(ไม่บังคับ)",
+    socialLinks:"โซเชียลมีเดียและช่องทางติดต่อ",
+    whatsapp:"WhatsApp", line:"LINE", facebook:"Facebook", instagram:"Instagram", tiktok:"TikTok", telegram:"Telegram", grab:"Grab / Uber",
+    bookNow:"จองเลย", payWith:"ชำระด้วย", card:"บัตรเครดิต / SEPA", paypal:"PayPal", crypto:"คริปโต",
+    yourPay:"คุณจ่าย", providerGets:"ผู้ให้บริการได้รับ", platformFee:"ค่าธรรมเนียม (9%)",
+    bookingDone:"ยืนยันการจองแล้ว! 🎉", bookingText:"คุณจะได้รับการยืนยันทางอีเมล",
+    leaveReview:"เขียนรีวิว", submitReview:"ส่ง", reviewPlaceholder:"ประสบการณ์ของคุณเป็นอย่างไร?",
+    disputeTitle:"รายงานปัญหา", disputeText:"อธิบายปัญหา ทีมงานจะตอบภายใน 24 ชั่วโมง",
+    disputeSend:"รายงาน", disputeDone:"ขอบคุณ! เราจะติดต่อกลับเร็วๆ นี้",
+    chatTitle:"ผู้ช่วย Helperr", chatPlaceholder:"ฉันช่วยอะไรได้บ้าง?", chatSend:"ส่ง",
+    chatWelcome:"👋 สวัสดี! ฉันคือผู้ช่วย Helperr ถามฉันได้เลย: จองอย่างไร? ชำระอย่างไร? ความปลอดภัย?",
+    legalStrip:"Helperr เป็นแพลตฟอร์มนายหน้า ไม่ใช่นายจ้าง ผู้ให้บริการทุกคนต้องยืนยัน ID",
+    terms:"ข้อกำหนด", imprint:"ข้อมูลทางกฎหมาย", changeLocation:"เปลี่ยนตำแหน่ง", detectGPS:"GPS",
+    noResults:"ไม่พบ", noResultsSub:"ลองคำค้นหาอื่น", resetSearch:"รีเซ็ต",
+    done:"เสร็จสิ้น", cancel:"ยกเลิก", confirm:"ตกลง", send:"ส่ง",
+    locationPlaceholder:"ป้อนชื่อเมือง…",
+    disclaimer:"Helperr ทำหน้าที่เป็นตัวกลางเท่านั้น ไม่ใช่นายจ้างของผู้ให้บริการ",
+  },
+};
+function getLang() {
+  const l = (navigator.language||"en").slice(0,2).toLowerCase();
+  return I18N[l] ? l : "en";
+}
+
+// ── MOCK DATA ──────────────────────────────────────────────────────
+const MOCK = [
+  {
+    id:1, name:"Nook Chanathip", city:"Koh Samui", country:"Thailand", flag:"🇹🇭",
+    job:"Thai Massage & Wellness", tags:["massage","wellness","thai massage","spa","aromatherapy","relaxation"],
+    rating:4.9, reviewCount:127, price:"฿500/hr", available:true, verified:true, idStatus:"approved",
+    bio:"Zertifizierte Therapeutin mit 12 Jahren Erfahrung. Traditionelle Thai-Massage, Aromatherapie und Tiefengewebsbehandlungen. Hausbesuche oder eigenes Studio.",
+    social:{ whatsapp:"+66812345678", line:"nook_massage", facebook:"nook.massage.samui", instagram:"nook_wellness", tiktok:"", telegram:"", grab:"" },
+    photos:["https://images.unsplash.com/photo-1559599101-f09722fb4948?w=400&q=80","https://images.unsplash.com/photo-1600334129128-685c5582fd35?w=400&q=80"],
+    hasVideo:true, hasCv:false, hasCert:true,
+    reviews:[{author:"Sarah M.",rating:5,text:"Absolut amazing! Beste Massage auf Samui.",date:"2024-12-10"},{author:"Thomas K.",rating:5,text:"Sehr professionell, pünktlich, top!",date:"2024-11-28"}],
+  },
+  {
+    id:2, name:"Maria Gonzalez", city:"Berlin", country:"Deutschland", flag:"🇩🇪",
+    job:"Putzfrau & Haushaltshilfe", tags:["putzfrau","putzen","haushalt","reinigung","haushaltshilfe","cleaning"],
+    rating:4.8, reviewCount:203, price:"18€/Std", available:true, verified:true, idStatus:"approved",
+    bio:"Zuverlässige Haushaltshilfe seit 8 Jahren in Berlin. Wohnung, Büro, Fenster, Umzugsreinigung. Regelmäßig oder einmalig buchbar.",
+    social:{ whatsapp:"+4917612345678", line:"", facebook:"maria.putzhilfe.berlin", instagram:"", tiktok:"", telegram:"maria_clean", grab:"" },
+    photos:["https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=400&q=80"],
+    hasVideo:false, hasCv:true, hasCert:true,
+    reviews:[{author:"Klaus B.",rating:5,text:"Maria ist absolut zuverlässig und gründlich. Sehr empfehlenswert!",date:"2024-12-01"},{author:"Anna S.",rating:5,text:"Perfekte Arbeit, immer pünktlich.",date:"2024-11-15"}],
+  },
+  {
+    id:3, name:"Lena Fischer", city:"München", country:"Deutschland", flag:"🇩🇪",
+    job:"Babysitterin & Nanny", tags:["babysitter","nanny","kinderbetreuung","kinder","betreuung"],
+    rating:4.9, reviewCount:88, price:"15€/Std", available:true, verified:true, idStatus:"approved",
+    bio:"Erfahrene Nanny mit Pädagogikstudium und Erste-Hilfe-Kurs. Flexibel, auch kurzfristig. Liebevolle Betreuung in München.",
+    social:{ whatsapp:"+4989987654", line:"", facebook:"lena.nanny.muenchen", instagram:"lena_nanny", tiktok:"lena.babysitter", telegram:"", grab:"" },
+    photos:["https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=400&q=80","https://images.unsplash.com/photo-1544776193-352d25ca82cd?w=400&q=80"],
+    hasVideo:true, hasCv:true, hasCert:true,
+    reviews:[{author:"Familie Weber",rating:5,text:"Lena ist wunderbar mit unseren Kindern. Absolut empfehlenswert!",date:"2024-12-05"}],
+  },
+  {
+    id:4, name:"Mario Rossi", city:"Berlin", country:"Deutschland", flag:"🇩🇪",
+    job:"Kellner & Eventservice", tags:["kellner","service","event","gastronomie","catering","restaurant","barkeeper"],
+    rating:4.7, reviewCount:56, price:"18€/Std", available:true, verified:true, idStatus:"approved",
+    bio:"Gelernter Servicekraft für Events, Hochzeiten und Restaurantbetrieb. Flexibel und zuverlässig in ganz Berlin und Umgebung.",
+    social:{ whatsapp:"+491761234567", line:"", facebook:"mario.service.berlin", instagram:"mario_events", tiktok:"", telegram:"mario_service", grab:"" },
+    photos:["https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&q=80"],
+    hasVideo:false, hasCv:true, hasCert:false,
+    reviews:[{author:"Events GmbH",rating:5,text:"Mario war pünktlich, professionell und sehr freundlich.",date:"2024-11-20"}],
+  },
+  {
+    id:5, name:"Ahmed Hassan", city:"Dubai", country:"UAE", flag:"🇦🇪",
+    job:"Fahrer & Stadtführer", tags:["fahrer","driver","transport","grab","uber","taxi","guide","dubai"],
+    rating:4.6, reviewCount:310, price:"50$/Tag", available:true, verified:true, idStatus:"approved",
+    bio:"Lokaler Dubai-Experte mit eigenem Fahrzeug. Flughafentransfer, private Touren, Shopping-Trips. Grab & Uber Profil verifiziert.",
+    social:{ whatsapp:"+971501234567", line:"", facebook:"ahmed.driver.dubai", instagram:"ahmed_dubai_tours", tiktok:"", telegram:"ahmed_driver", grab:"https://grab.com/ahmed" },
+    photos:["https://images.unsplash.com/photo-1598520106830-8c45c2035460?w=400&q=80"],
+    hasVideo:false, hasCv:false, hasCert:true,
+    reviews:[{author:"Marco B.",rating:5,text:"Ahmed ist der beste Fahrer in Dubai! Super nett und kennt jeden Winkel.",date:"2024-12-08"}],
+  },
+  {
+    id:6, name:"Carlos Vega", city:"Barcelona", country:"Spanien", flag:"🇪🇸",
+    job:"Fotograf & Videograf", tags:["fotograf","foto","video","portrait","hochzeit","drone","shooting","photographer"],
+    rating:4.8, reviewCount:94, price:"150€/2h", available:true, verified:true, idStatus:"approved",
+    bio:"Freiberuflicher Fotograf für Reise, Portrait & Events. Drohnenaufnahmen auf Anfrage. Fertige Galerie in 48h.",
+    social:{ whatsapp:"+34612345678", line:"", facebook:"carlosvega.foto", instagram:"carlosvega_photography", tiktok:"carlosvega.foto", telegram:"", grab:"" },
+    photos:["https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=400&q=80","https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=400&q=80"],
+    hasVideo:true, hasCv:false, hasCert:true,
+    reviews:[{author:"Amy & John",rating:5,text:"Unglaublich schöne Hochzeitsfotos! Wir haben geweint vor Freude.",date:"2024-11-30"}],
+  },
+  {
+    id:7, name:"Priya Sharma", city:"Mumbai", country:"Indien", flag:"🇮🇳",
+    job:"Yoga & Ayurveda Coach", tags:["yoga","ayurveda","wellness","meditation","fitness","gesundheit","coach"],
+    rating:4.9, reviewCount:145, price:"₹1500/Std", available:true, verified:true, idStatus:"approved",
+    bio:"Zertifizierte Yoga-Lehrerin und Ayurveda-Praktikerin. Online und vor Ort. Anfänger bis Fortgeschrittene.",
+    social:{ whatsapp:"+919876543210", line:"", facebook:"priya.yoga.mumbai", instagram:"priya_ayuryoga", tiktok:"priya.yoga", telegram:"priya_yoga", grab:"" },
+    photos:["https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=400&q=80"],
+    hasVideo:true, hasCv:true, hasCert:true,
+    reviews:[{author:"Jennifer H.",rating:5,text:"Priya ist eine außergewöhnliche Lehrerin. Sehr empfohlen!",date:"2024-12-03"}],
+  },
+  {
+    id:8, name:"Tom Becker", city:"Hamburg", country:"Deutschland", flag:"🇩🇪",
+    job:"Kellner & Barista", tags:["kellner","barista","kaffee","bar","gastronomie","service","coffee"],
+    rating:4.5, reviewCount:41, price:"17€/Std", available:false, verified:false, idStatus:"pending",
+    bio:"Gelernter Gastronom mit Barista-Zertifikat. Events, Catering, kurzfristige Aushilfe in Hamburg.",
+    social:{ whatsapp:"+494098765", line:"", facebook:"", instagram:"tom_barista_hh", tiktok:"tom.barista", telegram:"", grab:"" },
+    photos:[],
+    hasVideo:false, hasCv:true, hasCert:false,
+    reviews:[],
+  },
+];
+
+// ── HELPERS ────────────────────────────────────────────────────────
+function score(p, q, city) {
+  const cityBonus = city && p.city.toLowerCase().includes(city.toLowerCase()) ? 10 : 0;
+  if (!q.trim()) return cityBonus;
+  const lq = q.toLowerCase();
+  let s = 0;
+  if (p.job.toLowerCase().includes(lq)) s += 9;
+  if (p.tags.some(t => t.includes(lq))) s += 8;
+  if (p.bio.toLowerCase().includes(lq)) s += 3;
+  if (p.name.toLowerCase().includes(lq)) s += 5;
+  if (p.city.toLowerCase().includes(lq)) s += 6;
+  if (p.country.toLowerCase().includes(lq)) s += 4;
+  return s + cityBonus;
+}
+
+function Stars({ rating, size=13, interactive=false, value=0, onChange }) {
+  const [hov, setHov] = useState(0);
+  const display = interactive ? (hov || value) : rating;
+  return (
+    <span style={{ display:"inline-flex", gap:2 }}>
+      {[1,2,3,4,5].map(i => (
+        <svg key={i} width={size} height={size} viewBox="0 0 24 24"
+          fill={i<=Math.round(display)?"#f59e0b":"none"} stroke="#f59e0b" strokeWidth="2"
+          style={{ cursor: interactive?"pointer":"default", transition:"fill 0.1s" }}
+          onMouseEnter={()=>interactive&&setHov(i)}
+          onMouseLeave={()=>interactive&&setHov(0)}
+          onClick={()=>interactive&&onChange&&onChange(i)}>
+          <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+        </svg>
+      ))}
+    </span>
+  );
+}
+
+function Spin({ s=18, c="#fff" }) {
+  return <span style={{ width:s, height:s, border:`2.5px solid rgba(255,255,255,0.25)`, borderTopColor:c, borderRadius:"50%", animation:"spin .8s linear infinite", display:"inline-block", flexShrink:0 }}/>;
+}
+
+// ── CHATBOT ────────────────────────────────────────────────────────
+const BOT_ANSWERS = {
+  de: {
+    buch:  "Um zu buchen: Profil öffnen → 'Buchen & Zahlen' → Datum & Zahlungsmethode wählen. Fertig! ✅",
+    zahl:  "Du kannst mit Kreditkarte, SEPA, PayPal oder Krypto zahlen. 9% Plattformgebühr wird sofort abgezogen.",
+    geb:   "Helperr nimmt 9% Gebühr vom Buchungsbetrag. Der Rest geht direkt an den Anbieter.",
+    sich:  "Alle Anbieter werden per ID verifiziert. Zahlung läuft sicher über Stripe/PayPal. Du bist geschützt! 🛡️",
+    storn: "Kostenlose Stornierung bis 24h vorher. Danach fällt eine Bearbeitungsgebühr an.",
+    probl: "Im Profil → 'Problem melden'. Unser Support antwortet innerhalb 24h. Oder: support@helperr.app",
+    def:   "Frag mich: 'Wie buche ich?', 'Wie zahle ich?', 'Gebühren', 'Sicherheit', 'Stornierung' oder 'Problem melden'.",
+  },
+  en: {
+    buch:  "To book: Open a profile → 'Book & Pay' → choose date & payment. Done! ✅",
+    zahl:  "Pay by credit card, SEPA, PayPal or crypto. A 9% platform fee is deducted immediately.",
+    geb:   "Helperr charges 9% of the booking amount. The rest goes directly to the provider.",
+    sich:  "All providers are ID-verified. Payments run securely via Stripe/PayPal. You're protected! 🛡️",
+    storn: "Free cancellation up to 24h before. A processing fee applies after that.",
+    probl: "In the profile → 'Report Issue'. Our support responds within 24h. Or: support@helperr.app",
+    def:   "Ask me: 'How to book?', 'How to pay?', 'Fees', 'Safety', 'Cancellation' or 'Report a problem'.",
+  },
+};
+function botReply(msg, lang) {
+  const m = msg.toLowerCase();
+  const a = BOT_ANSWERS[lang] || BOT_ANSWERS.en;
+  if (/buch|book|reserv/.test(m)) return a.buch;
+  if (/zahl|pay|payment/.test(m)) return a.zahl;
+  if (/geb|fee|kosten|cost|9%/.test(m)) return a.geb;
+  if (/sich|safe|scam|betrug|verif/.test(m)) return a.sich;
+  if (/storn|cancel/.test(m)) return a.storn;
+  if (/probl|issue|report|help/.test(m)) return a.probl;
+  return a.def;
+}
+
+function ChatBot({ t, lang, onClose }) {
+  const [msgs, setMsgs] = useState([{ from:"bot", text:t.chatWelcome }]);
+  const [inp, setInp] = useState("");
+  const [typing, setTyping] = useState(false);
+  const endRef = useRef();
+  useEffect(() => endRef.current?.scrollIntoView({ behavior:"smooth" }), [msgs]);
+
+  function send() {
+    if (!inp.trim()) return;
+    const u = inp.trim(); setInp("");
+    setMsgs(m=>[...m,{from:"user",text:u}]); setTyping(true);
+    setTimeout(()=>{ setTyping(false); setMsgs(m=>[...m,{from:"bot",text:botReply(u,lang)}]); }, 800);
+  }
+
+  return (
+    <div style={{ position:"fixed", bottom:88, right:20, width:310, background:"#fff", borderRadius:20, boxShadow:"0 20px 60px rgba(0,0,0,0.22)", zIndex:300, display:"flex", flexDirection:"column", overflow:"hidden" }}>
+      <div style={{ background:"linear-gradient(135deg,#1d4ed8,#6366f1)", padding:"13px 16px", display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+          <div style={{ width:32,height:32,borderRadius:"50%",background:"rgba(255,255,255,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:17 }}>🤖</div>
+          <div><div style={{color:"#fff",fontWeight:700,fontSize:13}}>{t.chatTitle}</div><div style={{color:"#c7d2fe",fontSize:10}}>● Online</div></div>
+        </div>
+        <button onClick={onClose} style={{background:"none",border:"none",color:"rgba(255,255,255,0.7)",cursor:"pointer",fontSize:17}}>✕</button>
+      </div>
+      <div style={{ overflowY:"auto", maxHeight:270, padding:"12px 12px 4px", display:"flex", flexDirection:"column", gap:8 }}>
+        {msgs.map((m,i)=>(
+          <div key={i} style={{ display:"flex", justifyContent:m.from==="user"?"flex-end":"flex-start" }}>
+            <div style={{ maxWidth:"82%", padding:"9px 12px", borderRadius:m.from==="user"?"16px 16px 4px 16px":"16px 16px 16px 4px", background:m.from==="user"?"#1d4ed8":"#f3f4f6", color:m.from==="user"?"#fff":"#374151", fontSize:12.5, lineHeight:1.5 }}>{m.text}</div>
+          </div>
+        ))}
+        {typing && (
+          <div style={{ display:"flex" }}>
+            <div style={{ background:"#f3f4f6", borderRadius:"16px 16px 16px 4px", padding:"10px 14px", display:"flex", gap:4 }}>
+              {[0,1,2].map(i=><span key={i} style={{ width:5,height:5,borderRadius:"50%",background:"#9ca3af",display:"inline-block",animation:`bounce 1.2s ${i*.2}s infinite` }}/>)}
+            </div>
+          </div>
+        )}
+        <div ref={endRef}/>
+      </div>
+      <div style={{ padding:"8px 12px 12px", display:"flex", gap:8 }}>
+        <input style={{ ...S.inp, flex:1, fontSize:13, padding:"8px 12px" }} value={inp} onChange={e=>setInp(e.target.value)} placeholder={t.chatPlaceholder} onKeyDown={e=>e.key==="Enter"&&send()}/>
+        <button onClick={send} style={{ background:"#1d4ed8", border:"none", borderRadius:10, padding:"8px 14px", color:"#fff", cursor:"pointer", fontSize:13, fontWeight:700 }}>{t.chatSend}</button>
+      </div>
+    </div>
+  );
+}
+
+// ── PAYMENT PANEL ──────────────────────────────────────────────────
+function PayPanel({ profile, t, onClose, onDone }) {
+  const [method, setMethod] = useState("card");
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+  const num = parseFloat(profile.price.replace(/[^0-9.]/g,"")) || 100;
+  const cur = profile.price.match(/[฿$€£₹¥]/)?.[0] || "";
+  const fee = (num*.09).toFixed(2);
+  const gets = (num*.91).toFixed(2);
+  if (done) return (
+    <div style={S.center}>
+      <div style={{fontSize:52}}>🎉</div>
+      <h3 style={{color:"#059669",fontFamily:"'DM Serif Display',Georgia,serif",marginTop:10}}>{t.bookingDone}</h3>
+      <p style={{color:"#6b7280",fontSize:13,lineHeight:1.6,textAlign:"center"}}>{t.bookingText}</p>
+      <button onClick={onClose} style={S.btnPrimary}>{t.done}</button>
+    </div>
+  );
+  const methods=[{id:"card",icon:"💳",label:t.card},{id:"paypal",icon:"🅿️",label:t.paypal},{id:"crypto",icon:"₿",label:t.crypto}];
+  return (
+    <div>
+      <div style={{background:"#f0fdf4",border:"1px solid #bbf7d0",borderRadius:12,padding:"13px 16px",marginBottom:16}}>
+        {[{l:t.yourPay,v:profile.price,bold:true},{l:t.platformFee,v:`−${cur}${fee}`,muted:true},{l:t.providerGets,v:`${cur}${gets}`,green:true}].map(r=>(
+          <div key={r.l} style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:r.green?0:5,paddingTop:r.green?8:0,borderTop:r.green?"1px dashed #bbf7d0":"none"}}>
+            <span style={{color:r.muted?"#9ca3af":r.green?"#065f46":"#374151"}}>{r.l}</span>
+            <span style={{fontWeight:r.bold||r.green?700:400,color:r.green?"#065f46":r.muted?"#9ca3af":"#111827"}}>{r.v}</span>
+          </div>
+        ))}
+      </div>
+      <p style={{fontSize:12,fontWeight:600,color:"#374151",margin:"0 0 8px"}}>{t.payWith}</p>
+      <div style={{display:"flex",flexDirection:"column",gap:7,marginBottom:14}}>
+        {methods.map(m=>(
+          <button key={m.id} onClick={()=>setMethod(m.id)} style={{padding:"11px 14px",borderRadius:12,border:`2px solid ${method===m.id?"#1d4ed8":"#e5e7eb"}`,background:method===m.id?"#eff6ff":"#fff",cursor:"pointer",display:"flex",alignItems:"center",gap:12,fontSize:13,fontWeight:method===m.id?700:400,color:"#111827",textAlign:"left"}}>
+            <span style={{fontSize:18}}>{m.icon}</span><span>{m.label}</span>
+            {method===m.id&&<span style={{marginLeft:"auto",color:"#1d4ed8"}}>✓</span>}
+          </button>
+        ))}
+      </div>
+      <div style={{background:"#fffbeb",border:"1px solid #fde68a",borderRadius:10,padding:"9px 13px",marginBottom:14,fontSize:11.5,color:"#92400e",lineHeight:1.6}}>
+        🔒 {t.disclaimer}
+      </div>
+      <div style={{display:"flex",gap:8}}>
+        <button onClick={()=>{setLoading(true);setTimeout(()=>{setLoading(false);setDone(true);onDone();},1800);}} style={{...S.btnPrimary,flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+          {loading?<Spin s={15}/>:`${t.bookNow} · ${profile.price}`}
+        </button>
+        <button onClick={onClose} style={S.btnGhost}>{t.cancel}</button>
+      </div>
+    </div>
+  );
+}
+
+// ── SOCIAL LINKS PANEL ─────────────────────────────────────────────
+function SocialPanel({ profile, t }) {
+  const links = [
+    { key:"whatsapp", icon:"💬", label:t.whatsapp, href: profile.social.whatsapp ? `https://wa.me/${profile.social.whatsapp.replace(/\D/g,"")}` : null },
+    { key:"line",     icon:"🟩", label:t.line,     href: profile.social.line ? `https://line.me/ti/p/~${profile.social.line}` : null },
+    { key:"facebook", icon:"📘", label:t.facebook, href: profile.social.facebook ? `https://fb.com/${profile.social.facebook}` : null },
+    { key:"instagram",icon:"📸", label:t.instagram,href: profile.social.instagram ? `https://instagram.com/${profile.social.instagram}` : null },
+    { key:"tiktok",   icon:"🎵", label:t.tiktok,   href: profile.social.tiktok ? `https://tiktok.com/@${profile.social.tiktok}` : null },
+    { key:"telegram", icon:"✈️", label:t.telegram, href: profile.social.telegram ? `https://t.me/${profile.social.telegram}` : null },
+    { key:"grab",     icon:"🚗", label:t.grab,     href: profile.social.grab || null },
+  ].filter(l => l.href);
+
+  if (!links.length) return <p style={{color:"#9ca3af",fontSize:13,textAlign:"center",padding:"20px 0"}}>Keine Links hinterlegt.</p>;
+
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:10}}>
+      <p style={{fontSize:13,color:"#6b7280",margin:"0 0 4px"}}>{t.socialLinks}</p>
+      {links.map(l=>(
+        <a key={l.key} href={l.href} target="_blank" rel="noreferrer noopener" style={{display:"flex",alignItems:"center",gap:12,padding:"12px 16px",background:"#f9fafb",borderRadius:12,border:"1px solid #e5e7eb",textDecoration:"none",color:"#111827",fontSize:14,fontWeight:500,transition:"background .15s"}}
+          onMouseEnter={e=>e.currentTarget.style.background="#eff6ff"}
+          onMouseLeave={e=>e.currentTarget.style.background="#f9fafb"}>
+          <span style={{fontSize:20}}>{l.icon}</span>
+          <span>{l.label}</span>
+          <span style={{marginLeft:"auto",color:"#9ca3af",fontSize:12}}>Öffnen →</span>
+        </a>
+      ))}
+    </div>
+  );
+}
+
+// ── DOCS PANEL ─────────────────────────────────────────────────────
+function DocsPanel({ profile, t }) {
+  const docs = [
+    { label:t.cv,          has:profile.hasCv,   icon:"📄" },
+    { label:t.certificate, has:profile.hasCert, icon:"🏆" },
+  ];
+  return (
+    <div style={{display:"flex",flexDirection:"column",gap:10}}>
+      {docs.map(d=>(
+        <div key={d.label} style={{display:"flex",alignItems:"center",gap:12,padding:"13px 16px",background: d.has?"#f0fdf4":"#f9fafb",borderRadius:12,border:`1px solid ${d.has?"#bbf7d0":"#e5e7eb"}`}}>
+          <span style={{fontSize:22}}>{d.icon}</span>
+          <div>
+            <div style={{fontSize:13,fontWeight:600,color:"#111827"}}>{d.label}</div>
+            <div style={{fontSize:11,color: d.has?"#059669":"#9ca3af"}}>{d.has?<><span>✓ Hochgeladen</span> <button onClick={() => window.navigateTo('register')} style={{marginLeft:8,background:"none",border:"none",color:"#1d4ed8",cursor:"pointer",fontSize:11,textDecoration:"underline"}}>Anzeigen</button></> : `${t.noDoc} ${t.optionalDoc}`}</div>
+          </div>
+        </div>
+      ))}
+      <p style={{fontSize:11,color:"#9ca3af",margin:0}}>* Dokumente werden nur nach Buchung vollständig freigegeben.</p>
+    </div>
+  );
+}
+
+// ── PHOTOS PANEL ───────────────────────────────────────────────────
+function PhotosPanel({ profile, t }) {
+  const [lightbox, setLightbox] = useState(null);
+  return (
+    <div>
+      {profile.photos.length>0 ? (
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(130px,1fr))",gap:8,marginBottom:12}}>
+          {profile.photos.map((src,i)=>(
+            <img key={i} src={src} alt={`Photo ${i+1}`} onClick={()=>setLightbox(src)}
+              style={{width:"100%",aspectRatio:"1",objectFit:"cover",borderRadius:10,cursor:"zoom-in",border:"1px solid #e5e7eb"}}/>
+          ))}
+        </div>
+      ) : <p style={{color:"#9ca3af",fontSize:13,textAlign:"center",padding:"16px 0"}}>Noch keine Fotos hochgeladen.</p>}
+      {profile.hasVideo && (
+        <div style={{background:"#f0f9ff",border:"1px solid #bae6fd",borderRadius:12,padding:"14px 16px",display:"flex",alignItems:"center",gap:12}}>
+          <span style={{fontSize:28}}>🎬</span>
+          <div>
+            <div style={{fontSize:13,fontWeight:600,color:"#0369a1"}}>{t.videoIntro}</div>
+            <div style={{fontSize:11,color:"#6b7280"}}>30-Sekunden Vorstellungsvideo verfügbar</div>
+          </div>
+          <button onClick={() => window.navigateTo('register')} style={{marginLeft:"auto",background:"#0ea5e9",color:"#fff",border:"none",borderRadius:8,padding:"7px 12px",fontSize:12,cursor:"pointer",fontWeight:600}}>▶ Play</button>
+        </div>
+      )}
+      {lightbox && (
+        <div onClick={()=>setLightbox(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center",cursor:"zoom-out",backdropFilter:"blur(4px)"}}>
+          <img src={lightbox} alt="Lightbox" style={{maxWidth:"90vw",maxHeight:"85vh",borderRadius:12,boxShadow:"0 30px 80px rgba(0,0,0,0.5)"}}/>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── PROFILE MODAL ──────────────────────────────────────────────────
+function Modal({ profile, t, onClose }) {
+  const [tab, setTab] = useState("about");
+  const [booked, setBooked] = useState(false);
+  const [reviewStars, setReviewStars] = useState(0);
+  const [reviewText, setReviewText] = useState("");
+  const [reviewSent, setReviewSent] = useState(false);
+  const [disputeText, setDisputeText] = useState("");
+  const [disputeSent, setDisputeSent] = useState(false);
+  const bgRef = useRef();
+
+  useEffect(() => {
+    const fn = e => { if(e.key==="Escape") onClose(); };
+    document.addEventListener("keydown",fn);
+    return ()=>document.removeEventListener("keydown",fn);
+  },[onClose]);
+
+  const tabs = [
+    {id:"about",  label:t.tabAbout},
+    {id:"photos", label:t.tabPhotos},
+    {id:"docs",   label:t.tabDocs},
+    {id:"social", label:t.tabSocial},
+    {id:"book",   label:t.tabBook},
+    {id:"reviews",label:`${t.tabReviews} (${profile.reviewCount})`},
+    {id:"dispute",label:t.tabDispute},
+  ];
+
+  return (
+    <div ref={bgRef} onClick={e=>e.target===bgRef.current&&onClose()} style={S.backdrop}>
+      <div style={S.modal}>
+        {/* Header */}
+        <div style={{padding:"20px 20px 12px",display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10}}>
+          <div style={{display:"flex",alignItems:"center",gap:13}}>
+            <div style={{width:56,height:56,borderRadius:16,background:"linear-gradient(135deg,#dbeafe,#e0f2fe)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,flexShrink:0}}>{profile.flag}</div>
+            <div>
+              <div style={{display:"flex",alignItems:"center",gap:7,flexWrap:"wrap"}}>
+                <h2 style={{margin:0,fontSize:19,fontFamily:"'DM Serif Display',Georgia,serif",color:"#111827"}}>{profile.name}</h2>
+                <span style={profile.idStatus==="approved"?S.badge.ok:S.badge.pending}>
+                  {profile.idStatus==="approved"?`✓ ${t.verified}`:`⏳ ${t.idPending}`}
+                </span>
+              </div>
+              <p style={{margin:"3px 0 0",fontSize:13,color:"#1d4ed8",fontWeight:600}}>{profile.job}</p>
+              <div style={{display:"flex",alignItems:"center",gap:6,marginTop:4}}>
+                <Stars rating={profile.rating}/><span style={{fontSize:12,color:"#6b7280"}}>{profile.rating} · {profile.reviewCount} {t.tabReviews}</span>
+              </div>
+            </div>
+          </div>
+          <button onClick={onClose} style={S.closeBtn}>✕</button>
+        </div>
+        {/* Strip */}
+        <div style={{padding:"9px 20px",background:"#f8fafc",borderTop:"1px solid #f1f5f9",borderBottom:"1px solid #f1f5f9",display:"flex",flexWrap:"wrap",gap:16,fontSize:12,color:"#64748b"}}>
+          <span>📍 {profile.city}, {profile.country}</span>
+          <span style={{fontWeight:700,color:"#1d4ed8"}}>💰 {profile.price}</span>
+          <span style={{color:profile.available?"#059669":"#dc2626",fontWeight:700}}>
+            {profile.available?`🟢 ${t.available}`:`🔴 ${t.busy}`}
+          </span>
+        </div>
+        {/* Tabs */}
+        <div style={{display:"flex",borderBottom:"1px solid #e2e8f0",padding:"0 20px",overflowX:"auto",scrollbarWidth:"none"}}>
+          {tabs.map(tb=>(
+            <button key={tb.id} onClick={()=>setTab(tb.id)} style={{...S.tab,...(tab===tb.id?S.tabA:{})}}>
+              {tb.label}
+            </button>
+          ))}
+        </div>
+        {/* Body */}
+        <div style={{padding:"18px 20px 24px",overflowY:"auto",maxHeight:"52vh"}}>
+          {tab==="about" && (
+            <div>
+              <p style={{color:"#374151",lineHeight:1.75,marginTop:0,fontSize:14}}>{profile.bio}</p>
+              <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                {profile.tags.map(tg=><span key={tg} style={S.tag}>{tg}</span>)}
+              </div>
+              <div style={{marginTop:14,padding:"11px 14px",background:"#eff6ff",borderRadius:12,fontSize:12.5,color:"#1e40af",border:"1px solid #bfdbfe"}}>
+                🛡️ {t.idVerify||"ID verifiziert"} — {profile.idStatus==="approved"?t.verified:t.idPending}
+              </div>
+            </div>
+          )}
+          {tab==="photos"  && <PhotosPanel profile={profile} t={t}/>}
+          {tab==="docs"    && <DocsPanel profile={profile} t={t}/>}
+          {tab==="social"  && <SocialPanel profile={profile} t={t}/>}
+          {tab==="book"    && <PayPanel profile={profile} t={t} onClose={onClose} onDone={()=>setBooked(true)}/>}
+          {tab==="reviews" && (
+            <div>
+              <div style={{textAlign:"center",padding:"12px 0 18px"}}>
+                <div style={{fontSize:42,fontWeight:800,color:"#111827",lineHeight:1}}>{profile.rating}</div>
+                <Stars rating={profile.rating} size={20}/>
+                <p style={{color:"#6b7280",fontSize:12,marginTop:4}}>{profile.reviewCount} {t.tabReviews}</p>
+              </div>
+              {profile.reviews.map((r,i)=>(
+                <div key={i} style={{background:"#f8fafc",borderRadius:12,padding:"13px 15px",marginBottom:10,border:"1px solid #e2e8f0"}}>
+                  <div style={{display:"flex",justifyContent:"space-between"}}>
+                    <div><strong style={{color:"#111827",fontSize:13}}>{r.author}</strong><div style={{marginTop:3}}><Stars rating={r.rating} size={11}/></div></div>
+                    <span style={{fontSize:11,color:"#94a3b8"}}>{r.date}</span>
+                  </div>
+                  <p style={{margin:"8px 0 0",fontSize:13,color:"#374151",lineHeight:1.6}}>{r.text}</p>
+                </div>
+              ))}
+              {booked && !reviewSent && (
+                <div style={{background:"#f0fdf4",borderRadius:12,padding:"14px 16px",border:"1px solid #bbf7d0",marginTop:8}}>
+                  <p style={{margin:"0 0 10px",fontSize:13,fontWeight:600,color:"#065f46"}}>{t.leaveReview}</p>
+                  <Stars rating={0} size={26} interactive value={reviewStars} onChange={setReviewStars}/>
+                  <textarea style={{...S.inp,width:"100%",minHeight:70,resize:"vertical",marginTop:10,fontSize:13}} value={reviewText} onChange={e=>setReviewText(e.target.value)} placeholder={t.reviewPlaceholder}/>
+                  <button onClick={()=>setReviewSent(true)} disabled={!reviewStars} style={{...S.btnPrimary,marginTop:8,opacity:reviewStars?1:0.5}}>{t.submitReview}</button>
+                </div>
+              )}
+              {reviewSent && <p style={{color:"#059669",fontWeight:600,textAlign:"center",marginTop:10}}>⭐ Danke für deine Bewertung!</p>}
+            </div>
+          )}
+          {tab==="dispute" && (
+            disputeSent
+              ? <div style={S.center}><div style={{fontSize:40}}>📋</div><p style={{color:"#059669",fontWeight:600}}>{t.disputeDone}</p></div>
+              : <div>
+                  <p style={{fontSize:13,color:"#6b7280",margin:"0 0 10px"}}>{t.disputeText}</p>
+                  <textarea style={{...S.inp,width:"100%",minHeight:100,resize:"vertical",fontSize:13}} value={disputeText} onChange={e=>setDisputeText(e.target.value)}/>
+                  <button onClick={()=>setDisputeSent(true)} disabled={!disputeText.trim()} style={{...S.btnPrimary,marginTop:10,opacity:disputeText.trim()?1:0.5}}>{t.disputeSend}</button>
+                </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── CARD ───────────────────────────────────────────────────────────
+function Card({ p, t, query, onClick }) {
+  function hl(txt) {
+    if (!query.trim()) return txt;
+    const i = txt.toLowerCase().indexOf(query.toLowerCase());
+    if (i<0) return txt;
+    return <>{txt.slice(0,i)}<mark style={{background:"#fef08a",borderRadius:3,padding:"0 2px"}}>{txt.slice(i,i+query.length)}</mark>{txt.slice(i+query.length)}</>;
+  }
+  return (
+    <div onClick={onClick} style={S.card}
+      onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-4px)";e.currentTarget.style.boxShadow="0 16px 40px rgba(0,0,0,0.12)";}}
+      onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 2px 10px rgba(0,0,0,0.06)";}}>
+      {p.photos[0] && (
+        <div style={{height:140,overflow:"hidden",borderRadius:"14px 14px 0 0",margin:"-17px -17px 14px"}}>
+          <img src={p.photos[0]} alt={p.name} style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+        </div>
+      )}
+      <div style={{display:"flex",alignItems:"flex-start",gap:10,marginBottom:9}}>
+        <div style={{width:40,height:40,borderRadius:12,background:"linear-gradient(135deg,#dbeafe,#e0f2fe)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{p.flag}</div>
+        <div style={{flex:1,minWidth:0}}>
+          <div style={{display:"flex",alignItems:"center",gap:5,flexWrap:"wrap"}}>
+            <h3 style={{margin:0,fontSize:14,fontWeight:700,color:"#111827"}}>{p.name}</h3>
+            {p.idStatus==="approved"&&<span style={{fontSize:9,background:"#d1fae5",color:"#065f46",padding:"1px 5px",borderRadius:10,fontWeight:700}}>✓</span>}
+          </div>
+          <p style={{margin:"2px 0 0",fontSize:12.5,color:"#1d4ed8",fontWeight:600}}>{hl(p.job)}</p>
+          <div style={{display:"flex",alignItems:"center",gap:4,marginTop:3}}>
+            <Stars rating={p.rating} size={11}/><span style={{fontSize:11,color:"#94a3b8"}}>{p.rating} · {p.reviewCount}</span>
+          </div>
+        </div>
+        <div style={{textAlign:"right",flexShrink:0}}>
+          <div style={{fontSize:13,fontWeight:700,color:"#1d4ed8"}}>{p.price}</div>
+          <div style={{fontSize:10,color:p.available?"#059669":"#dc2626",marginTop:2,fontWeight:600}}>{p.available?`●${t.available}`:`●${t.busy}`}</div>
+        </div>
+      </div>
+      <p style={{margin:"0 0 10px",fontSize:12,color:"#6b7280",lineHeight:1.55}}>{p.bio.slice(0,90)}…</p>
+      <div style={{display:"flex",flexWrap:"wrap",gap:4,marginBottom:10}}>
+        {p.tags.slice(0,3).map(tg=><span key={tg} style={S.tag}>{tg}</span>)}
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <span style={{fontSize:11,color:"#6b7280",background:"#f1f5f9",borderRadius:8,padding:"3px 8px"}}>📍 {p.city}</span>
+        <span style={{fontSize:11,color:"#1d4ed8",fontWeight:600}}>{t.viewProfile}</span>
+      </div>
+    </div>
+  );
+}
+
+// ── LOCATION BAR ───────────────────────────────────────────────────
+function LocBar({ city, country, loading, t, onEdit, onGPS }) {
+  const [edit, setEdit] = useState(false);
+  const [v, setV] = useState("");
+  if (edit) return (
+    <div style={{display:"flex",alignItems:"center",gap:8,background:"rgba(255,255,255,0.15)",borderRadius:12,padding:"7px 14px"}}>
+      <input autoFocus style={{border:"none",background:"transparent",color:"#fff",fontSize:13,outline:"none",width:140}} placeholder={t.locationPlaceholder} value={v} onChange={e=>setV(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&v.trim()){onEdit(v.trim());setEdit(false);setV("");}if(e.key==="Escape")setEdit(false);}}/>
+      <button onClick={()=>{if(v.trim()){onEdit(v.trim());setEdit(false);setV("");}}} style={{background:"#fff",color:"#1d4ed8",border:"none",borderRadius:8,padding:"3px 10px",fontSize:12,fontWeight:700,cursor:"pointer"}}>{t.confirm}</button>
+      <button onClick={()=>setEdit(false)} style={{background:"none",border:"none",color:"rgba(255,255,255,0.6)",cursor:"pointer",fontSize:13}}>✕</button>
+    </div>
+  );
+  return (
+    <div style={{display:"flex",gap:8,alignItems:"center"}}>
+      <button onClick={()=>setEdit(true)} style={{display:"flex",alignItems:"center",gap:7,background:"rgba(255,255,255,0.15)",border:"1px solid rgba(255,255,255,0.3)",borderRadius:12,padding:"7px 14px",cursor:"pointer",color:"#fff",fontSize:12.5}}>
+        {loading?<><Spin s={13} c="#a5f3fc"/> {t.detectGPS}…</>:<>📍 {city?`${city}${country?`, ${country}`:""}`:"?"} <span style={{opacity:.6,fontSize:10}}>✏️</span></>}
+      </button>
+      {!loading&&<button onClick={onGPS} style={{background:"rgba(255,255,255,0.1)",border:"1px solid rgba(255,255,255,0.22)",borderRadius:10,padding:"7px 10px",cursor:"pointer",color:"rgba(255,255,255,0.8)",fontSize:13,lineHeight:1}} title={t.detectGPS}>📡</button>}
+    </div>
+  );
+}
+
+// ── LEGAL MODAL ────────────────────────────────────────────────────
+function LegalModal({ t, onClose }) {
+  return (
+    <div onClick={e=>e.target===e.currentTarget&&onClose()} style={S.backdrop}>
+      <div style={{...S.modal,maxWidth:540}}>
+        <div style={{padding:"18px 20px 0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <h2 style={{margin:0,fontSize:17,fontFamily:"'DM Serif Display',Georgia,serif"}}>📜 {t.terms} & {t.imprint}</h2>
+          <button onClick={onClose} style={S.closeBtn}>✕</button>
+        </div>
+        <div style={{padding:"14px 20px 24px",overflowY:"auto",maxHeight:"72vh",fontSize:13,color:"#374151",lineHeight:1.8}}>
+          <h3 style={{color:"#1d4ed8"}}>Helperr – {t.imprint}</h3>
+          <p><strong>Helperr UG (haftungsbeschränkt)</strong><br/>Musterstraße 1, 10115 Berlin<br/>E-Mail: legal@helperr.app<br/>Web: helperr.app</p>
+          <h3 style={{color:"#1d4ed8"}}>{t.terms}</h3>
+          <p><strong>1. Vermittlungsplattform — keine Arbeitgeberstellung</strong><br/>Helperr ist ausschließlich eine technische Vermittlungsplattform. Wir sind zu keinem Zeitpunkt Vertragspartei der Verträge zwischen Anbietern und Kunden und treten weder als Arbeitgeber noch als Auftraggeber auf.</p>
+          <p><strong>2. Plattformgebühr (9%)</strong><br/>Helperr erhebt eine Vermittlungsgebühr von 9% des Buchungsbetrages. Diese wird automatisch bei Buchungsabschluss erhoben und dient zur Deckung der Betriebskosten.</p>
+          <p><strong>3. ID-Verifizierung</strong><br/>Alle Anbieter sind verpflichtet, ihre Identität per Lichtbildausweis zu verifizieren. Dies reduziert das Betrugsrisiko, stellt aber keine Garantie dar. Helperr lehnt Haftung für betrügerisches Verhalten ab, soweit zumutbare Schutzmaßnahmen getroffen wurden.</p>
+          <p><strong>4. Zahlungsabwicklung</strong><br/>Zahlungen werden über Stripe (Karte/SEPA/Krypto) und PayPal verarbeitet. Helperr speichert keine Zahlungsdaten. Rückbuchungen bei Problemen erfolgen über den Zahlungsdienstleister.</p>
+          <p><strong>5. Haftungsausschluss</strong><br/>Helperr haftet nicht für Betrug, Scam oder Schäden durch Dritte, soweit zumutbare Schutzmaßnahmen (ID-Prüfung, Zahlungssicherheit) getroffen wurden. Die Haftung ist auf Vorsatz und grobe Fahrlässigkeit beschränkt.</p>
+          <p><strong>6. SEO & Sichtbarkeit</strong><br/>Jeder Anbieter erhält eine eigene SEO-optimierte Profilseite (z.B. helperr.app/berlin/putzfrau/maria). Google kann diese Seiten direkt indexieren und in den Suchergebnissen anzeigen.</p>
+          <p><strong>7. Streitbeilegung</strong><br/>EU-Streitbeilegungsplattform: <span style={{color:"#1d4ed8"}}>https://ec.europa.eu/consumers/odr</span><br/>Support: support@helperr.app</p>
+          <p style={{fontSize:11,color:"#9ca3af",marginTop:20}}>Stand: Februar 2025 · Helperr UG (haftungsbeschränkt)</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── MAIN APP ───────────────────────────────────────────────────────
+export default function App() {
+  const [lang] = useState(getLang);
+  const t = I18N[lang]||I18N.en;
+  const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState(null);
+  const [city, setCity] = useState("");
+  const [country, setCountry] = useState("");
+  const [gps, setGps] = useState(true);
+  const [sugg, setSugg] = useState([]);
+  const [showSugg, setShowSugg] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [showLegal, setShowLegal] = useState(false);
+
+  const detectGPS = useCallback(()=>{
+    if (!navigator.geolocation) { setGps(false); return; }
+    setGps(true);
+    navigator.geolocation.getCurrentPosition(async pos=>{
+      try {
+        const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json&accept-language=${lang}`);
+        const d = await r.json();
+        const c = d.address.city||d.address.town||d.address.village||"";
+        setCity(c); setCountry(d.address.country||"");
+      } catch(_){}
+      setGps(false);
+    },()=>setGps(false),{timeout:6000});
+  },[lang]);
+
+  useEffect(()=>{ detectGPS(); },[]);
+
+  // Inject SEO dynamically
+  useEffect(()=>{ injectSEO(city, search.trim()||null); },[city, search]);
+
+  // Autocomplete
+  useEffect(()=>{
+    const q = search.toLowerCase().trim();
+    if (!q){ setSugg([]); return; }
+    const seen=new Set(), out=[];
+    MOCK.forEach(p=>[p.job,...p.tags,p.city,p.country].forEach(v=>{ if(v.toLowerCase().includes(q)&&!seen.has(v)){seen.add(v);out.push(v);} }));
+    setSugg(out.slice(0,6));
+  },[search]);
+
+  const results = MOCK
+    .map(p=>({...p,_s:score(p,search,city)}))
+    .filter(p=>!search.trim()||p._s>0)
+    .sort((a,b)=>b._s-a._s);
+
+  const local = results.filter(p=>city&&p.city.toLowerCase().includes(city.toLowerCase()));
+  const other = results.filter(p=>!city||!p.city.toLowerCase().includes(city.toLowerCase()));
+  const hasLocal = local.length>0&&!search.trim();
+
+  return (
+    <div style={{fontFamily:"'DM Serif Display',Georgia,serif",background:"#f8fafc",minHeight:"100vh"}}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+        @keyframes pulse{0%,100%{box-shadow:0 8px 24px rgba(29,78,216,0.4)}50%{box-shadow:0 8px 36px rgba(29,78,216,0.7)}}
+        *{box-sizing:border-box} a{text-decoration:none}
+        input:focus,textarea:focus{border-color:#1d4ed8!important;box-shadow:0 0 0 3px rgba(29,78,216,0.1)!important;outline:none}
+        ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+        .card:hover{transform:translateY(-4px)}
+      `}</style>
+
+      {/* NAV */}
+      <nav style={{background:"#fff",borderBottom:"1px solid #e2e8f0",padding:"0 20px",display:"flex",alignItems:"center",justifyContent:"space-between",height:56,position:"sticky",top:0,zIndex:50,boxShadow:"0 1px 8px rgba(0,0,0,0.05)"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <div style={{width:32,height:32,background:"linear-gradient(135deg,#1d4ed8,#6366f1)",borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}}>🤝</div>
+          <span style={{fontFamily:"'DM Serif Display',Georgia,serif",fontSize:20,fontWeight:700,color:"#111827",letterSpacing:"-0.02em"}}>Helperr</span>
+          <span style={{fontSize:10,color:"#64748b",fontFamily:"'DM Sans',sans-serif",marginTop:2}}>{t.tagline}</span>
+        </div>
+        <div style={{display:"flex",gap:12,alignItems:"center"}}>
+          <button onClick={()=>setShowLegal(true)} style={{background:"none",border:"none",color:"#64748b",cursor:"pointer",fontSize:12,fontFamily:"'DM Sans',sans-serif"}}>{t.terms}</button>
+          <button onClick={() => window.navigateTo('register')} style={{...S.btnPrimary,padding:"7px 14px",fontSize:12}}>+ {lang==="de"?"Anbieter werden":"Become a Helper"}</button>
+        </div>
+      </nav>
+
+      {/* HERO */}
+      <div style={{
+        background:"linear-gradient(150deg,rgba(15,23,42,0.85) 0%,rgba(29,78,216,0.9) 55%,rgba(99,102,241,0.88) 100%), url('https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1600&q=80')",
+        backgroundSize:"cover",
+        backgroundPosition:"center",
+        padding:"48px 20px 68px",
+        clipPath:"ellipse(130% 100% at 50% 0%)",
+        position:"relative"
+      }}>
+        <div style={{maxWidth:680,margin:"0 auto",textAlign:"center",display:"flex",flexDirection:"column",alignItems:"center",gap:18}}>
+          <LocBar city={city} country={country} loading={gps} t={t} onEdit={c=>{setCity(c);setCountry("");}} onGPS={detectGPS}/>
+          <h1 style={{fontFamily:"'DM Serif Display',Georgia,serif",color:"#fff",fontSize:"clamp(28px,5vw,50px)",fontWeight:400,margin:0,lineHeight:1.2,letterSpacing:"-0.01em"}}>
+            {t.heroTitle}
+          </h1>
+          <p style={{color:"#93c5fd",fontSize:15,margin:0,lineHeight:1.7,fontFamily:"'DM Sans',sans-serif",fontStyle:"italic",maxWidth:520}}>{t.heroSub}</p>
+
+          {/* Search */}
+          <div style={{position:"relative",width:"100%",maxWidth:580}}>
+            <div style={{background:"#fff",borderRadius:18,padding:"14px 18px",display:"flex",alignItems:"center",gap:12,boxShadow:"0 24px 56px rgba(0,0,0,0.22)"}}>
+              <span style={{fontSize:18,flexShrink:0}}>🔍</span>
+              <input style={{border:"none",outline:"none",fontSize:15,flex:1,color:"#111827",background:"transparent",fontFamily:"'DM Sans',sans-serif",minWidth:0}}
+                value={search} onChange={e=>{setSearch(e.target.value);setShowSugg(true);}}
+                onFocus={()=>setShowSugg(true)} onBlur={()=>setTimeout(()=>setShowSugg(false),150)}
+                placeholder={t.searchPlaceholder}/>
+              {search&&<button onClick={()=>{setSearch("");setSugg([]);}} style={{background:"none",border:"none",cursor:"pointer",color:"#9ca3af",fontSize:18,flexShrink:0}}>✕</button>}
+            </div>
+            {showSugg&&sugg.length>0&&(
+              <div style={{position:"absolute",top:"calc(100% + 6px)",left:0,right:0,background:"#fff",borderRadius:14,boxShadow:"0 16px 48px rgba(0,0,0,0.18)",zIndex:60,overflow:"hidden"}}>
+                {sugg.map((s,i)=>(
+                  <button key={i} onMouseDown={()=>{setSearch(s);setShowSugg(false);}} style={{display:"block",width:"100%",padding:"11px 18px",background:"none",border:"none",borderBottom:"1px solid #f1f5f9",textAlign:"left",cursor:"pointer",fontSize:13.5,color:"#374151",fontFamily:"'DM Sans',sans-serif"}}>
+                    <span style={{opacity:.4,marginRight:8}}>🔎</span>{s}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* SEO Keywords visible for Google */}
+          <div style={{display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center",marginTop:4}}>
+            {["Putzfrau","Babysitter","Masseur","Kellner","Fotograf","Yoga","Fahrer","Nanny","Guide","Barista"].map(kw=>(
+              <button key={kw} onClick={()=>setSearch(kw)} style={{background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.2)",borderRadius:20,padding:"5px 12px",color:"rgba(255,255,255,0.85)",fontSize:12,cursor:"pointer",fontFamily:"'DM Sans',sans-serif",transition:"background .2s"}}
+                onMouseEnter={e=>e.currentTarget.style.background="rgba(255,255,255,0.22)"}
+                onMouseLeave={e=>e.currentTarget.style.background="rgba(255,255,255,0.12)"}>{kw}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* LEGAL STRIP */}
+      <div style={{background:"#fefce8",borderBottom:"1px solid #fde68a",padding:"7px 20px",display:"flex",alignItems:"center",justifyContent:"center",gap:12,fontSize:12,color:"#92400e",fontFamily:"'DM Sans',sans-serif",flexWrap:"wrap",textAlign:"center"}}>
+        ⚠️ {t.legalStrip}
+        <button onClick={()=>setShowLegal(true)} style={{background:"none",border:"none",color:"#1d4ed8",fontWeight:600,cursor:"pointer",fontSize:12,textDecoration:"underline"}}>{t.terms} →</button>
+      </div>
+
+      {/* RESULTS */}
+      <div style={{maxWidth:1120,margin:"0 auto",padding:"28px 20px 80px"}}>
+        {results.length===0 ? (
+          <div style={{textAlign:"center",padding:"60px 20px",display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
+            <div style={{fontSize:52}}>🌍</div>
+            <h3 style={{color:"#374151",fontFamily:"'DM Serif Display',Georgia,serif",margin:0}}>{t.noResults} „{search}"</h3>
+            <p style={{color:"#6b7280",fontFamily:"'DM Sans',sans-serif",margin:0}}>{t.noResultsSub}</p>
+            <button onClick={()=>setSearch("")} style={S.btnPrimary}>{t.resetSearch}</button>
+          </div>
+        ):(
+          <>
+            {hasLocal&&(
+              <>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+                  <h2 style={{margin:0,fontSize:20,fontFamily:"'DM Serif Display',Georgia,serif",color:"#111827"}}>📍 {t.nearby} · {city}</h2>
+                  <span style={{fontSize:12,color:"#94a3b8",fontFamily:"'DM Sans',sans-serif"}}>{local.length} {t.experts}</span>
+                </div>
+                <div style={S.grid}>{local.map(p=><Card key={p.id} p={p} t={t} query={search} onClick={()=>setSelected(p)}/>)}</div>
+                {other.length>0&&<div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,marginTop:16}}>
+                  <h2 style={{margin:0,fontSize:20,fontFamily:"'DM Serif Display',Georgia,serif",color:"#111827"}}>🌍 {t.worldwide}</h2>
+                  <span style={{fontSize:12,color:"#94a3b8",fontFamily:"'DM Sans',sans-serif"}}>{other.length} {t.experts}</span>
+                </div>}
+              </>
+            )}
+            {search.trim()?(
+              <>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+                  <h2 style={{margin:0,fontSize:20,fontFamily:"'DM Serif Display',Georgia,serif",color:"#111827"}}>🔎 „{search}"</h2>
+                  <span style={{fontSize:12,color:"#94a3b8",fontFamily:"'DM Sans',sans-serif"}}>{results.length} {t.results}</span>
+                </div>
+                <div style={S.grid}>{results.map(p=><Card key={p.id} p={p} t={t} query={search} onClick={()=>setSelected(p)}/>)}</div>
+              </>
+            ):(
+              <div style={S.grid}>{(hasLocal?other:results).map(p=><Card key={p.id} p={p} t={t} query={search} onClick={()=>setSelected(p)}/>)}</div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* FOOTER */}
+      <footer style={{background:"#0f172a",color:"#64748b",padding:"28px 20px",fontFamily:"'DM Sans',sans-serif"}}>
+        <div style={{maxWidth:1120,margin:"0 auto"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:16,marginBottom:16}}>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <div style={{width:28,height:28,background:"linear-gradient(135deg,#1d4ed8,#6366f1)",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>🤝</div>
+              <span style={{color:"#fff",fontFamily:"'DM Serif Display',Georgia,serif",fontSize:18}}>Helperr</span>
+            </div>
+            <div style={{display:"flex",gap:20,flexWrap:"wrap"}}>
+              <button onClick={()=>setShowLegal(true)} style={{background:"none",border:"none",color:"#64748b",cursor:"pointer",fontSize:12,textDecoration:"underline"}}>{t.terms}</button>
+              <button onClick={()=>setShowLegal(true)} style={{background:"none",border:"none",color:"#64748b",cursor:"pointer",fontSize:12,textDecoration:"underline"}}>{t.imprint}</button>
+              <span style={{fontSize:12}}>support@helperr.app</span>
+            </div>
+          </div>
+          {/* SEO keyword list for Google */}
+          <p style={{fontSize:11,color:"#334155",lineHeight:2,margin:"0 0 12px"}}>
+            Putzfrau finden · Babysitter buchen · Masseur Berlin · Kellner Hamburg · Fotograf München · Yoga Coach · Nanny · Fahrer · Guide · Barista · Haushaltshilfe · Reinigungskraft · Helperr – Find Help Near You
+          </p>
+          <p style={{fontSize:11,color:"#475569",margin:0}}>© 2025 Helperr UG (haftungsbeschränkt) · Plattform, nicht Arbeitgeber · Weltweite Vermittlung lokaler Dienstleistungen</p>
+        </div>
+      </footer>
+
+      {/* MODALS */}
+      {selected&&<Modal profile={selected} t={t} onClose={()=>setSelected(null)}/>}
+      {showLegal&&<LegalModal t={t} onClose={()=>setShowLegal(false)}/>}
+      {showChat&&<ChatBot t={t} lang={lang} onClose={()=>setShowChat(false)}/>}
+
+      {/* CHAT FAB */}
+      <button onClick={()=>setShowChat(c=>!c)} style={{position:"fixed",bottom:20,right:20,width:58,height:58,borderRadius:"50%",background:"linear-gradient(135deg,#1d4ed8,#6366f1)",border:"none",cursor:"pointer",zIndex:290,fontSize:24,display:"flex",alignItems:"center",justifyContent:"center",animation:showChat?"":"pulse 2.5s infinite",boxShadow:"0 8px 24px rgba(29,78,216,0.45)"}}>
+        {showChat?"✕":"💬"}
+      </button>
+    </div>
+  );
+}
+
+// ── STYLES ─────────────────────────────────────────────────────────
+const S = {
+  backdrop:{position:"fixed",inset:0,background:"rgba(15,23,42,0.6)",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",padding:20,backdropFilter:"blur(8px)"},
+  modal:{background:"#fff",borderRadius:22,width:"100%",maxWidth:620,maxHeight:"92vh",overflowY:"auto",boxShadow:"0 40px 100px rgba(0,0,0,0.3)",animation:"fadeUp .22s ease"},
+  card:{background:"#fff",borderRadius:16,padding:17,cursor:"pointer",border:"1.5px solid #e2e8f0",transition:"transform .2s,box-shadow .2s",boxShadow:"0 2px 10px rgba(0,0,0,0.06)"},
+  grid:{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:18,marginBottom:32},
+  tag:{background:"#eff6ff",color:"#1e40af",fontSize:11,padding:"3px 8px",borderRadius:20,fontFamily:"'DM Sans',sans-serif",fontWeight:500},
+  badge:{ok:{background:"#d1fae5",color:"#065f46",fontSize:10,fontWeight:700,padding:"2px 7px",borderRadius:20},pending:{background:"#fef3c7",color:"#92400e",fontSize:10,fontWeight:700,padding:"2px 7px",borderRadius:20}},
+  closeBtn:{background:"#f1f5f9",border:"none",borderRadius:10,width:32,height:32,cursor:"pointer",fontSize:12,color:"#64748b",flexShrink:0},
+  tab:{background:"none",border:"none",borderBottom:"2.5px solid transparent",padding:"11px 12px 9px",fontSize:12,fontWeight:500,color:"#64748b",cursor:"pointer",fontFamily:"'DM Sans',sans-serif",whiteSpace:"nowrap"},
+  tabA:{color:"#1d4ed8",borderBottomColor:"#1d4ed8",fontWeight:700},
+  inp:{border:"1.5px solid #e2e8f0",borderRadius:10,padding:"9px 12px",fontSize:13,color:"#111827",background:"#fff",fontFamily:"'DM Sans',sans-serif",transition:"border-color .2s,box-shadow .2s"},
+  btnPrimary:{background:"linear-gradient(135deg,#1d4ed8,#6366f1)",color:"#fff",border:"none",borderRadius:12,padding:"11px 22px",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"},
+  btnGhost:{background:"#f1f5f9",color:"#374151",border:"none",borderRadius:12,padding:"11px 16px",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"'DM Sans',sans-serif"},
+  center:{textAlign:"center",padding:"20px 0",display:"flex",flexDirection:"column",alignItems:"center",gap:10},
+};
