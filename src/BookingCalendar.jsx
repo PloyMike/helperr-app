@@ -41,7 +41,6 @@ function BookingCalendar({ profile, onClose }) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Fetch booked slots when date changes
   useEffect(() => {
     const fetchBookedSlots = async () => {
       try {
@@ -135,7 +134,6 @@ function BookingCalendar({ profile, onClose }) {
       return 'End time must be after start time';
     }
     
-    // Check for booked slot overlap
     const overlappingSlot = bookedSlots.find(bookedSlot => {
       const [bookedStart, bookedEnd] = bookedSlot.split(' - ');
       const [bsH, bsM] = bookedStart.split(':').map(Number);
@@ -160,7 +158,6 @@ function BookingCalendar({ profile, onClose }) {
     
     if (end <= start) return false;
     
-    // Check if time slot overlaps with any booked slots
     const isBooked = bookedSlots.some(bookedSlot => {
       const [bookedStart, bookedEnd] = bookedSlot.split(' - ');
       const [bsH, bsM] = bookedStart.split(':').map(Number);
@@ -180,10 +177,9 @@ function BookingCalendar({ profile, onClose }) {
   };
 
   const formatDateFull = (date) => {
-    // If date is a string (ISO format), parse it in local timezone
     if (typeof date === 'string') {
       const [year, month, day] = date.split('-').map(Number);
-      date = new Date(year, month - 1, day); // month is 0-indexed
+      date = new Date(year, month - 1, day);
     }
     return date.toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
   };
@@ -227,12 +223,17 @@ function BookingCalendar({ profile, onClose }) {
 
       if (error) throw error;
 
+      // Get session for authenticated email sending
+      const { data: { session } } = await supabase.auth.getSession();
+
       // Send booking confirmation email
       try {
-        const { data: { user } } = await supabase.auth.getUser();
         await fetch("https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email", {
           method: "POST",
-          headers: { "Content-Type": "application/json", "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dWF0b2pwa2x1eWlkcGVmenViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTI1MzcsImV4cCI6MjA4Njk2ODUzN30.l9IOEIzM3Z6abB87ZOERYBcYNgFWIIRju0bUxyWrNgY", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dWF0b2pwa2x1eWlkcGVmenViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTI1MzcsImV4cCI6MjA4Njk2ODUzN30.l9IOEIzM3Z6abB87ZOERYBcYNgFWIIRju0bUxyWrNgY" },
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session?.access_token}`
+          },
           body: JSON.stringify({
             template: "booking-confirmation",
             to: user.email,
@@ -248,13 +249,16 @@ function BookingCalendar({ profile, onClose }) {
         });
       } catch (emailError) {
         console.error("Email error:", emailError);
-
       }
+
       // Send new booking request email to provider
       try {
         await fetch("https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email", {
           method: "POST",
-          headers: { "Content-Type": "application/json", "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dWF0b2pwa2x1eWlkcGVmenViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTI1MzcsImV4cCI6MjA4Njk2ODUzN30.l9IOEIzM3Z6abB87ZOERYBcYNgFWIIRju0bUxyWrNgY", "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp5dWF0b2pwa2x1eWlkcGVmenViIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzOTI1MzcsImV4cCI6MjA4Njk2ODUzN30.l9IOEIzM3Z6abB87ZOERYBcYNgFWIIRju0bUxyWrNgY" },
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session?.access_token}`
+          },
           body: JSON.stringify({
             template: "new-booking-request",
             to: profile.email,
@@ -270,7 +274,6 @@ function BookingCalendar({ profile, onClose }) {
         });
       } catch (emailError) {
         console.error("Provider email error:", emailError);
-
       }
 
       alert('✅ Booking request sent successfully!');
@@ -483,7 +486,6 @@ function BookingCalendar({ profile, onClose }) {
             <div>
               <h3 style={styles.stepTitle}>Service Location</h3>
               
-              {/* Location Method Selection */}
               <div style={{ marginBottom: 24 }}>
                 <div style={{ display: 'flex', gap: 24, marginBottom: 20, flexWrap: 'wrap' }}>
                   <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: 15 }}>
@@ -509,7 +511,6 @@ function BookingCalendar({ profile, onClose }) {
                 </div>
               </div>
 
-              {/* GPS Location Section */}
               {locationMethod === 'gps' && (
                 <div style={{ marginBottom: 24 }}>
                   {!gpsLocation ? (
@@ -610,7 +611,6 @@ function BookingCalendar({ profile, onClose }) {
                 </div>
               )}
 
-              {/* Manual Address Section */}
               {locationMethod === 'manual' && (
                 <>
                   <div style={styles.formGroup}>
@@ -890,7 +890,6 @@ const styles = {
   calendarDayDisabled: { opacity: 0.3, cursor: 'not-allowed', background: '#f9fafb' },
   selectedInfo: { fontSize: 12, color: '#6b7280', marginBottom: 8, background: '#f9fafb', padding: 6, borderRadius: 8, textAlign: 'center' },
   
-  // MOBILE TIME CONTAINER
   mobileTimeContainer: { display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 6 },
   timeSectionMobile: { background: '#f9fafb', borderRadius: 8, padding: 6, border: '2px solid #e5e7eb' },
   timeSectionLabelMobile: { fontSize: 10, fontWeight: 700, color: '#065f46', marginBottom: 4, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.5px' },
@@ -898,7 +897,6 @@ const styles = {
   scrollSpacerMobile: { height: 30 },
   timePreviewMobile: { background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', padding: 6, borderRadius: 8, marginBottom: 8, textAlign: 'center' },
   
-  // DESKTOP TIME CONTAINER  
   desktopTimeContainer: { display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'center', marginBottom: 8, flexWrap: 'wrap' },
   timeSection: { background: '#f9fafb', borderRadius: 10, padding: 10, border: '2px solid #e5e7eb', flex: '1 1 auto', maxWidth: 200, minWidth: 160 },
   timeSectionLabel: { fontSize: 11, fontWeight: 700, color: '#065f46', marginBottom: 8, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.5px' },
