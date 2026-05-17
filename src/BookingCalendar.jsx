@@ -226,6 +226,14 @@ function BookingCalendar({ profile, onClose }) {
       // Get session for authenticated email sending
       const { data: { session } } = await supabase.auth.getSession();
 
+      console.log("🔍 SESSION DEBUG:", session);
+      console.log("🔑 ACCESS TOKEN:", session?.access_token ? "EXISTS (" + session.access_token.substring(0, 30) + "...)" : "MISSING");
+      console.log("⏰ EXPIRES AT:", session?.expires_at);
+      if (!session?.access_token) {
+        alert("❌ No session token! Please logout and login again.");
+        return;
+      }
+
       // Send booking confirmation email
       try {
         await fetch("https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email", {
