@@ -307,37 +307,6 @@ function MyBookings() {
   };
 
 
-  const handleAccept = async (bookingId) => {
-    try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status: 'confirmed' })
-        .eq('id', bookingId);
-
-      if (error) throw error;
-      alert('Booking confirmed!');
-      fetchBookings();
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Error confirming booking');
-    }
-  };
-
-  const handleDecline = async (bookingId) => {
-    try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status: 'cancelled' })
-        .eq('id', bookingId);
-
-      if (error) throw error;
-      alert('Booking declined');
-      fetchBookings();
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Error declining booking');
-    }
-  };
 
   const handleArchive = async (bookingId) => {
     if (!window.confirm("Archive this booking? It will be hidden from your list.")) return;
