@@ -86,7 +86,7 @@ function ProviderBookingsPage() {
             "Authorization": `Bearer ${session?.access_token}`
           },
           body: JSON.stringify({
-            template: 'booking-confirmed',
+            template: 'booking-accepted',
             to: booking.customer_email,
             variables: {
               customer_name: booking.customer_name,
