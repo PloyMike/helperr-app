@@ -103,7 +103,7 @@ function ProviderBookingsPage() {
       }
 
       alert('Booking confirmed!');
-      fetchBookings();
+      await fetchBookings();
     } catch (error) {
       console.error('Error:', error);
       alert('Error confirming booking');
