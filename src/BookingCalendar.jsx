@@ -192,6 +192,14 @@ function BookingCalendar({ profile, onClose }) {
   };
 
   const handleSubmit = async () => {
+
+    // Check if user is logged in
+    if (!user) {
+      alert("Please sign up or login to book this expert!");
+      onClose();
+      window.navigateTo("signup");
+      return;
+    }
     if (!selectedDate || !selectedTimeSlot || !customerName.trim()) {
       alert('Please complete all required fields');
       return;
