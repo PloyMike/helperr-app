@@ -16,6 +16,13 @@ import ProviderDashboard from './ProviderDashboard';
 import Impressum from './Impressum';
 import Datenschutz from './Datenschutz';
 import AGB from './AGB';
+import TermsPage from './TermsPage';
+import PrivacyPage from './PrivacyPage';
+import CookiesPage from './CookiesPage';
+import ExpertAgreementPage from './ExpertAgreementPage';
+import CommunityPage from './CommunityPage';
+import AboutPage from './AboutPage';
+import ContactPage from './ContactPage';
 import ChatbotWidget from './ChatbotWidget';
 
 // 🔒 MAINTENANCE MODE - Set to true to show "Coming Soon" page
@@ -117,6 +124,20 @@ function App() {
           <Datenschutz />
         ) : currentView === 'agb' ? (
           <AGB />
+        ) : currentView === 'terms' ? (
+          <TermsPage />
+        ) : currentView === 'privacy' ? (
+          <PrivacyPage />
+        ) : currentView === 'cookies' ? (
+          <CookiesPage />
+        ) : currentView === 'expert-agreement' ? (
+          <ExpertAgreementPage />
+        ) : currentView === 'community' ? (
+          <CommunityPage />
+        ) : currentView === 'about' ? (
+          <AboutPage />
+        ) : currentView === 'contact' ? (
+          <ContactPage />
         ) : (
           <Helperr />
         )}
