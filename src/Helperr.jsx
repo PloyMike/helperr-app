@@ -476,6 +476,8 @@ function Helperr() {
           onClose={() => setShowBooking(false)} 
         />
       )}
+
+      <Footer />
     </div>
   );
 }
@@ -547,7 +549,6 @@ function DistanceRow({ title, profiles, onSelect }) {
         ))}
       </div>
 
-      <Footer />
     </div>
   );
 }
