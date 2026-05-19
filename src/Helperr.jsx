@@ -3,6 +3,7 @@ import { supabase } from './supabase';
 import Header from './Header';
 import ReviewsSection from './ReviewsSection';
 import BookingCalendar from './BookingCalendar';
+import Footer from './Footer';
 
 function Helperr() {
   const [profiles, setProfiles] = useState([]);
@@ -545,6 +546,8 @@ function DistanceRow({ title, profiles, onSelect }) {
           </div>
         ))}
       </div>
+
+      <Footer />
     </div>
   );
 }
