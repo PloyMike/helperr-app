@@ -18,7 +18,7 @@
     "react-leaflet": "^5.0.0",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4",
-    "@stripe/react-stripe-js": "^2.10.0"
+    "@stripe/react-stripe-js": "^2.8.0"
   },
   "scripts": {
     "start": "react-scripts start",
