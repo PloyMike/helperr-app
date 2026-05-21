@@ -508,6 +508,7 @@ function MyBookings() {
                     <button onClick={() => handleCancel(booking.id)} style={styles.btnCancel}>
                       Cancel Booking
                     </button>
+                  )}
 
                   {booking.payment_status === 'pending' && (
                     <button 
