@@ -16,6 +16,7 @@ import ProviderDashboard from './ProviderDashboard';
 import Impressum from './Impressum';
 import Datenschutz from './Datenschutz';
 import AGB from './AGB';
+import PaymentPage from './PaymentPage';
 import TermsPage from './TermsPage';
 import PrivacyPage from './PrivacyPage';
 import CookiesPage from './CookiesPage';
@@ -138,6 +139,8 @@ function App() {
           <AboutPage />
         ) : currentView === 'contact' ? (
           <ContactPage />
+        ) : currentView === 'payment' ? (
+          <PaymentPage />
         ) : (
           <Helperr />
         )}
