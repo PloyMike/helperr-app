@@ -160,23 +160,62 @@ function ProviderBookingsPage() {
   };
 
 
+
   const handleComplete = async (bookingId) => {
-    if (!window.confirm("Mark this booking as completed? This will allow payment to be processed.")) return;
+    if (!window.confirm("Mark this booking as completed? Payment will be processed now.")) return;
     
     try {
-      const { error } = await supabase
+      // Get booking to retrieve payment_intent_id
+      const { data: booking, error: fetchError } = await supabase
         .from('bookings')
-        .update({ status: 'completed' })
+        .select('*')
+        .eq('id', bookingId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      if (!booking.payment_intent_id) {
+        throw new Error('No payment to capture - booking not paid yet');
+      }
+
+      // Call Stripe Capture Edge Function
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const captureResponse = await fetch('https://jyuatojpkluyidpefzub.supabase.co/functions/v1/stripe-capture', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({
+          paymentIntentId: booking.payment_intent_id,
+        }),
+      });
+
+      const captureResult = await captureResponse.json();
+
+      if (captureResult.error) {
+        throw new Error(captureResult.error);
+      }
+
+      // Update booking status
+      const { error: updateError } = await supabase
+        .from('bookings')
+        .update({ 
+          status: 'completed',
+          payment_status: 'captured'
+        })
         .eq('id', bookingId);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
-      alert('✅ Booking marked as completed!');
+      alert(`✅ Booking completed! Payment captured: $${captureResult.amount}`);
       await fetchBookings();
     } catch (error) {
       console.error('Error:', error);
-      alert('Error marking booking as complete');
+      alert(`Error: ${error.message || 'Failed to complete booking'}`)
     }
+  };
   };
   const handleArchive = async (bookingId) => {
     if (!window.confirm("Archive this booking? It will be hidden from your list.")) return;
