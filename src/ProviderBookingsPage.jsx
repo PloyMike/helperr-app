@@ -216,7 +216,6 @@ function ProviderBookingsPage() {
       alert(`Error: ${error.message || 'Failed to complete booking'}`)
     }
   };
-  };
   const handleArchive = async (bookingId) => {
     if (!window.confirm("Archive this booking? It will be hidden from your list.")) return;
     
