@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import StripePayment from './StripePayment';
 import PayPalPayment from './PayPalPayment';
+import OmisePayment from './OmisePayment';
 
 function PaymentSelection({ booking, onSuccess, onCancel }) {
   const [selectedMethod, setSelectedMethod] = useState(null);
@@ -12,6 +13,10 @@ function PaymentSelection({ booking, onSuccess, onCancel }) {
   if (selectedMethod === 'paypal') {
     return <PayPalPayment booking={booking} onSuccess={onSuccess} onCancel={() => setSelectedMethod(null)} />;
   }
+  if (selectedMethod === 'omise') {
+    return <OmisePayment booking={booking} onSuccess={onSuccess} onCancel={() => setSelectedMethod(null)} />;
+  }
+
 
   // Calculate amounts
   const priceText = booking.total_price || '50€/Std';
@@ -103,6 +108,29 @@ function PaymentSelection({ booking, onSuccess, onCancel }) {
           >
             <span style={{ fontSize: 24 }}>💳</span>
             <span>Mit Kreditkarte bezahlen (Stripe)</span>
+
+          <button
+            onClick={() => setSelectedMethod('omise')}
+            style={{
+              padding: 20,
+              background: 'linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%)',
+              color: 'white',
+              border: 'none',
+              borderRadius: 12,
+              fontSize: 18,
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 12,
+              transition: 'transform 0.2s'
+            }}
+            onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
+            onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+          >
+            <span style={{ fontSize: 24 }}>🇹🇭</span>
+            <span>Pay with Omise (Thailand)</span>
           </button>
 
           <button
