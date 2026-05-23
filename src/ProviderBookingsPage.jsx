@@ -65,7 +65,7 @@ function ProviderBookingsPage() {
     try {
       const { data: booking } = await supabase
         .from('bookings')
-        .select('*')
+        .select('*, profiles(name, email)')
         .eq('id', bookingId)
         .single();
 
@@ -114,7 +114,7 @@ function ProviderBookingsPage() {
     try {
       const { data: booking } = await supabase
         .from('bookings')
-        .select('*')
+        .select('*, profiles(name, email)')
         .eq('id', bookingId)
         .single();
 
@@ -168,7 +168,7 @@ function ProviderBookingsPage() {
       // Get booking to retrieve payment_intent_id
       const { data: booking, error: fetchError } = await supabase
         .from('bookings')
-        .select('*')
+        .select('*, profiles(name, email)')
         .eq('id', bookingId)
         .single();
 
@@ -253,6 +253,30 @@ function ProviderBookingsPage() {
         });
       } catch (emailError) {
         console.error('Email error:', emailError);
+      }
+
+      // Send payment received email to provider
+      try {
+        await fetch('https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            template: 'provider-payment-received',
+            to: booking.profiles?.email || userProfile.email,
+            variables: {
+              provider_name: userProfile.name,
+              customer_name: booking.customer_name,
+              service: booking.service_name,
+              booking_date: booking.booking_date,
+              amount: isOmise ? `฿${captureResult.amount}` : `$${captureResult.amount}`,
+            },
+          }),
+        });
+      } catch (emailError) {
+        console.error('Provider email error:', emailError);
       }
 
       alert(`✅ Booking completed! Payment captured: ${isOmise ? '฿' : '$'}${captureResult.amount}`);
