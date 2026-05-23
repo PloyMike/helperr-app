@@ -209,6 +209,32 @@ function ProviderBookingsPage() {
 
       if (updateError) throw updateError;
 
+      // Send payment captured email
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        await fetch('https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            template: 'payment-captured',
+            to: booking.customer_email,
+            variables: {
+              customer_name: booking.customer_name,
+              provider_name: userProfile.name,
+              service: booking.service_name,
+              booking_date: booking.booking_date,
+              amount: `$${captureResult.amount}`,
+            },
+          }),
+        });
+      } catch (emailError) {
+        console.error('Email error:', emailError);
+      }
+
       alert(`✅ Booking completed! Payment captured: $${captureResult.amount}`);
       await fetchBookings();
     } catch (error) {
