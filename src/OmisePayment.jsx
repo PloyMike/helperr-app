@@ -101,7 +101,7 @@ function OmisePayment({ booking, onSuccess, onCancel }) {
                 to: booking.customer_email,
                 variables: {
                   customer_name: booking.customer_name,
-                  provider_name: booking.provider?.name || 'Provider',
+                  provider_name: booking.profiles?.name || 'Provider',
                   service: booking.service_name,
                   booking_date: booking.booking_date,
                   time_slot: booking.time_slot,
