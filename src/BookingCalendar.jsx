@@ -301,7 +301,7 @@ function BookingCalendar({ profile, onClose }) {
             'Authorization': `Bearer ${session?.access_token}`,
           },
           body: JSON.stringify({
-            template: "booking-accepted",
+            template: "booking-request-sent",
             to: user.email,
             variables: {
               provider_name: profile.name,
