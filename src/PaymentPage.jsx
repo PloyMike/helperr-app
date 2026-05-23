@@ -26,7 +26,7 @@ function PaymentPage() {
     try {
       const { data, error } = await supabase
         .from('bookings')
-        .select('*, profiles!provider_id(*)')
+        .select('*, profiles(name, email)')
         .eq('id', bookingId)
         .single();
 
