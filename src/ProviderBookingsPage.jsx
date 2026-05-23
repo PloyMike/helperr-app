@@ -178,19 +178,41 @@ function ProviderBookingsPage() {
         throw new Error('No payment to capture - booking not paid yet');
       }
 
-      // Call Stripe Capture Edge Function
       const { data: { session } } = await supabase.auth.getSession();
       
-      const captureResponse = await fetch('https://jyuatojpkluyidpefzub.supabase.co/functions/v1/stripe-capture', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token}`,
-        },
-        body: JSON.stringify({
-          paymentIntentId: booking.payment_intent_id,
-        }),
-      });
+      // Detect Stripe vs Omise based on payment_intent_id format
+      const isStripe = booking.payment_intent_id.startsWith('pi_');
+      const isOmise = booking.payment_intent_id.startsWith('chrg_');
+      
+      let captureResponse;
+      
+      if (isStripe) {
+        // Call Stripe Capture
+        captureResponse = await fetch('https://jyuatojpkluyidpefzub.supabase.co/functions/v1/stripe-capture', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            paymentIntentId: booking.payment_intent_id,
+          }),
+        });
+      } else if (isOmise) {
+        // Call Omise Capture
+        captureResponse = await fetch('https://jyuatojpkluyidpefzub.supabase.co/functions/v1/omise-capture', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token}`,
+          },
+          body: JSON.stringify({
+            chargeId: booking.payment_intent_id,
+          }),
+        });
+      } else {
+        throw new Error('Unknown payment method');
+      }
 
       const captureResult = await captureResponse.json();
 
@@ -211,8 +233,6 @@ function ProviderBookingsPage() {
 
       // Send payment captured email
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
         await fetch('https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email', {
           method: 'POST',
           headers: {
@@ -227,7 +247,7 @@ function ProviderBookingsPage() {
               provider_name: userProfile.name,
               service: booking.service_name,
               booking_date: booking.booking_date,
-              amount: `$${captureResult.amount}`,
+              amount: isOmise ? `฿${captureResult.amount}` : `$${captureResult.amount}`,
             },
           }),
         });
@@ -235,13 +255,14 @@ function ProviderBookingsPage() {
         console.error('Email error:', emailError);
       }
 
-      alert(`✅ Booking completed! Payment captured: $${captureResult.amount}`);
+      alert(`✅ Booking completed! Payment captured: ${isOmise ? '฿' : '$'}${captureResult.amount}`);
       await fetchBookings();
     } catch (error) {
       console.error('Error:', error);
-      alert(`Error: ${error.message || 'Failed to complete booking'}`)
+      alert(`Error: ${error.message || 'Failed to complete booking'}`);
     }
   };
+
   const handleArchive = async (bookingId) => {
     if (!window.confirm("Archive this booking? It will be hidden from your list.")) return;
     
