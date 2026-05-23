@@ -108,6 +108,7 @@ function PaymentSelection({ booking, onSuccess, onCancel }) {
           >
             <span style={{ fontSize: 24 }}>💳</span>
             <span>Mit Kreditkarte bezahlen (Stripe)</span>
+          </button>
 
           <button
             onClick={() => setSelectedMethod('omise')}
