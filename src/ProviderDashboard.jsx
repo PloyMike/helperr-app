@@ -164,7 +164,9 @@ function ProviderDashboard() {
       if (error) throw error;
 
       alert('✅ Payout request submitted successfully! We will process it within 3-5 business days.');
-      fetchDashboard(); // Reload data
+      
+      // Reload dashboard data
+      await fetchDashboard();
     } catch (error) {
       console.error('Payout request error:', error);
       alert('Error requesting payout: ' + error.message);
