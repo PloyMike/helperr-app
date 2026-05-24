@@ -129,7 +129,6 @@ function ProviderDashboard() {
           const pendingRequests = payouts?.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0) || 0;
           const availablePayout = totalEarnings - paidOut - pendingRequests;
           
-          console.log('Setting earnings:', { totalEarnings, completedJobs, pendingPayout: availablePayout, paidOut, pendingRequests });
           setEarnings({ totalEarnings, completedJobs, pendingPayout: availablePayout });
         } catch (payoutError) {
           // Payouts table doesn't exist yet
