@@ -140,6 +140,35 @@ function ProviderDashboard() {
     }
   }, [user]);
 
+  const handleRequestPayout = async () => {
+    if (earnings.pendingPayout === 0) {
+      alert('No pending earnings to withdraw');
+      return;
+    }
+
+    if (!window.confirm(`Request payout of $${earnings.pendingPayout.toFixed(2)}? This will be processed within 3-5 business days.`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('payouts')
+        .insert({
+          provider_id: profile.id,
+          amount: earnings.pendingPayout,
+          status: 'pending',
+        });
+
+      if (error) throw error;
+
+      alert('✅ Payout request submitted successfully! We will process it within 3-5 business days.');
+      fetchDashboard(); // Reload data
+    } catch (error) {
+      console.error('Payout request error:', error);
+      alert('Error requesting payout: ' + error.message);
+    }
+  };
+
   useEffect(() => {
     fetchDashboard();
   }, [fetchDashboard]);
@@ -301,6 +330,7 @@ function ProviderDashboard() {
                 cursor: earnings.pendingPayout === 0 ? 'not-allowed' : 'pointer'
               }}
               disabled={earnings.pendingPayout === 0}
+              onClick={handleRequestPayout}
             >
               💸 Request Payout (${earnings.pendingPayout.toFixed(2)})
             </button>
