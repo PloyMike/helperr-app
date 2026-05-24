@@ -122,12 +122,14 @@ function ProviderDashboard() {
         try {
           const { data: payouts } = await supabase
             .from('payouts')
-            .select('amount')
-            .eq('provider_id', profileData.id)
-            .eq('status', 'paid');
+            .select('amount, status')
+            .eq('provider_id', profileData.id);
           
-          const paidOut = payouts?.reduce((sum, p) => sum + p.amount, 0) || 0;
-          setEarnings({ totalEarnings, completedJobs, pendingPayout: totalEarnings - paidOut });
+          const paidOut = payouts?.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0) || 0;
+          const pendingRequests = payouts?.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0) || 0;
+          const availablePayout = totalEarnings - paidOut - pendingRequests;
+          
+          setEarnings({ totalEarnings, completedJobs, pendingPayout: availablePayout });
         } catch (payoutError) {
           // Payouts table doesn't exist yet
           setEarnings({ totalEarnings, completedJobs, pendingPayout: totalEarnings });
