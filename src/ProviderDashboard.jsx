@@ -272,21 +272,21 @@ function ProviderDashboard() {
           <h2 style={styles.sectionTitle}>💰 Earnings & Payouts</h2>
           <div style={styles.earningsGrid}>
             <div style={styles.earningCard}>
-              <div style={styles.earningIcon}>💵</div>
+              
               <div style={styles.earningAmount}>${earnings.totalEarnings.toFixed(2)}</div>
               <div style={styles.earningLabel}>Total Earnings</div>
               <div style={styles.earningSubtext}>From all completed jobs</div>
             </div>
             
             <div style={styles.earningCard}>
-              <div style={styles.earningIcon}>✅</div>
+              
               <div style={styles.earningAmount}>{earnings.completedJobs}</div>
               <div style={styles.earningLabel}>Completed Jobs</div>
               <div style={styles.earningSubtext}>Successfully finished</div>
             </div>
             
             <div style={{ ...styles.earningCard, ...styles.earningCardHighlight }}>
-              <div style={styles.earningIcon}>⏳</div>
+              
               <div style={styles.earningAmount}>${earnings.pendingPayout.toFixed(2)}</div>
               <div style={styles.earningLabel}>Pending Payout</div>
               <div style={styles.earningSubtext}>Ready to withdraw</div>
@@ -671,16 +671,15 @@ const styles = {
   }
 ,
   
-  earningsSection: { background: 'white', padding: 32, borderRadius: 20, marginBottom: 32, boxShadow: '0 4px 20px rgba(0,0,0,0.08)' },
-  earningsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24, marginBottom: 24 },
-  earningCard: { background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', padding: 32, borderRadius: 16, textAlign: 'center', border: '3px solid #bbf7d0', position: 'relative', overflow: 'hidden' },
-  earningCardHighlight: { background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', border: '3px solid #fbbf24' },
-  earningIcon: { fontSize: 56, marginBottom: 16 },
-  earningAmount: { fontSize: 48, fontWeight: 800, color: '#065f46', fontFamily: '"Outfit", sans-serif', marginBottom: 8 },
-  earningLabel: { fontSize: 16, fontWeight: 700, color: '#047857', textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: 4 },
-  earningSubtext: { fontSize: 13, color: '#6b7280', fontWeight: 500 },
+  earningsSection: { background: 'white', padding: 24, borderRadius: 16, marginBottom: 32, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' },
+  earningsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 20 },
+  earningCard: { background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', padding: 20, borderRadius: 12, textAlign: 'center', border: '2px solid #bbf7d0' },
+  earningCardHighlight: { background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', border: '2px solid #fbbf24' },
+  earningAmount: { fontSize: 32, fontWeight: 800, color: '#065f46', fontFamily: '"Outfit", sans-serif', marginBottom: 6 },
+  earningLabel: { fontSize: 13, fontWeight: 700, color: '#047857', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
+  earningSubtext: { fontSize: 12, color: '#6b7280', fontWeight: 500 },
   payoutButtonContainer: { textAlign: 'center' },
-  payoutButton: { padding: '18px 48px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 12, fontSize: 20, fontWeight: 700, fontFamily: '"Outfit", sans-serif', boxShadow: '0 8px 24px rgba(6, 95, 70, 0.4)', transition: 'transform 0.2s' }
+  payoutButton: { padding: '14px 32px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 10, fontSize: 16, fontWeight: 700, fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)' }
 };
 
 export default ProviderDashboard;
