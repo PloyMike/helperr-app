@@ -10,7 +10,6 @@ function ProviderBookingsPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [userProfile, setUserProfile] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [stats, setStats] = useState({ totalEarnings: 0, completedJobs: 0, pendingPayout: 0 });
 
   useEffect(() => {
     const handleScroll = () => {
@@ -36,35 +35,6 @@ function ProviderBookingsPage() {
     checkProfile();
   }, [user]);
 
-  const fetchStats = useCallback(async () => {
-    if (!userProfile?.id) return;
-    
-    try {
-      const { data: completedBookings } = await supabase
-        .from('bookings')
-        .select('total_amount')
-        .eq('profile_id', userProfile.id)
-        .eq('status', 'completed')
-        .eq('payment_status', 'captured');
-      
-      const totalEarnings = completedBookings?.reduce((sum, b) => sum + (b.total_amount || 0), 0) || 0;
-      const completedJobs = completedBookings?.length || 0;
-      
-      const { data: payouts } = await supabase
-        .from('payouts')
-        .select('amount')
-        .eq('provider_id', userProfile.id)
-        .eq('status', 'paid');
-      
-      const paidOut = payouts?.reduce((sum, p) => sum + p.amount, 0) || 0;
-      const pendingPayout = totalEarnings - paidOut;
-      
-      setStats({ totalEarnings, completedJobs, pendingPayout });
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    }
-  }, [userProfile]);
-
   const fetchBookings = useCallback(async () => {
     if (!user || !userProfile?.id) {
       setLoading(false);
@@ -89,7 +59,7 @@ function ProviderBookingsPage() {
 
   useEffect(() => {
     fetchBookings();
-      fetchStats();
+      
   }, [fetchBookings]);
 
   const handleAccept = async (bookingId) => {
@@ -135,7 +105,7 @@ function ProviderBookingsPage() {
 
       alert('Booking confirmed!');
       await fetchBookings();
-      fetchStats();
+      
     } catch (error) {
       console.error('Error:', error);
       alert('Error confirming booking');
@@ -185,7 +155,7 @@ function ProviderBookingsPage() {
 
       alert('Booking declined');
       fetchBookings();
-      fetchStats();
+      
     } catch (error) {
       console.error('Error:', error);
       alert('Error declining booking');
@@ -314,7 +284,7 @@ function ProviderBookingsPage() {
 
       alert(`✅ Booking completed! Payment captured: ${isOmise ? '฿' : '$'}${captureResult.amount}`);
       await fetchBookings();
-      fetchStats();
+      
     } catch (error) {
       console.error('Error:', error);
       alert(`Error: ${error.message || 'Failed to complete booking'}`);
@@ -328,7 +298,7 @@ function ProviderBookingsPage() {
       const { error } = await supabase.from("bookings").update({ status: "archived" }).eq("id", bookingId);
       if (error) throw error;
       fetchBookings();
-      fetchStats();
+      
     } catch (error) {
       console.error("Error:", error);
       alert("Error archiving booking");
@@ -404,27 +374,6 @@ function ProviderBookingsPage() {
       </div>
 
       <div style={styles.container}>
-        {/* Stats Cards */}
-        <div style={styles.statsGrid}>
-          <div style={styles.statCard}>
-            <div style={styles.statIcon}>💵</div>
-            <div style={styles.statValue}>${stats.totalEarnings.toFixed(2)}</div>
-            <div style={styles.statLabel}>Total Earnings</div>
-          </div>
-          
-          <div style={styles.statCard}>
-            <div style={styles.statIcon}>✅</div>
-            <div style={styles.statValue}>{stats.completedJobs}</div>
-            <div style={styles.statLabel}>Completed Jobs</div>
-          </div>
-          
-          <div style={styles.statCard}>
-            <div style={styles.statIcon}>⏳</div>
-            <div style={styles.statValue}>${stats.pendingPayout.toFixed(2)}</div>
-            <div style={styles.statLabel}>Pending Payout</div>
-          </div>
-        </div>
-
         <div style={styles.filters}>
           {['all', 'pending', 'confirmed', 'cancelled', 'archived'].map(status => (
             <button

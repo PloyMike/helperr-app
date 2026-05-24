@@ -106,6 +106,32 @@ function ProviderDashboard() {
           conversionRate,
           topTimeSlots
         });
+
+        // Fetch Earnings
+        const { data: completedBookings } = await supabase
+          .from('bookings')
+          .select('total_amount')
+          .eq('profile_id', profileData.id)
+          .eq('status', 'completed')
+          .eq('payment_status', 'captured');
+        
+        const totalEarnings = completedBookings?.reduce((sum, b) => sum + (b.total_amount || 0), 0) || 0;
+        const completedJobs = completedBookings?.length || 0;
+        
+        // Check if payouts table exists
+        try {
+          const { data: payouts } = await supabase
+            .from('payouts')
+            .select('amount')
+            .eq('provider_id', profileData.id)
+            .eq('status', 'paid');
+          
+          const paidOut = payouts?.reduce((sum, p) => sum + p.amount, 0) || 0;
+          setEarnings({ totalEarnings, completedJobs, pendingPayout: totalEarnings - paidOut });
+        } catch (payoutError) {
+          // Payouts table doesn't exist yet
+          setEarnings({ totalEarnings, completedJobs, pendingPayout: totalEarnings });
+        }
       }
     } catch (error) {
       console.error('Error:', error);
