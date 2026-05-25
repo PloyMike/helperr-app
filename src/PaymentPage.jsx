@@ -80,7 +80,7 @@ function PaymentPage() {
               to: booking.customer_email,
               variables: {
                 customer_name: booking.customer_name,
-                provider_name: booking.profile?.name || "Provider",
+                provider_name: booking.profiles?.name || "Provider",
                 service: booking.service_name,
                 booking_date: booking.booking_date,
                 time_slot: booking.time_slot,
@@ -104,9 +104,9 @@ function PaymentPage() {
             },
             body: JSON.stringify({
               template: "booking-request",
-              to: booking.profile?.email || "",
+              to: booking.profiles?.email || "",
               variables: {
-                provider_name: booking.profile?.name || "Provider",
+                provider_name: booking.profiles?.name || "Provider",
                 customer_name: booking.customer_name,
                 service: booking.service_name,
                 booking_date: booking.booking_date,
