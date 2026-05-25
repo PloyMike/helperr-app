@@ -57,6 +57,61 @@ function PaymentPage() {
 
       if (error) throw error;
 
+      // Get session for authenticated email sending
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (session?.access_token && booking) {
+        // Send booking confirmation email to customer
+        try {
+          await fetch("https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email", {
+            method: "POST",
+            headers: { 
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
+              template: "booking-confirmation",
+              to: booking.customer_email,
+              variables: {
+                customer_name: booking.customer_name,
+                provider_name: booking.profile?.name || "Provider",
+                service: booking.service_name,
+                booking_date: booking.booking_date,
+                time_slot: booking.time_slot,
+                address: booking.service_address,
+              },
+            }),
+          });
+        } catch (emailError) {
+          console.error("Customer email error:", emailError);
+        }
+
+        // Send booking request email to provider
+        try {
+          await fetch("https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email", {
+            method: "POST",
+            headers: { 
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${session.access_token}`
+            },
+            body: JSON.stringify({
+              template: "booking-request",
+              to: booking.profile?.email || "",
+              variables: {
+                provider_name: booking.profile?.name || "Provider",
+                customer_name: booking.customer_name,
+                service: booking.service_name,
+                booking_date: booking.booking_date,
+                time_slot: booking.time_slot,
+                address: booking.service_address,
+              },
+            }),
+          });
+        } catch (emailError) {
+          console.error("Provider email error:", emailError);
+        }
+      }
+
       alert('✅ Payment authorized! Your booking is confirmed.');
       window.navigateTo('bookings');
     } catch (err) {
