@@ -760,7 +760,7 @@ function BookingCalendar({ profile, onClose }) {
 
           {step === 4 && (
             <div>
-              <h3 style={styles.stepTitle}>Confirm Booking</h3>
+              <h3 style={styles.stepTitle}>Confirm and Pay</h3>
               
               <div style={styles.summary}>
                 <div style={styles.summaryRow}>
@@ -893,7 +893,7 @@ function BookingCalendar({ profile, onClose }) {
                     cursor: (submitting || !customerName.trim()) ? 'not-allowed' : 'pointer'
                   }}
                 >
-                  {submitting ? 'Sending...' : 'Confirm Booking'}
+                  {submitting ? 'Sending...' : 'Confirm and Pay'}
                 </button>
               </div>
             </div>
