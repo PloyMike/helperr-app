@@ -208,7 +208,7 @@ function BookingCalendar({ profile, onClose }) {
     setSubmitting(true);
 
     try {
-      const { error } = await supabase.from('bookings').insert([{
+      const { data, error } = await supabase.from('bookings').insert([{
         profile_id: profile.id,
         customer_name: customerName,
         customer_email: user.email,
@@ -317,8 +317,12 @@ function BookingCalendar({ profile, onClose }) {
         console.error("Customer email error:", emailError);
       }
 
-      // Booking erstellt - redirect zur Payment Page
+      // Booking erstellt - redirect zur Payment Page mit booking_id
+      const bookingId = data?.[0]?.id;
       onClose();
+      
+      // Speichere booking_id für Payment Page
+      localStorage.setItem('current_booking_id', bookingId);
       window.navigateTo('payment');
     } catch (error) {
       console.error('Booking error:', error);
