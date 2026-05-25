@@ -317,12 +317,15 @@ function BookingCalendar({ profile, onClose }) {
         console.error("Customer email error:", emailError);
       }
 
-      alert('✅ Booking request sent successfully!');
+      // Booking erstellt - redirect zur Payment Page
       onClose();
+      window.navigateTo('payment');
     } catch (error) {
+      console.error('Booking error:', error);
       alert('Error: ' + error.message);
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   };
 
   useEffect(() => {
