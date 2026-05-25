@@ -321,8 +321,8 @@ function BookingCalendar({ profile, onClose }) {
       const bookingId = data?.[0]?.id;
       onClose();
       
-      // Speichere booking_id für Payment Page
-      localStorage.setItem('current_booking_id', bookingId);
+      // Setze booking_id für Payment Page
+      window.currentBookingId = bookingId;
       window.navigateTo('payment');
     } catch (error) {
       console.error('Booking error:', error);
