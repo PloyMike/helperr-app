@@ -164,6 +164,22 @@ function ProviderBookingsPage() {
 
 
 
+  const handleComplete = async (bookingId) => {
+    if (!window.confirm("Mark this booking as completed? Payment will be processed now.")) return;
+    
+    try {
+      // Get booking to retrieve payment_intent_id
+      const { data: booking, error: fetchError } = await supabase
+        .from('bookings')
+        .select('*, profiles(name, email)')
+        .eq('id', bookingId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      if (!booking.payment_intent_id) {
+        throw new Error('No payment to capture - booking not paid yet');
+      }
 
       const { data: { session } } = await supabase.auth.getSession();
       
