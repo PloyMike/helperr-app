@@ -164,22 +164,6 @@ function ProviderBookingsPage() {
 
 
 
-  const handleComplete = async (bookingId) => {
-    if (!window.confirm("Mark this booking as completed? Payment will be processed now.")) return;
-    
-    try {
-      // Get booking to retrieve payment_intent_id
-      const { data: booking, error: fetchError } = await supabase
-        .from('bookings')
-        .select('*, profiles(name, email)')
-        .eq('id', bookingId)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      if (!booking.payment_intent_id) {
-        throw new Error('No payment to capture - booking not paid yet');
-      }
 
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -475,14 +459,7 @@ function ProviderBookingsPage() {
                     </div>
                   )}
 
-                  {booking.status === 'confirmed' && (
-                    <button 
-                      onClick={() => handleComplete(booking.id)} 
-                      style={styles.btnComplete}
-                    >
-                      ✓ Mark as Completed
-                    </button>
-                  )}
+
                 </div>
               </div>
             ))}
@@ -520,7 +497,6 @@ const styles = {
   cardActions: { padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: 8 },
   btnAccept: { flex: 1, padding: '12px', background: '#065f46', color: 'white', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)' },
   btnDecline: { flex: 1, padding: '12px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' },
-  btnComplete: { width: '100%', padding: '12px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)' },
   empty: { textAlign: 'center', padding: '60px 20px', background: 'white', borderRadius: 16, border: '1.5px solid #e5e7eb', boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)' },
   btnPrimary: { padding: '12px 24px', background: '#065f46', color: 'white', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', marginTop: 16 },
   loading: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: '#6b7280' },
