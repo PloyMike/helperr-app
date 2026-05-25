@@ -60,11 +60,7 @@ function PaymentPage() {
       // Get session for authenticated email sending
       const { data: { session } } = await supabase.auth.getSession();
 
-      console.log('🔍 Booking data:', booking);
-      console.log('📧 Customer email:', booking?.customer_email);
       console.log('👤 Provider email:', booking?.profile?.email);
-      console.log('🔑 Session token exists:', !!session?.access_token);
-      
       if (session?.access_token && booking) {
         // Send booking confirmation email to customer
         console.log('📨 Sending customer email...');
@@ -94,7 +90,6 @@ function PaymentPage() {
         }
 
         // Send booking request email to provider
-        console.log('📨 Sending provider email...');
         try {
           await fetch("https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email", {
             method: "POST",
@@ -115,12 +110,9 @@ function PaymentPage() {
               },
             }),
           });
-          console.log('✅ Provider email sent successfully!');
         } catch (emailError) {
           console.error("❌ Provider email error:", emailError);
         }
-      } else {
-        console.log('⚠️ Email not sent - missing session or booking data');
       }
 
       alert('✅ Payment authorized! Your booking is confirmed.');
