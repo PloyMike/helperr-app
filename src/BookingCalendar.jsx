@@ -227,7 +227,7 @@ function BookingCalendar({ profile, onClose }) {
         message: message,
         total_price: profile.price,
         status: 'pending'
-      }]);
+      }]).select();
 
       if (error) throw error;
 
