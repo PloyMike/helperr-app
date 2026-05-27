@@ -237,7 +237,7 @@ const styles = {
   total: { fontSize: 18, fontWeight: 700, color: '#111827', paddingTop: 12, borderTop: '2px solid #e5e7eb', marginTop: 8 },
   inputGroup: { display: 'flex', flexDirection: 'column', gap: 6 },
   label: { fontSize: 13, fontWeight: 600, color: '#374151' },
-  input: { padding: '12px 14px', border: '2px solid #e5e7eb', borderRadius: 8, fontSize: 15, fontFamily: '"Outfit", sans-serif' },
+  input: { padding: '12px 14px', border: '2px solid #e5e7eb', borderRadius: 8, fontSize: 15, fontFamily: '"Outfit", sans-serif', width: '100%', boxSizing: 'border-box' },
   error: { background: '#fee2e2', color: '#dc2626', padding: 12, borderRadius: 8, fontSize: 14 },
   actions: { display: 'flex', gap: 12 },
   btnCancel: { flex: 1, padding: '14px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: 10, fontSize: 16, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' },

@@ -42,9 +42,12 @@ function PaymentSelection({ booking, onSuccess, onCancel }) {
       <div style={{
         backgroundColor: 'white',
         borderRadius: 16,
-        padding: 40,
+        padding: window.innerWidth <= 640 ? 20 : 40,
         maxWidth: 500,
         width: '100%',
+        maxHeight: '90vh',
+        overflowY: 'auto',
+        boxSizing: 'border-box',
         boxShadow: '0 8px 30px rgba(0,0,0,0.3)'
       }}>
         <h2 style={{ fontSize: 28, fontWeight: 800, marginBottom: 8, textAlign: 'center', color: '#2d3748' }}>
