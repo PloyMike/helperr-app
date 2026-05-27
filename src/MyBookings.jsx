@@ -510,18 +510,7 @@ function MyBookings() {
                     </button>
                   )}
 
-                  {booking.payment_status === 'pending' && (
-                    <button 
-                      onClick={() => {
-                        window.currentBookingId = booking.id;
-                        window.navigateTo('payment');
-                      }} 
-                      style={styles.btnPay}
-                    >
-                      Pay Now
-                    </button>
-                  )}
-                  
+
                   {true && canReview(booking) && (
                     <button onClick={() => handleOpenReview(booking)} style={styles.btnReview}>
                       Write Review
