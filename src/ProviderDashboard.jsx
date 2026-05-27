@@ -21,11 +21,7 @@ function ProviderDashboard() {
     conversionRate: 0,
     topTimeSlots: []
   });
-  const [earnings, setEarnings] = useState({
-    totalEarnings: 0,
-    completedJobs: 0,
-    pendingPayout: 0
-  });
+
   const [recentBookings, setRecentBookings] = useState([]);
 
   const fetchDashboard = useCallback(async () => {
@@ -107,33 +103,6 @@ function ProviderDashboard() {
           topTimeSlots
         });
 
-        // Fetch Earnings
-        const { data: completedBookings } = await supabase
-          .from('bookings')
-          .select('total_amount')
-          .eq('profile_id', profileData.id)
-          .eq('status', 'completed')
-          .eq('payment_status', 'captured');
-        
-        const totalEarnings = completedBookings?.reduce((sum, b) => sum + (b.total_amount || 0), 0) || 0;
-        const completedJobs = completedBookings?.length || 0;
-        
-        // Check if payouts table exists
-        try {
-          const { data: payouts } = await supabase
-            .from('payouts')
-            .select('amount, status')
-            .eq('provider_id', profileData.id);
-          
-          const paidOut = payouts?.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0) || 0;
-          const pendingRequests = payouts?.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0) || 0;
-          const availablePayout = totalEarnings - paidOut - pendingRequests;
-          
-          setEarnings({ totalEarnings, completedJobs, pendingPayout: availablePayout });
-        } catch (payoutError) {
-          // Payouts table doesn't exist yet
-          setEarnings({ totalEarnings, completedJobs, pendingPayout: totalEarnings });
-        }
       }
     } catch (error) {
       console.error('Error:', error);
@@ -141,37 +110,6 @@ function ProviderDashboard() {
       setLoading(false);
     }
   }, [user]);
-
-  const handleRequestPayout = async () => {
-    if (earnings.pendingPayout === 0) {
-      alert('No pending earnings to withdraw');
-      return;
-    }
-
-    if (!window.confirm(`Request payout of $${earnings.pendingPayout.toFixed(2)}? This will be processed within 3-5 business days.`)) {
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from('payouts')
-        .insert({
-          provider_id: profile.id,
-          amount: earnings.pendingPayout,
-          status: 'pending',
-        });
-
-      if (error) throw error;
-
-      alert('✅ Payout request submitted successfully! We will process it within 3-5 business days.');
-      
-      // Reload dashboard data
-      await fetchDashboard();
-    } catch (error) {
-      console.error('Payout request error:', error);
-      alert('Error requesting payout: ' + error.message);
-    }
-  };
 
   useEffect(() => {
     fetchDashboard();
@@ -297,47 +235,6 @@ function ProviderDashboard() {
               <div style={styles.statValue}>{profile.rating || '5.0'}</div>
               <div style={styles.statLabel}>Rating</div>
             </div>
-          </div>
-        </div>
-
-        {/* Earnings Section */}
-        <div style={styles.earningsSection}>
-          <h2 style={styles.sectionTitle}>💰 Earnings & Payouts</h2>
-          <div style={styles.earningsGrid}>
-            <div style={styles.earningCard}>
-              
-              <div style={styles.earningAmount}>${earnings.totalEarnings.toFixed(2)}</div>
-              <div style={styles.earningLabel}>Total Earnings</div>
-              <div style={styles.earningSubtext}>From all completed jobs</div>
-            </div>
-            
-            <div style={styles.earningCard}>
-              
-              <div style={styles.earningAmount}>{earnings.completedJobs}</div>
-              <div style={styles.earningLabel}>Completed Jobs</div>
-              <div style={styles.earningSubtext}>Successfully finished</div>
-            </div>
-            
-            <div style={{ ...styles.earningCard, ...styles.earningCardHighlight }}>
-              
-              <div style={styles.earningAmount}>${earnings.pendingPayout.toFixed(2)}</div>
-              <div style={styles.earningLabel}>Pending Payout</div>
-              <div style={styles.earningSubtext}>Ready to withdraw</div>
-            </div>
-          </div>
-          
-          <div style={styles.payoutButtonContainer}>
-            <button 
-              style={{
-                ...styles.payoutButton,
-                opacity: earnings.pendingPayout === 0 ? 0.5 : 1,
-                cursor: earnings.pendingPayout === 0 ? 'not-allowed' : 'pointer'
-              }}
-              disabled={earnings.pendingPayout === 0}
-              onClick={handleRequestPayout}
-            >
-              💸 Request Payout (${earnings.pendingPayout.toFixed(2)})
-            </button>
           </div>
         </div>
 
@@ -705,15 +602,7 @@ const styles = {
   }
 ,
   
-  earningsSection: { background: 'white', padding: 24, borderRadius: 16, marginBottom: 32, boxShadow: '0 2px 12px rgba(0,0,0,0.06)' },
-  earningsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 20 },
-  earningCard: { background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', padding: 20, borderRadius: 12, textAlign: 'center', border: '2px solid #bbf7d0' },
-  earningCardHighlight: { background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', border: '2px solid #fbbf24' },
-  earningAmount: { fontSize: 32, fontWeight: 800, color: '#065f46', fontFamily: '"Outfit", sans-serif', marginBottom: 6 },
-  earningLabel: { fontSize: 13, fontWeight: 700, color: '#047857', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
-  earningSubtext: { fontSize: 12, color: '#6b7280', fontWeight: 500 },
-  payoutButtonContainer: { textAlign: 'center' },
-  payoutButton: { padding: '14px 32px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 10, fontSize: 16, fontWeight: 700, fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)' }
+
 };
 
 export default ProviderDashboard;
