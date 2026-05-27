@@ -22,3 +22,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .vercel
+
+# Lokale Backup-Ordner (nicht zu GitHub pushen)
+helperr-app-backup-*/
