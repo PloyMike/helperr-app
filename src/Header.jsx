@@ -996,7 +996,7 @@ function Header({ transparent, isScrolled }) {
     padding: '16px 24px',
     fontSize: 14,
     fontWeight: 400,
-    color: '#9ca3af',
+    color: '#374151',
     background: 'none',
     border: 'none',
     borderBottom: '1px solid #f3f4f6',
