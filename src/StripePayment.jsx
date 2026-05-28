@@ -97,7 +97,7 @@ function CheckoutForm({ booking, onSuccess, onCancel }) {
               booking_date: booking.booking_date,
               time_slot: booking.time_slot,
               address: booking.service_address || 'N/A',
-              amount: `$${totalAmount}`,
+              amount: `${curSym}${totalAmount}`,
             },
           }),
         });
@@ -119,15 +119,15 @@ function CheckoutForm({ booking, onSuccess, onCancel }) {
       <div style={styles.summary}>
         <div style={styles.summaryRow}>
           <span>Service:</span>
-          <span>\${basePrice}</span>
+          <span>{curSym}{basePrice}</span>
         </div>
         <div style={styles.summaryRow}>
           <span>Platform Fee (9%):</span>
-          <span>\${helperrFee}</span>
+          <span>{curSym}{helperrFee}</span>
         </div>
         <div style={{ ...styles.summaryRow, ...styles.total }}>
           <span>Total:</span>
-          <span>\${totalAmount}</span>
+          <span>{curSym}{totalAmount}</span>
         </div>
       </div>
 

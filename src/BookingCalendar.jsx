@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { getCurrencyCode, getCurrencySymbol } from './currency';
 import { supabase } from './supabase';
 import { useAuth } from './AuthContext';
 
@@ -126,6 +127,7 @@ function BookingCalendar({ profile, onClose }) {
   const liveDuration = ((endHour * 60 + endMinute) - (startHour * 60 + startMinute)) / 60;
   const liveHourlyMatch = String(profile.price || '').match(/(\d+)/);
   const liveHourlyRate = liveHourlyMatch ? parseInt(liveHourlyMatch[0]) : 0;
+  const liveCurSym = getCurrencySymbol(getCurrencyCode(profile.price));
   const livePrice = liveDuration > 0 ? Math.round(liveHourlyRate * liveDuration) : 0;
 
   const getTimeString = () => {
@@ -768,7 +770,7 @@ function BookingCalendar({ profile, onClose }) {
                 </div>
                 <div style={styles.summaryRow}>
                   <span style={styles.summaryLabel}>Price:</span>
-                  <span style={styles.summaryValue}>฿{livePrice} ({liveHourlyRate}฿ × {liveDuration} {liveDuration === 1 ? 'hr' : 'hrs'})</span>
+                  <span style={styles.summaryValue}>{liveCurSym}{livePrice} ({liveCurSym}{liveHourlyRate} × {liveDuration} {liveDuration === 1 ? 'hr' : 'hrs'})</span>
                 </div>
                 <div style={{...styles.summaryRow, borderTop: '1px solid #e5e7eb', paddingTop: 12, marginTop: 12}}>
                   <span style={styles.summaryLabel}>Your Name:</span>
