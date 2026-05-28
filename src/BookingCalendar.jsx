@@ -358,18 +358,23 @@ function BookingCalendar({ profile, onClose }) {
                   const today = new Date();
                   today.setHours(0, 0, 0, 0);
                   const isPast = date < today;
+                  const maxDate = new Date(today);
+                  maxDate.setDate(maxDate.getDate() + 6);
+                  const isTooFar = date > maxDate;
+                  const isDisabled = isPast || isTooFar;
                   const dateISO = formatDateISO(date);
                   const isSelected = selectedDate === dateISO;
                   
                   return (
                     <button 
                       key={dateISO} 
-                      onClick={() => !isPast && setSelectedDate(dateISO)} 
-                      disabled={isPast}
+                      onClick={() => !isDisabled && setSelectedDate(dateISO)} 
+                      disabled={isDisabled}
+                      title={isTooFar ? 'Max. 6 days in advance' : ''}
                       style={{
                         ...styles.calendarDay,
                         ...(isSelected ? styles.calendarDaySelected : {}),
-                        ...(isPast ? styles.calendarDayDisabled : {})
+                        ...(isDisabled ? styles.calendarDayDisabled : {})
                       }}
                     >
                       {date.getDate()}
@@ -377,6 +382,10 @@ function BookingCalendar({ profile, onClose }) {
                   );
                 })}
               </div>
+
+              <p style={{ fontSize: 13, color: '#6b7280', textAlign: 'center', margin: '12px 0 0', fontFamily: '"Outfit", sans-serif' }}>
+                You can book up to 6 days in advance
+              </p>
 
               <button onClick={() => setStep(2)} disabled={!selectedDate} style={{...styles.btnNext, opacity: !selectedDate ? 0.5 : 1, cursor: !selectedDate ? 'not-allowed' : 'pointer'}}>
                 Continue to Time Selection →
