@@ -122,6 +122,12 @@ function BookingCalendar({ profile, onClose }) {
   const eh = endHour.toString().padStart(2, '0');
   const em = endMinute.toString().padStart(2, '0');
 
+  // Live-Preis: Stundenlohn x gebuchte Dauer (fuer Anzeige in der Confirm-Page)
+  const liveDuration = ((endHour * 60 + endMinute) - (startHour * 60 + startMinute)) / 60;
+  const liveHourlyMatch = String(profile.price || '').match(/(\d+)/);
+  const liveHourlyRate = liveHourlyMatch ? parseInt(liveHourlyMatch[0]) : 0;
+  const livePrice = liveDuration > 0 ? Math.round(liveHourlyRate * liveDuration) : 0;
+
   const getTimeString = () => {
     return `${sh}:${sm} - ${eh}:${em}`;
   };
@@ -762,7 +768,7 @@ function BookingCalendar({ profile, onClose }) {
                 </div>
                 <div style={styles.summaryRow}>
                   <span style={styles.summaryLabel}>Price:</span>
-                  <span style={styles.summaryValue}>{profile.price}</span>
+                  <span style={styles.summaryValue}>฿{livePrice} ({liveHourlyRate}฿ × {liveDuration} {liveDuration === 1 ? 'hr' : 'hrs'})</span>
                 </div>
                 <div style={{...styles.summaryRow, borderTop: '1px solid #e5e7eb', paddingTop: 12, marginTop: 12}}>
                   <span style={styles.summaryLabel}>Your Name:</span>
