@@ -1,4 +1,5 @@
 import React from 'react';
+import { getCurrencyCode, getCurrencySymbol } from './currency';
 import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js';
 
 function PayPalPayment({ booking, onSuccess, onCancel }) {
@@ -10,10 +11,15 @@ function PayPalPayment({ booking, onSuccess, onCancel }) {
   const basePrice = booking.service_price ? Number(booking.service_price) : fallbackPrice;
   const helperrFee = Math.round(basePrice * 0.09);
   const totalAmount = basePrice + helperrFee;
+  // PayPal unterstuetzt nicht jede Waehrung -> Fallback USD
+  const PAYPAL_OK = ['EUR','USD','GBP','AUD','CAD','CHF','CNY','CZK','DKK','HKD','HUF','ILS','JPY','MYR','NOK','NZD','PHP','PLN','SEK','SGD','THB','TWD'];
+  const rawCode = getCurrencyCode(priceText);
+  const payCode = PAYPAL_OK.includes(rawCode) ? rawCode : 'USD';
+  const curSym = getCurrencySymbol(rawCode);
 
   const initialOptions = {
     clientId: process.env.REACT_APP_PAYPAL_CLIENT_ID,
-    currency: "EUR",
+    currency: payCode,
     intent: "capture"
   };
 
@@ -22,14 +28,14 @@ function PayPalPayment({ booking, onSuccess, onCancel }) {
       purchase_units: [{
         amount: {
           value: totalAmount.toString(),
-          currency_code: "EUR",
+          currency_code: payCode,
           breakdown: {
             item_total: {
-              currency_code: "EUR",
+              currency_code: payCode,
               value: basePrice.toString()
             },
             shipping: {
-              currency_code: "EUR",
+              currency_code: payCode,
               value: helperrFee.toString()
             }
           }
@@ -38,7 +44,7 @@ function PayPalPayment({ booking, onSuccess, onCancel }) {
         items: [{
           name: `${booking.profile_name} - ${booking.time_slot}`,
           unit_amount: {
-            currency_code: "EUR",
+            currency_code: payCode,
             value: basePrice.toString()
           },
           quantity: "1"
@@ -107,11 +113,11 @@ function PayPalPayment({ booking, onSuccess, onCancel }) {
           <div style={{ fontSize: 14, color: '#4a5568', lineHeight: 2 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>Service von {booking.profile_name}:</span>
-              <span style={{ fontWeight: 600 }}>{basePrice}€</span>
+              <span style={{ fontWeight: 600 }}>{curSym}{basePrice}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#667eea' }}>
               <span>Helperr Service-Gebühr (9%):</span>
-              <span style={{ fontWeight: 600 }}>+{helperrFee}€</span>
+              <span style={{ fontWeight: 600 }}>+{curSym}{helperrFee}</span>
             </div>
             <div style={{ 
               display: 'flex', 
@@ -124,7 +130,7 @@ function PayPalPayment({ booking, onSuccess, onCancel }) {
               color: '#2d3748'
             }}>
               <span>Gesamt:</span>
-              <span>{totalAmount}€</span>
+              <span>{curSym}{totalAmount}</span>
             </div>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getCurrencyCode, getCurrencySymbol } from './currency';
 import { supabase } from './supabase';
 
 function OmisePayment({ booking, onSuccess, onCancel }) {
@@ -16,6 +17,7 @@ function OmisePayment({ booking, onSuccess, onCancel }) {
   const fallbackPrice = priceMatch ? parseInt(priceMatch[0]) : 500;
   // Use calculated service_price (hourly x duration) when available
   const basePrice = booking.service_price ? Number(booking.service_price) : fallbackPrice;
+  const curSym = getCurrencySymbol(getCurrencyCode(priceText));
   const helperrFee = Math.round(basePrice * 0.09);
   const totalAmount = basePrice + helperrFee;
 
@@ -108,7 +110,7 @@ function OmisePayment({ booking, onSuccess, onCancel }) {
                   booking_date: booking.booking_date,
                   time_slot: booking.time_slot,
                   address: booking.service_address || 'N/A',
-                  amount: `฿${totalAmount}`,
+                  amount: `${curSym}${totalAmount}`,
                 },
               }),
             });
@@ -133,15 +135,15 @@ function OmisePayment({ booking, onSuccess, onCancel }) {
         <div style={styles.summary}>
           <div style={styles.summaryRow}>
             <span>Service:</span>
-            <span>฿{basePrice}</span>
+            <span>{curSym}{basePrice}</span>
           </div>
           <div style={styles.summaryRow}>
             <span>Platform Fee (9%):</span>
-            <span>฿{helperrFee}</span>
+            <span>{curSym}{helperrFee}</span>
           </div>
           <div style={{ ...styles.summaryRow, ...styles.total }}>
             <span>Total:</span>
-            <span>฿{totalAmount}</span>
+            <span>{curSym}{totalAmount}</span>
           </div>
         </div>
 

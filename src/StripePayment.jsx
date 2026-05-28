@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getCurrencyCode, getCurrencySymbol } from './currency';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { supabase } from './supabase';
@@ -17,6 +18,7 @@ function CheckoutForm({ booking, onSuccess, onCancel }) {
   const fallbackPrice = priceMatch ? parseInt(priceMatch[0]) : 50;
   // Use calculated service_price (hourly x duration) when available
   const basePrice = booking.service_price ? Number(booking.service_price) : fallbackPrice;
+  const curSym = getCurrencySymbol(getCurrencyCode(priceText));
   const helperrFee = Math.round(basePrice * 0.09);
   const totalAmount = basePrice + helperrFee;
 

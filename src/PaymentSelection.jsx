@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getCurrencyCode, getCurrencySymbol } from './currency';
 import StripePayment from './StripePayment';
 import PayPalPayment from './PayPalPayment';
 import OmisePayment from './OmisePayment';
@@ -24,6 +25,7 @@ function PaymentSelection({ booking, onSuccess, onCancel }) {
   const fallbackPrice = priceMatch ? parseInt(priceMatch[0]) : 50;
   // Use calculated service_price (hourly x duration) when available
   const basePrice = booking.service_price ? Number(booking.service_price) : fallbackPrice;
+  const curSym = getCurrencySymbol(getCurrencyCode(priceText));
   const helperrFee = Math.round(basePrice * 0.09);
   const totalAmount = basePrice + helperrFee;
 
@@ -68,11 +70,11 @@ function PaymentSelection({ booking, onSuccess, onCancel }) {
           <div style={{ fontSize: 14, color: '#4a5568', lineHeight: 2 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>Service von {booking.profile_name}:</span>
-              <span style={{ fontWeight: 600 }}>{basePrice}€</span>
+              <span style={{ fontWeight: 600 }}>{curSym}{basePrice}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#667eea' }}>
               <span>Helperr Gebühr (9%):</span>
-              <span style={{ fontWeight: 600 }}>+{helperrFee}€</span>
+              <span style={{ fontWeight: 600 }}>+{curSym}{helperrFee}</span>
             </div>
             <div style={{ 
               display: 'flex', 
@@ -85,7 +87,7 @@ function PaymentSelection({ booking, onSuccess, onCancel }) {
               color: '#2d3748'
             }}>
               <span>Gesamt:</span>
-              <span>{totalAmount}€</span>
+              <span>{curSym}{totalAmount}</span>
             </div>
           </div>
         </div>
