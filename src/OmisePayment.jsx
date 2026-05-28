@@ -13,7 +13,9 @@ function OmisePayment({ booking, onSuccess, onCancel }) {
   // Calculate amounts
   const priceText = booking.total_price || '50฿/Hr';
   const priceMatch = priceText.match(/(\d+)/);
-  const basePrice = priceMatch ? parseInt(priceMatch[0]) : 500;
+  const fallbackPrice = priceMatch ? parseInt(priceMatch[0]) : 500;
+  // Use calculated service_price (hourly x duration) when available
+  const basePrice = booking.service_price ? Number(booking.service_price) : fallbackPrice;
   const helperrFee = Math.round(basePrice * 0.09);
   const totalAmount = basePrice + helperrFee;
 

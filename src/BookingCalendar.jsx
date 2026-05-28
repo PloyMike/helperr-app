@@ -207,6 +207,15 @@ function BookingCalendar({ profile, onClose }) {
 
     setSubmitting(true);
 
+    // Dauer (Stunden) aus Start-/Endzeit berechnen
+    const startMin = startHour * 60 + startMinute;
+    const endMin = endHour * 60 + endMinute;
+    const durationHours = (endMin - startMin) / 60;
+    // Stundenlohn als Zahl aus profile.price ziehen (z.B. "1000฿/Hr" -> 1000)
+    const hourlyMatch = String(profile.price || '').match(/(\d+)/);
+    const hourlyRate = hourlyMatch ? parseInt(hourlyMatch[0]) : 0;
+    const servicePrice = Math.round(hourlyRate * durationHours);
+
     try {
       const { data, error } = await supabase.from('bookings').insert([{
         profile_id: profile.id,
@@ -226,6 +235,8 @@ function BookingCalendar({ profile, onClose }) {
         gps_accuracy: locationMethod === 'gps' ? gpsLocation.accuracy : null,
         message: message,
         total_price: profile.price,
+        service_price: servicePrice,
+        duration_hours: durationHours,
         status: 'pending'
       }]).select();
 
