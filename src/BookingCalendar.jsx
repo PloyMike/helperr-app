@@ -265,6 +265,11 @@ function BookingCalendar({ profile, onClose }) {
     const index = Math.round(scrollTop / itemHeight);
     const clampedIndex = Math.max(0, Math.min(index, items.length - 1));
     setValue(items[clampedIndex]);
+    // Sanft exakt zur Mitte einrasten (iOS-Feeling)
+    const target = clampedIndex * itemHeight;
+    if (Math.abs(scrollTop - target) > 1) {
+      ref.current.scrollTo({ top: target, behavior: 'smooth' });
+    }
   };
 
   const AppleScrollPicker = ({ items, value, onChange, pickerRef }) => {
@@ -905,7 +910,7 @@ const styles = {
     fontWeight: 700, 
     color: '#065f46', 
     scrollSnapAlign: 'center',
-    transition: 'all 0.2s',
+    transition: 'opacity 0.2s ease, transform 0.2s ease, font-size 0.2s ease',
     fontFamily: '"Outfit", sans-serif'
   },
   colon: { fontSize: 20, fontWeight: 700, color: '#065f46', padding: '0 4px' },
