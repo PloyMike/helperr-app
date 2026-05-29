@@ -26,6 +26,7 @@ function PaymentSelection({ booking, onSuccess, onCancel }) {
   // Use calculated service_price (hourly x duration) when available
   const basePrice = booking.service_price ? Number(booking.service_price) : fallbackPrice;
   const curSym = getCurrencySymbol(getCurrencyCode(priceText));
+  const currencyCode = getCurrencyCode(priceText);
   const helperrFee = Math.round(basePrice * 0.09);
   const totalAmount = basePrice + helperrFee;
 
@@ -117,6 +118,7 @@ function PaymentSelection({ booking, onSuccess, onCancel }) {
             <span>Mit Kreditkarte bezahlen (Stripe)</span>
           </button>
 
+{currencyCode === 'THB' && (
           <button
             onClick={() => setSelectedMethod('omise')}
             style={{
@@ -140,6 +142,7 @@ function PaymentSelection({ booking, onSuccess, onCancel }) {
             <span style={{ fontSize: 24 }}>🇹🇭</span>
             <span>Pay with Omise (Thailand)</span>
           </button>
+          )}
 
           <button
             onClick={() => setSelectedMethod('paypal')}
