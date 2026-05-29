@@ -1,6 +1,7 @@
 import React from 'react';
 import { getCurrencyCode, getCurrencySymbol } from './currency';
 import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js';
+import { supabase } from './supabase';
 
 function PayPalPayment({ booking, onSuccess, onCancel }) {
   // Calculate amounts
@@ -20,7 +21,7 @@ function PayPalPayment({ booking, onSuccess, onCancel }) {
   const initialOptions = {
     clientId: process.env.REACT_APP_PAYPAL_CLIENT_ID,
     currency: payCode,
-    intent: "capture"
+    intent: "authorize"
   };
 
   const createOrder = (data, actions) => {
@@ -54,13 +55,33 @@ function PayPalPayment({ booking, onSuccess, onCancel }) {
   };
 
   const onApprove = (data, actions) => {
-    return actions.order.capture().then((details) => {
-      console.log('PayPal Payment successful:', details);
+    return actions.order.authorize().then(async (details) => {
+      console.log('PayPal Authorization successful:', details);
+      // Authorization-ID (NICHT Order-ID) speichern - brauchen wir spaeter zum Capturen
+      const authId = details?.purchase_units?.[0]?.payments?.authorizations?.[0]?.id || details.id;
+
+      // Buchung in DB updaten - wie bei Stripe/Omise
+      const { error: updateError } = await supabase
+        .from('bookings')
+        .update({
+          payment_status: 'authorized',
+          payment_intent_id: authId,
+          payment_method: 'paypal',
+          total_amount: totalAmount,
+        })
+        .eq('id', booking.id);
+
+      if (updateError) {
+        console.error('PayPal DB update error:', updateError);
+        alert('Payment authorized, but failed to save. Please contact support.');
+        return;
+      }
+
       onSuccess({
         ...booking,
-        payment_status: 'paid',
+        payment_status: 'authorized',
         payment_method: 'paypal',
-        payment_id: details.id,
+        payment_intent_id: authId,
         total_amount: totalAmount,
         helperr_fee: helperrFee
       });
