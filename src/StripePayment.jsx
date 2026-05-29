@@ -71,6 +71,7 @@ function CheckoutForm({ booking, onSuccess, onCancel }) {
         .update({
           payment_status: 'authorized',
           payment_intent_id: paymentIntentId,
+          payment_method: 'stripe',
           total_amount: totalAmount,
         })
         .eq('id', booking.id);

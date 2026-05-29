@@ -84,6 +84,7 @@ function OmisePayment({ booking, onSuccess, onCancel }) {
             .update({
               payment_status: 'authorized',
               payment_intent_id: result.chargeId,
+              payment_method: 'omise',
               total_amount: totalAmount,
             })
             .eq('id', booking.id);
