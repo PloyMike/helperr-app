@@ -748,7 +748,7 @@ function BookingCalendar({ profile, onClose }) {
                   <span style={styles.summaryLabel}>Address:</span>
                   <span style={styles.summaryValue}>
                     {locationMethod === 'gps' ? (
-                      <>
+                      <div style={{ textAlign: 'right' }}>
                         <div style={{ color: '#10b981', fontWeight: 500, marginBottom: 6 }}>
                           GPS Location Shared
                         </div>
@@ -763,7 +763,7 @@ function BookingCalendar({ profile, onClose }) {
                             Note: {address.notes}
                           </div>
                         )}
-                      </>
+                      </div>
                     ) : (
                       <>
                         {isMobile ? (
