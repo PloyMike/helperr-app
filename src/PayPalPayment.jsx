@@ -117,7 +117,7 @@ function PayPalPayment({ booking, onSuccess, onCancel }) {
 
   const onError = (err) => {
     console.error('PayPal Error:', err);
-    alert('PayPal Zahlung fehlgeschlagen!');
+    alert('PayPal payment failed!');
   };
 
   return (
@@ -143,10 +143,10 @@ function PayPalPayment({ booking, onSuccess, onCancel }) {
         boxShadow: '0 8px 30px rgba(0,0,0,0.3)'
       }}>
         <h2 style={{ fontSize: 28, fontWeight: 800, marginBottom: 8, textAlign: 'center', color: '#2d3748' }}>
-          💳 PayPal Zahlung
+          💳 PayPal Payment
         </h2>
         <p style={{ textAlign: 'center', color: '#718096', marginBottom: 30, fontSize: 14 }}>
-          Sichere Bezahlung über PayPal
+          Secure payment via PayPal
         </p>
 
         <div style={{
@@ -156,7 +156,7 @@ function PayPalPayment({ booking, onSuccess, onCancel }) {
           marginBottom: 24
         }}>
           <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16, color: '#2d3748' }}>
-            Buchungsdetails
+            Booking Details
           </h3>
           <div style={{ fontSize: 14, color: '#4a5568', lineHeight: 2 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -193,12 +193,12 @@ function PayPalPayment({ booking, onSuccess, onCancel }) {
           marginBottom: 24
         }}>
           <p style={{ margin: 0, fontWeight: 600, marginBottom: 8 }}>
-            🔒 Sichere PayPal Zahlung
+            🔒 Secure PayPal Payment
           </p>
           <p style={{ margin: 0 }}>
-            • Käuferschutz inklusive<br />
-            • Geld-zurück-Garantie<br />
-            • Verschlüsselte Übertragung
+            • Buyer protection included<br />
+            • Money-back guarantee<br />
+            • Encrypted transmission
           </p>
         </div>
 
