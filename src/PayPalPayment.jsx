@@ -41,7 +41,7 @@ function PayPalPayment({ booking, onSuccess, onCancel }) {
             }
           }
         },
-        description: `Service von ${booking.profile_name}`,
+        description: `Service by ${booking.profile_name}`,
         items: [{
           name: `${booking.profile_name} - ${booking.time_slot}`,
           unit_amount: {
@@ -160,11 +160,11 @@ function PayPalPayment({ booking, onSuccess, onCancel }) {
           </h3>
           <div style={{ fontSize: 14, color: '#4a5568', lineHeight: 2 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Service von {booking.profile_name}:</span>
+              <span>Service by {booking.profile_name}:</span>
               <span style={{ fontWeight: 600 }}>{curSym}{basePrice}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#667eea' }}>
-              <span>Helperr Service-Gebühr (9%):</span>
+              <span>Helperr Fee (9%):</span>
               <span style={{ fontWeight: 600 }}>+{curSym}{helperrFee}</span>
             </div>
             <div style={{ 
@@ -177,7 +177,7 @@ function PayPalPayment({ booking, onSuccess, onCancel }) {
               fontWeight: 700,
               color: '#2d3748'
             }}>
-              <span>Gesamt:</span>
+              <span>Total:</span>
               <span>{curSym}{totalAmount}</span>
             </div>
           </div>
@@ -231,7 +231,7 @@ function PayPalPayment({ booking, onSuccess, onCancel }) {
             marginTop: 16
           }}
         >
-          Abbrechen
+          Cancel
         </button>
       </div>
     </div>

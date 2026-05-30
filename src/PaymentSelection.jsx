@@ -70,11 +70,11 @@ function PaymentSelection({ booking, onSuccess, onCancel }) {
         }}>
           <div style={{ fontSize: 14, color: '#4a5568', lineHeight: 2 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Service von {booking.profile_name}:</span>
+              <span>Service by {booking.profile_name}:</span>
               <span style={{ fontWeight: 600 }}>{curSym}{basePrice}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#667eea' }}>
-              <span>Helperr Gebühr (9%):</span>
+              <span>Helperr Fee (9%):</span>
               <span style={{ fontWeight: 600 }}>+{curSym}{helperrFee}</span>
             </div>
             <div style={{ 
@@ -87,7 +87,7 @@ function PaymentSelection({ booking, onSuccess, onCancel }) {
               fontWeight: 700,
               color: '#2d3748'
             }}>
-              <span>Gesamt:</span>
+              <span>Total:</span>
               <span>{curSym}{totalAmount}</span>
             </div>
           </div>
@@ -201,7 +201,7 @@ function PaymentSelection({ booking, onSuccess, onCancel }) {
             marginTop: 20
           }}
         >
-          Abbrechen
+          Cancel
         </button>
 
         <p style={{ 
