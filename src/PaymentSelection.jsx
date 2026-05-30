@@ -70,7 +70,7 @@ function PaymentSelection({ booking, onSuccess, onCancel }) {
         }}>
           <div style={{ fontSize: 14, color: '#4a5568', lineHeight: 2 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Service by {booking.profile_name}:</span>
+              <span>Service by {booking.profiles?.name || 'Provider'}:</span>
               <span style={{ fontWeight: 600 }}>{curSym}{basePrice}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#667eea' }}>

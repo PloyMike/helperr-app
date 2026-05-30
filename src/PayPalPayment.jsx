@@ -41,9 +41,9 @@ function PayPalPayment({ booking, onSuccess, onCancel }) {
             }
           }
         },
-        description: `Service by ${booking.profile_name}`,
+        description: `Service by ${booking.profiles?.name || 'Provider'}`,
         items: [{
-          name: `${booking.profile_name} - ${booking.time_slot}`,
+          name: `${booking.profiles?.name || 'Provider'} - ${booking.time_slot}`,
           unit_amount: {
             currency_code: payCode,
             value: basePrice.toString()
@@ -160,7 +160,7 @@ function PayPalPayment({ booking, onSuccess, onCancel }) {
           </h3>
           <div style={{ fontSize: 14, color: '#4a5568', lineHeight: 2 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Service by {booking.profile_name}:</span>
+              <span>Service by {booking.profiles?.name || 'Provider'}:</span>
               <span style={{ fontWeight: 600 }}>{curSym}{basePrice}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#667eea' }}>
