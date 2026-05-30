@@ -47,14 +47,29 @@ function BookingCalendar({ profile, onClose }) {
       try {
         const { data, error } = await supabase
           .from('bookings')
-          .select('time_slot, status')
+          .select('time_slot, status, payment_status, created_at')
           .eq('profile_id', profile.id)
           .eq('booking_date', selectedDate)
-          .in('status', ['pending', 'accepted']);
+          .in('status', ['pending', 'confirmed']);
         
         if (error) throw error;
         
-        const slots = data?.map(b => b.time_slot) || [];
+        // Slot blockiert, wenn:
+        // - Buchung 'confirmed' (Provider hat akzeptiert) ODER
+        // - Zahlung autorisiert/captured ODER
+        // - Buchung ist 'pending' und juenger als 10 Min (Kunde tippt gerade Kartendaten)
+        const HOLD_MS = 10 * 60 * 1000;
+        const now = Date.now();
+        const blocking = (data || []).filter(b => {
+          if (b.status === 'confirmed') return true;
+          if (b.payment_status === 'authorized' || b.payment_status === 'captured') return true;
+          if (b.status === 'pending' && b.created_at) {
+            const ageMs = now - new Date(b.created_at).getTime();
+            if (ageMs < HOLD_MS) return true;
+          }
+          return false;
+        });
+        const slots = blocking.map(b => b.time_slot);
         setBookedSlots(slots);
         console.log('Booked slots for', selectedDate, ':', slots);
       } catch (error) {
