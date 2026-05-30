@@ -787,6 +787,19 @@ function BookingCalendar({ profile, onClose }) {
                   <span style={styles.summaryLabel}>Price:</span>
                   <span style={styles.summaryValue}>{liveCurSym}{livePrice} ({liveCurSym}{liveHourlyRate} × {liveDuration} {liveDuration === 1 ? 'hr' : 'hrs'})</span>
                 </div>
+                <div style={{
+                  background: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  borderRadius: 10,
+                  padding: '12px 14px',
+                  marginTop: 12,
+                  fontSize: 13,
+                  lineHeight: 1.5,
+                  color: '#065f46'
+                }}>
+                  <div style={{ fontWeight: 700, marginBottom: 4 }}>💡 How it works</div>
+                  Your card is only <strong>pre-authorized</strong> now — no money is charged yet. The full amount will be automatically captured 15 minutes after the service is completed. If anything goes wrong, you have 24 hours to contact us.
+                </div>
                 <div style={{...styles.summaryRow, borderTop: '1px solid #e5e7eb', paddingTop: 12, marginTop: 12}}>
                   <span style={styles.summaryLabel}>Your Name:</span>
                   <span style={styles.summaryValue}>{customerName || 'Not set'}</span>
