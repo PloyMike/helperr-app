@@ -122,62 +122,54 @@ function PaymentSelection({ booking, onSuccess, onCancel }) {
             <span>Pay with Stripe</span>
           </button>
 
-{currencyCode === 'THB' && (
           <button
-            onClick={() => setSelectedMethod('omise')}
+            disabled
             style={{
               padding: 20,
-              background: 'linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%)',
-              color: 'white',
+              background: '#e5e7eb',
+              color: '#9ca3af',
               border: 'none',
               borderRadius: 12,
               fontSize: 18,
               fontWeight: 700,
-              cursor: 'pointer',
+              cursor: 'not-allowed',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: 12,
-              transition: 'transform 0.2s'
+              position: 'relative',
+              opacity: 0.7
             }}
-            onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-            onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
           >
             <svg width="28" height="20" viewBox="0 0 24 18" xmlns="http://www.w3.org/2000/svg" aria-label="Card">
-              <rect x="1" y="1" width="22" height="16" rx="2.5" fill="none" stroke="#FFFFFF" stroke-width="1.8"/>
-              <rect x="1" y="5" width="22" height="3" fill="#FFFFFF"/>
-              <rect x="4" y="11" width="6" height="2" rx="0.5" fill="#FFFFFF"/>
+              <rect x="1" y="1" width="22" height="16" rx="2.5" fill="none" stroke="#9ca3af" stroke-width="1.8"/>
+              <rect x="1" y="5" width="22" height="3" fill="#9ca3af"/>
+              <rect x="4" y="11" width="6" height="2" rx="0.5" fill="#9ca3af"/>
             </svg>
             <span>Pay with Omise</span>
+            <span style={{ position: 'absolute', top: 6, right: 10, fontSize: 11, fontWeight: 600, background: '#6b7280', color: 'white', padding: '2px 8px', borderRadius: 6 }}>Coming soon</span>
           </button>
-          )}
 
           <button
-            onClick={() => setSelectedMethod('paypal')}
+            disabled
             style={{
               padding: 20,
-              background: '#0070ba',
-              color: 'white',
+              background: '#e5e7eb',
+              color: '#9ca3af',
               border: 'none',
               borderRadius: 12,
               fontSize: 18,
               fontWeight: 700,
-              cursor: 'pointer',
+              cursor: 'not-allowed',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: 12,
-              transition: 'transform 0.2s'
-            }}
-            onMouseOver={(e) => {
-              e.target.style.transform = 'translateY(-2px)';
-              e.target.style.background = '#005ea6';
-            }}
-            onMouseOut={(e) => {
-              e.target.style.transform = 'translateY(0)';
-              e.target.style.background = '#0070ba';
+              position: 'relative',
+              opacity: 0.7
             }}
           >
+            <span style={{ position: 'absolute', top: 6, right: 10, fontSize: 11, fontWeight: 600, background: '#6b7280', color: 'white', padding: '2px 8px', borderRadius: 6 }}>Coming soon</span>
             <svg width="72" height="22" viewBox="0 0 100 32" xmlns="http://www.w3.org/2000/svg" aria-label="PayPal">
               <path fill="#FFFFFF" d="M12.2 4.2H5.8c-.5 0-.9.3-1 .8L2.3 22c0 .3.2.6.6.6h3.1c.5 0 .9-.3 1-.8l.7-4.6c.1-.5.5-.8 1-.8h2c4.3 0 6.8-2.1 7.4-6.2.3-1.8 0-3.2-.8-4.2-.9-1.2-2.5-1.8-4.6-1.8h-.5zm.6 6.1c-.4 2.4-2.2 2.4-4 2.4h-1l.7-4.6c0-.3.3-.5.5-.5h.5c1.2 0 2.4 0 3 .7.3.5.4 1.1.3 2zM30.3 10.2H27c-.3 0-.5.2-.5.5l-.1.9-.2-.3c-.7-1-2.3-1.4-3.9-1.4-3.7 0-6.8 2.8-7.4 6.7-.3 2 .1 3.9 1.3 5.2 1 1.2 2.5 1.7 4.3 1.7 3 0 4.6-1.9 4.6-1.9l-.1.9c0 .3.2.6.5.6h3c.5 0 .9-.3 1-.8l1.8-11.4c0-.3-.2-.7-.5-.7zm-4.5 6.5c-.3 1.9-1.8 3.2-3.8 3.2-1 0-1.8-.3-2.3-.9-.5-.6-.7-1.5-.6-2.4.3-1.9 1.9-3.2 3.8-3.2 1 0 1.8.3 2.3.9.5.6.7 1.5.6 2.4zM48 10.2h-3.3c-.3 0-.6.2-.8.4l-4.5 6.6-1.9-6.4c-.1-.4-.5-.7-.9-.7h-3.2c-.3 0-.6.3-.5.7l3.6 10.6-3.4 4.8c-.2.3 0 .8.4.8h3.3c.3 0 .6-.1.8-.4l10.8-15.6c.2-.4 0-.8-.4-.8z"/>
               <path fill="#FFFFFF" d="M58.9 4.2h-6.4c-.5 0-.9.3-1 .8L49 22c0 .3.2.6.6.6h3.3c.3 0 .6-.2.7-.5l.7-4.7c.1-.5.5-.8 1-.8h2c4.3 0 6.8-2.1 7.4-6.2.3-1.8 0-3.2-.8-4.2-.9-1.4-2.6-2-4.7-2zm.7 6.1c-.4 2.4-2.2 2.4-4 2.4h-1l.7-4.6c0-.3.3-.5.5-.5h.5c1.2 0 2.4 0 3 .7.3.5.4 1.1.3 2zM77 10.2h-3.3c-.3 0-.5.2-.5.5l-.1.9-.2-.3c-.7-1-2.3-1.4-3.9-1.4-3.7 0-6.8 2.8-7.4 6.7-.3 2 .1 3.9 1.3 5.2 1 1.2 2.5 1.7 4.3 1.7 3 0 4.6-1.9 4.6-1.9l-.1.9c0 .3.2.6.5.6h3c.5 0 .9-.3 1-.8l1.8-11.4c0-.3-.2-.7-.5-.7zm-4.5 6.5c-.3 1.9-1.8 3.2-3.8 3.2-1 0-1.8-.3-2.3-.9-.5-.6-.7-1.5-.6-2.4.3-1.9 1.9-3.2 3.8-3.2 1 0 1.8.3 2.3.9.5.6.7 1.5.6 2.4zM80.9 4.7L78.3 22c0 .3.2.6.6.6h2.9c.5 0 .9-.3 1-.8l2.5-17c0-.3-.2-.6-.6-.6h-3.2c-.3 0-.5.2-.6.5z"/>
