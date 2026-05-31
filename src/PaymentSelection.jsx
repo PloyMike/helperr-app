@@ -95,10 +95,39 @@ function PaymentSelection({ booking, onSuccess, onCancel }) {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <button
-            onClick={() => setSelectedMethod('stripe')}
+            disabled
             style={{
               padding: 20,
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: '#e5e7eb',
+              color: '#9ca3af',
+              border: 'none',
+              borderRadius: 12,
+              fontSize: 18,
+              fontWeight: 700,
+              cursor: 'not-allowed',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 12,
+              position: 'relative',
+              opacity: 0.7
+            }}
+          >
+            <svg width="28" height="20" viewBox="0 0 24 18" xmlns="http://www.w3.org/2000/svg" aria-label="Card">
+              <rect x="1" y="1" width="22" height="16" rx="2.5" fill="none" stroke="#9ca3af" stroke-width="1.8"/>
+              <rect x="1" y="5" width="22" height="3" fill="#9ca3af"/>
+              <rect x="4" y="11" width="6" height="2" rx="0.5" fill="#9ca3af"/>
+            </svg>
+            <span>Pay with Stripe</span>
+            <span style={{ position: 'absolute', top: 6, right: 10, fontSize: 11, fontWeight: 600, background: '#6b7280', color: 'white', padding: '2px 8px', borderRadius: 6 }}>Coming soon</span>
+          </button>
+
+          {currencyCode === 'THB' ? (
+          <button
+            onClick={() => setSelectedMethod('omise')}
+            style={{
+              padding: 20,
+              background: 'linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%)',
               color: 'white',
               border: 'none',
               borderRadius: 12,
@@ -119,9 +148,9 @@ function PaymentSelection({ booking, onSuccess, onCancel }) {
               <rect x="1" y="5" width="22" height="3" fill="#FFFFFF"/>
               <rect x="4" y="11" width="6" height="2" rx="0.5" fill="#FFFFFF"/>
             </svg>
-            <span>Pay with Stripe</span>
+            <span>Pay with Omise</span>
           </button>
-
+          ) : (
           <button
             disabled
             style={{
@@ -147,8 +176,9 @@ function PaymentSelection({ booking, onSuccess, onCancel }) {
               <rect x="4" y="11" width="6" height="2" rx="0.5" fill="#9ca3af"/>
             </svg>
             <span>Pay with Omise</span>
-            <span style={{ position: 'absolute', top: 6, right: 10, fontSize: 11, fontWeight: 600, background: '#6b7280', color: 'white', padding: '2px 8px', borderRadius: 6 }}>Coming soon</span>
+            <span style={{ position: 'absolute', top: 6, right: 10, fontSize: 11, fontWeight: 600, background: '#6b7280', color: 'white', padding: '2px 8px', borderRadius: 6 }}>THB only</span>
           </button>
+          )}
 
           <button
             disabled
