@@ -10,6 +10,15 @@ function EditProfilePage() {
   const [uploading, setUploading] = useState(false);
   const [profile, setProfile] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [payoutData, setPayoutData] = useState({
+    bank_brand: '',
+    bank_account_number: '',
+    bank_account_name: '',
+    omise_recipient_id: null,
+    verified: false,
+  });
+  const [savingPayout, setSavingPayout] = useState(false);
+  const [payoutError, setPayoutError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -293,6 +302,85 @@ function EditProfilePage() {
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
+
+  // Payout-Account laden sobald Profil bekannt ist
+  useEffect(() => {
+    const loadPayout = async () => {
+      if (!profile?.id) return;
+      const { data, error } = await supabase
+        .from('provider_payout_accounts')
+        .select('*')
+        .eq('profile_id', profile.id)
+        .maybeSingle();
+      if (error) {
+        console.error('Payout load error:', error);
+        return;
+      }
+      if (data) {
+        setPayoutData({
+          bank_brand: data.bank_brand || '',
+          bank_account_number: data.bank_account_number || '',
+          bank_account_name: data.bank_account_name || '',
+          omise_recipient_id: data.omise_recipient_id || null,
+          verified: !!data.verified,
+        });
+      }
+    };
+    loadPayout();
+  }, [profile?.id]);
+
+  const handleSavePayout = async () => {
+    setPayoutError('');
+
+    // Validierung
+    const { bank_brand, bank_account_number, bank_account_name } = payoutData;
+    if (!bank_brand) {
+      setPayoutError('Please select your bank');
+      return;
+    }
+    if (!bank_account_number || !/^\d{6,15}$/.test(bank_account_number)) {
+      setPayoutError('Account number must be 6-15 digits');
+      return;
+    }
+    if (!bank_account_name || bank_account_name.trim().length < 2) {
+      setPayoutError('Please enter the account holder name');
+      return;
+    }
+    if (!profile?.id) {
+      setPayoutError('Profile not loaded');
+      return;
+    }
+
+    setSavingPayout(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch('https://jyuatojpkluyidpefzub.supabase.co/functions/v1/omise-create-recipient', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({
+          profileId: profile.id,
+          bankBrand: bank_brand,
+          accountNumber: bank_account_number.trim(),
+          accountName: bank_account_name.trim(),
+          email: profile.email || '',
+        }),
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || 'Failed to save payout account');
+      }
+      setPayoutData(prev => ({ ...prev, omise_recipient_id: result.recipient_id }));
+      alert('Payout account saved successfully!');
+    } catch (err) {
+      console.error('Save payout error:', err);
+      setPayoutError(err.message || 'Failed to save payout account');
+    } finally {
+      setSavingPayout(false);
+    }
+  };
 
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
@@ -611,6 +699,87 @@ function EditProfilePage() {
                 <div style={styles.checkboxSub}>Customers can book you immediately</div>
               </div>
             </label>
+          </div>
+
+          <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>Payout Account 🏦</h3>
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, padding: '12px 14px', marginBottom: 20, fontSize: 13, lineHeight: 1.5, color: '#065f46' }}>
+              <div style={{ fontWeight: 700, marginBottom: 4 }}>💡 How payouts work</div>
+              Connect your Thai bank account to receive payments. After a completed service, payouts arrive in your bank account within <strong>7-8 days</strong> (Omise processing time). You can update these details anytime.
+            </div>
+
+            {!payoutData.omise_recipient_id && (
+              <div style={{ background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 10, padding: '10px 14px', marginBottom: 20, fontSize: 13, color: '#92400e' }}>
+                ⚠️ <strong>No payout account connected.</strong> You can still receive bookings, but payments will be held until you connect a bank account.
+              </div>
+            )}
+
+            {payoutData.omise_recipient_id && (
+              <div style={{ background: '#ecfdf5', border: '1px solid #6ee7b7', borderRadius: 10, padding: '10px 14px', marginBottom: 20, fontSize: 13, color: '#065f46' }}>
+                ✓ <strong>Payout account connected.</strong> You're ready to receive payments.
+              </div>
+            )}
+
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Bank</label>
+              <select
+                value={payoutData.bank_brand}
+                onChange={(e) => setPayoutData({...payoutData, bank_brand: e.target.value})}
+                style={styles.input}
+              >
+                <option value="">— Select your bank —</option>
+                <option value="bbl">Bangkok Bank</option>
+                <option value="kbank">Kasikorn Bank (K-Bank)</option>
+                <option value="ktb">Krung Thai Bank</option>
+                <option value="scb">Siam Commercial Bank (SCB)</option>
+                <option value="bay">Krungsri (Bank of Ayudhya)</option>
+                <option value="ttb">TMBThanachart (TTB)</option>
+                <option value="uob">UOB</option>
+                <option value="cimb">CIMB Thai</option>
+                <option value="gsb">Government Savings Bank (GSB)</option>
+                <option value="kk">Kiatnakin Phatra (KKP)</option>
+                <option value="tisco">Tisco</option>
+                <option value="lh">Land and Houses Bank (LH)</option>
+              </select>
+            </div>
+
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Account Number</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={payoutData.bank_account_number}
+                onChange={(e) => setPayoutData({...payoutData, bank_account_number: e.target.value.replace(/\D/g, '')})}
+                placeholder="6-15 digits, no spaces"
+                style={styles.input}
+              />
+            </div>
+
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Account Holder Name</label>
+              <input
+                type="text"
+                value={payoutData.bank_account_name}
+                onChange={(e) => setPayoutData({...payoutData, bank_account_name: e.target.value})}
+                placeholder="As shown on your bank account"
+                style={styles.input}
+              />
+            </div>
+
+            {payoutError && (
+              <div style={{ background: '#fee2e2', color: '#dc2626', padding: '10px 14px', borderRadius: 8, fontSize: 13, marginBottom: 12 }}>
+                {payoutError}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={handleSavePayout}
+              disabled={savingPayout}
+              style={{...styles.btnPrimary, opacity: savingPayout ? 0.6 : 1, cursor: savingPayout ? 'not-allowed' : 'pointer'}}
+            >
+              {savingPayout ? 'Saving...' : (payoutData.omise_recipient_id ? 'Update Payout Account' : 'Save Payout Account')}
+            </button>
           </div>
 
           <div style={{ display: 'flex', gap: 12 }}>
