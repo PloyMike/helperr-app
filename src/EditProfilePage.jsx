@@ -450,28 +450,50 @@ function EditProfilePage() {
       const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
       const languagesArray = formData.languages.split(',').map(lang => lang.trim()).filter(lang => lang.length > 0);
 
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          name: formData.name,
-          phone: formData.phone,
-          bio: formData.bio,
-          city: formData.city,
-          country: formData.country,
-          category: formData.category,
-          subcategory: formData.subcategory,
-          job: formData.job,
-          price_amount: formData.priceAmount,
-          currency: formData.currency,
-          price_type: formData.priceType,
-          price: `${formData.priceAmount} ${formData.currency}/${formData.priceType}`,
-          tags: tagsArray,
-          languages: languagesArray,
-          line_id: formData.line_id,
-          available: formData.available,
-          image_url: formData.image_url
-        })
-        .eq('email', user.email);
+      const profilePayload = {
+        name: formData.name,
+        phone: formData.phone,
+        bio: formData.bio,
+        city: formData.city,
+        country: formData.country,
+        category: formData.category,
+        subcategory: formData.subcategory,
+        job: formData.job,
+        price_amount: formData.priceAmount,
+        currency: formData.currency,
+        price_type: formData.priceType,
+        price: `${formData.priceAmount} ${formData.currency}/${formData.priceType}`,
+        tags: tagsArray,
+        languages: languagesArray,
+        line_id: formData.line_id,
+        available: formData.available,
+        image_url: formData.image_url
+      };
+
+      let error;
+      if (profile) {
+        // UPDATE: existing expert profile
+        const res = await supabase
+          .from('profiles')
+          .update(profilePayload)
+          .eq('email', user.email);
+        error = res.error;
+      } else {
+        // INSERT: customer becoming an expert -> create new profile
+        const res = await supabase
+          .from('profiles')
+          .insert({
+            ...profilePayload,
+            email: user.email,
+            user_id: user.id,
+          })
+          .select()
+          .single();
+        error = res.error;
+        if (!error && res.data) {
+          setProfile(res.data);
+        }
+      }
 
       if (error) throw error;
 
@@ -512,19 +534,8 @@ function EditProfilePage() {
   }
 
   if (!profile) {
-    return (
-      <div style={styles.app}>
-        <Header transparent={true} isScrolled={isScrolled} />
-        <div style={styles.noProfile}>
-          <div style={{ fontSize: 64 }}>👤</div>
-          <h2>No Profile Found</h2>
-          <p>You need to create a provider profile first</p>
-          <button onClick={() => window.navigateTo('register')} style={styles.btnPrimary}>
-            Create Profile
-          </button>
-        </div>
-      </div>
-    );
+  // Note: when no profile exists yet (customer becoming expert), we still render the form below.
+  // The form uses INSERT instead of UPDATE in handleSubmit.
   }
 
   return (
@@ -534,8 +545,8 @@ function EditProfilePage() {
 
       <div style={styles.hero}>
         <div style={styles.heroInner}>
-          <h1 style={styles.heroTitle}>Edit Profile</h1>
-          <p style={styles.heroSub}>Update your information and services</p>
+          <h1 style={styles.heroTitle}>{profile ? 'Edit Profile' : 'Become an Expert'}</h1>
+          <p style={styles.heroSub}>{profile ? 'Update your information and services' : 'Fill in your details to start receiving bookings'}</p>
         </div>
       </div>
 
@@ -836,7 +847,7 @@ function EditProfilePage() {
               Cancel
             </button>
             <button type="submit" disabled={saving || uploading} style={{...styles.btnPrimary, flex: 1, opacity: (saving || uploading) ? 0.6 : 1}}>
-              {saving ? 'Saving...' : 'Save Changes'}
+              {saving ? 'Saving...' : (profile ? 'Save Changes' : 'Create Profile')}
             </button>
           </div>
 
