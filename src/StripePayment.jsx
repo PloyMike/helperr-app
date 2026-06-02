@@ -119,7 +119,7 @@ function CheckoutForm({ booking, onSuccess, onCancel }) {
     <form onSubmit={handleSubmit} style={styles.form}>
       <div style={styles.summary}>
         <div style={styles.summaryRow}>
-          <span>Service:</span>
+          <span>Service by {booking.profiles?.name || 'Provider'}:</span>
           <span>{curSym}{basePrice}</span>
         </div>
         <div style={styles.summaryRow}>
