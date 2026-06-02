@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabase';
+import Header from './Header';
 
 function MyPayments() {
   const [loading, setLoading] = useState(true);
@@ -143,6 +144,7 @@ function MyPayments() {
   if (loading) {
     return (
       <div style={styles.app}>
+        <Header transparent={true} />
         <div style={styles.loading}>
           <h2>Loading...</h2>
         </div>
@@ -154,6 +156,7 @@ function MyPayments() {
   if (!profile) {
     return (
       <div style={styles.app}>
+        <Header transparent={true} />
         <div style={styles.becomeExpert}>
           <h1 style={styles.heroTitle}>Payment</h1>
           <div style={styles.becomeCard}>
@@ -174,6 +177,7 @@ function MyPayments() {
   // === Expert: zeig Payout-Account ===
   return (
     <div style={styles.app}>
+      <Header transparent={true} />
       <div style={styles.container}>
         <h1 style={styles.heroTitle}>Payment</h1>
 
