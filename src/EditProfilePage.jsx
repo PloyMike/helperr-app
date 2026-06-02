@@ -415,11 +415,6 @@ function EditProfilePage() {
     );
   }
 
-  if (!profile) {
-  // Note: when no profile exists yet (customer becoming expert), we still render the form below.
-  // The form uses INSERT instead of UPDATE in handleSubmit.
-  }
-
   return (
     <div style={styles.app}>
       <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
