@@ -144,7 +144,7 @@ function MyPayments() {
   if (loading) {
     return (
       <div style={styles.app}>
-        <Header transparent={false} />
+        <Header transparent={true} />
         <div style={styles.loading}>
           <h2>Loading...</h2>
         </div>
@@ -156,9 +156,16 @@ function MyPayments() {
   if (!profile) {
     return (
       <div style={styles.app}>
-        <Header transparent={false} />
+        <Header transparent={true} />
+
+        <div style={styles.hero}>
+          <div style={styles.heroInner}>
+            <h1 style={styles.heroTitle}>Payment</h1>
+            <p style={styles.heroSub}>Manage your payout account and earnings</p>
+          </div>
+        </div>
+
         <div style={styles.becomeExpert}>
-          <h1 style={styles.heroTitle}>Payment</h1>
           <div style={styles.becomeCard}>
             <div style={styles.becomeIcon}>🚀</div>
             <h2 style={styles.becomeTitle}>You are not yet an expert</h2>
@@ -177,9 +184,16 @@ function MyPayments() {
   // === Expert: zeig Payout-Account ===
   return (
     <div style={styles.app}>
-      <Header transparent={false} />
+      <Header transparent={true} />
+
+      <div style={styles.hero}>
+        <div style={styles.heroInner}>
+          <h1 style={styles.heroTitle}>Payment</h1>
+          <p style={styles.heroSub}>Manage your payout account and earnings</p>
+        </div>
+      </div>
+
       <div style={styles.container}>
-        <h1 style={styles.heroTitle}>Payment</h1>
 
         <div style={styles.section}>
           <h3 style={styles.sectionTitle}>Payout Account 🏦</h3>
@@ -295,7 +309,10 @@ const styles = {
   app: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh', paddingTop: 0 },
   loading: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: '#6b7280' },
   container: { maxWidth: 720, margin: '0 auto', padding: '40px 20px' },
-  heroTitle: { fontSize: 36, fontWeight: 800, color: '#065f46', margin: '0 0 32px 0' },
+  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 70%, #14b8a6 100%)', padding: '120px 20px 64px', marginBottom: 40, position: 'relative', overflow: 'hidden', clipPath: 'ellipse(120% 100% at 50% 0%)' },
+  heroInner: { maxWidth: 800, margin: '0 auto', textAlign: 'center' },
+  heroTitle: { color: '#fff', fontSize: 42, fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.02em' },
+  heroSub: { color: '#d1fae5', fontSize: 16, margin: 0 },
   section: { background: 'white', borderRadius: 16, padding: 24, marginBottom: 24, boxShadow: '0 1px 3px rgba(0,0,0,0.05)' },
   sectionTitle: { margin: '0 0 20px 0', fontSize: 18, fontWeight: 700, color: '#1F2937' },
   formGroup: { marginBottom: 16 },
