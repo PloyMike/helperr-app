@@ -26,7 +26,7 @@ function MyPayments() {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.id)
+        .eq('email', user.email)
         .maybeSingle();
       if (error) throw error;
       setProfile(data);

@@ -484,6 +484,7 @@ function EditProfilePage() {
           .from('profiles')
           .insert({
             ...profilePayload,
+            id: user.id,
             email: user.email,
             user_id: user.id,
           })
