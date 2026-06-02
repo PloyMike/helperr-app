@@ -14,6 +14,13 @@ function MyPayments() {
   });
   const [savingPayout, setSavingPayout] = useState(false);
   const [refreshingPayout, setRefreshingPayout] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 100);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   const [payoutError, setPayoutError] = useState('');
 
   // Profil laden
@@ -144,7 +151,7 @@ function MyPayments() {
   if (loading) {
     return (
       <div style={styles.app}>
-        <Header transparent={true} />
+        <Header transparent={true} isScrolled={isScrolled} />
         <div style={styles.loading}>
           <h2>Loading...</h2>
         </div>
@@ -156,7 +163,7 @@ function MyPayments() {
   if (!profile) {
     return (
       <div style={styles.app}>
-        <Header transparent={true} />
+        <Header transparent={true} isScrolled={isScrolled} />
 
         <div style={styles.hero}>
           <div style={styles.heroInner}>
@@ -184,7 +191,7 @@ function MyPayments() {
   // === Expert: zeig Payout-Account ===
   return (
     <div style={styles.app}>
-      <Header transparent={true} />
+      <Header transparent={true} isScrolled={isScrolled} />
 
       <div style={styles.hero}>
         <div style={styles.heroInner}>
