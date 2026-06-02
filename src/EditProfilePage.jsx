@@ -18,6 +18,7 @@ function EditProfilePage() {
     verified: false,
   });
   const [savingPayout, setSavingPayout] = useState(false);
+  const [refreshingPayout, setRefreshingPayout] = useState(false);
   const [payoutError, setPayoutError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
@@ -382,6 +383,36 @@ function EditProfilePage() {
     }
   };
 
+  const handleRefreshPayoutStatus = async () => {
+    if (!profile?.id || !payoutData.omise_recipient_id) return;
+    setPayoutError('');
+    setRefreshingPayout(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch('https://jyuatojpkluyidpefzub.supabase.co/functions/v1/omise-refresh-recipient-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ profileId: profile.id }),
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        throw new Error(result.error || 'Failed to refresh status');
+      }
+      setPayoutData(prev => ({ ...prev, verified: !!result.verified }));
+      if (result.failure_code) {
+        setPayoutError(`Verification failed: ${result.failure_code}`);
+      }
+    } catch (err) {
+      console.error('Refresh status error:', err);
+      setPayoutError(err.message || 'Failed to refresh status');
+    } finally {
+      setRefreshingPayout(false);
+    }
+  };
+
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -714,9 +745,27 @@ function EditProfilePage() {
               </div>
             )}
 
-            {payoutData.omise_recipient_id && (
+            {payoutData.omise_recipient_id && payoutData.verified && (
               <div style={{ background: '#ecfdf5', border: '1px solid #6ee7b7', borderRadius: 10, padding: '10px 14px', marginBottom: 20, fontSize: 13, color: '#065f46' }}>
-                ✓ <strong>Payout account connected.</strong> You're ready to receive payments.
+                ✓ <strong>Payout account verified.</strong> You're ready to receive payments.
+              </div>
+            )}
+
+            {payoutData.omise_recipient_id && !payoutData.verified && (
+              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 10, padding: '12px 14px', marginBottom: 20, fontSize: 13, color: '#1e40af' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                  <div>
+                    ⏳ <strong>Pending verification by Omise.</strong> This usually takes 1-2 business days.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRefreshPayoutStatus}
+                    disabled={refreshingPayout}
+                    style={{ background: '#1e40af', color: 'white', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: refreshingPayout ? 'not-allowed' : 'pointer', opacity: refreshingPayout ? 0.6 : 1, whiteSpace: 'nowrap' }}
+                  >
+                    {refreshingPayout ? 'Checking...' : 'Refresh status'}
+                  </button>
+                </div>
               </div>
             )}
 
