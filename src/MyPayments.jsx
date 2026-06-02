@@ -144,7 +144,7 @@ function MyPayments() {
   if (loading) {
     return (
       <div style={styles.app}>
-        <Header transparent={true} />
+        <Header transparent={false} />
         <div style={styles.loading}>
           <h2>Loading...</h2>
         </div>
@@ -156,7 +156,7 @@ function MyPayments() {
   if (!profile) {
     return (
       <div style={styles.app}>
-        <Header transparent={true} />
+        <Header transparent={false} />
         <div style={styles.becomeExpert}>
           <h1 style={styles.heroTitle}>Payment</h1>
           <div style={styles.becomeCard}>
@@ -177,7 +177,7 @@ function MyPayments() {
   // === Expert: zeig Payout-Account ===
   return (
     <div style={styles.app}>
-      <Header transparent={true} />
+      <Header transparent={false} />
       <div style={styles.container}>
         <h1 style={styles.heroTitle}>Payment</h1>
 
