@@ -447,26 +447,35 @@ function Header({ transparent, isScrolled }) {
 
                     {showDropdown && (
                       <div style={styles.dropdown}>
-                        <button 
-                          onClick={() => { setShowDropdown(false); window.navigateTo('edit-profile'); }}
-                          style={styles.dropdownItem}
-                        >
-                          Edit Profile
-                        </button>
-                        {!hasProviderProfile && (
+                        {hasProviderProfile ? (
+                          <>
+                            <button 
+                              onClick={() => { setShowDropdown(false); window.navigateTo('edit-profile'); }}
+                              style={styles.dropdownItem}
+                            >
+                              Edit Profile
+                            </button>
+                            <button 
+                              onClick={() => { setShowDropdown(false); window.navigateTo('my-payments'); }}
+                              style={styles.dropdownItem}
+                            >
+                              Payment
+                            </button>
+                            <button 
+                              onClick={() => { setShowDropdown(false); window.navigateTo('dashboard'); }}
+                              style={styles.dropdownItem}
+                            >
+                              Dashboard
+                            </button>
+                          </>
+                        ) : (
                           <button 
-                            onClick={() => { setShowDropdown(false); window.navigateTo('register'); }}
+                            onClick={() => { setShowDropdown(false); window.navigateTo('edit-profile'); }}
                             style={styles.dropdownItem}
                           >
                             Become an Expert
                           </button>
                         )}
-                        <button 
-                          onClick={() => { setShowDropdown(false); window.navigateTo('dashboard'); }}
-                          style={styles.dropdownItem}
-                        >
-                          Dashboard
-                        </button>
                         <button 
                           onClick={handleLogout}
                           style={{ ...styles.dropdownItem, color: '#dc2626' }}
@@ -642,17 +651,23 @@ function Header({ transparent, isScrolled }) {
                 )}
               </button>
               )}
-              <button onClick={() => { closeMobileMenu(); window.navigateTo('edit-profile'); }} style={styles.mobileMenuItem}>
-                Edit Profile
-              </button>
-              {!hasProviderProfile && (
-                <button onClick={() => { closeMobileMenu(); window.navigateTo('register'); }} style={styles.mobileMenuItem}>
+              {hasProviderProfile ? (
+                <>
+                  <button onClick={() => { closeMobileMenu(); window.navigateTo('edit-profile'); }} style={styles.mobileMenuItem}>
+                    Edit Profile
+                  </button>
+                  <button onClick={() => { closeMobileMenu(); window.navigateTo('my-payments'); }} style={styles.mobileMenuItem}>
+                    Payment
+                  </button>
+                  <button onClick={() => { closeMobileMenu(); window.navigateTo('dashboard'); }} style={styles.mobileMenuItem}>
+                    Dashboard
+                  </button>
+                </>
+              ) : (
+                <button onClick={() => { closeMobileMenu(); window.navigateTo('edit-profile'); }} style={styles.mobileMenuItem}>
                   Become an Expert
                 </button>
               )}
-              <button onClick={() => { closeMobileMenu(); window.navigateTo('dashboard'); }} style={styles.mobileMenuItem}>
-                Dashboard
-              </button>
               <button 
                 onClick={() => setShowMobileLanguageDropdown(!showMobileLanguageDropdown)} 
                 style={{

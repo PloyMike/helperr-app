@@ -12,6 +12,7 @@ import UpdatePasswordPage from './UpdatePasswordPage';
 import SignupPage from './SignupPage';
 import MessagesPage from './MessagesPage';
 import EditProfilePage from './EditProfilePage';
+import MyPayments from './MyPayments';
 import ProviderDashboard from './ProviderDashboard';
 import Impressum from './Impressum';
 import Datenschutz from './Datenschutz';
@@ -115,6 +116,8 @@ function App() {
           <MessagesPage />
         ) : currentView === 'edit-profile' ? (
           <EditProfilePage />
+        ) : currentView === 'my-payments' ? (
+          <MyPayments />
         ) : currentView === 'dashboard' ? (
           <ProviderDashboard />
         ) : currentView === 'provider-dashboard' ? (
