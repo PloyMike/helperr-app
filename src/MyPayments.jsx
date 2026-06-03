@@ -15,6 +15,8 @@ function MyPayments() {
   const [savingPayout, setSavingPayout] = useState(false);
   const [refreshingPayout, setRefreshingPayout] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [earnings, setEarnings] = useState([]);
+  const [loadingEarnings, setLoadingEarnings] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 100);
@@ -73,6 +75,30 @@ function MyPayments() {
       }
     };
     loadPayout();
+  }, [profile?.id]);
+
+  // Earnings laden: alle captured Buchungen mit echtem service_price
+  useEffect(() => {
+    const loadEarnings = async () => {
+      if (!profile?.id) return;
+      setLoadingEarnings(true);
+      try {
+        const { data, error } = await supabase
+          .from('bookings')
+          .select('id, booking_date, customer_name, service_name, service_price, duration_hours, payment_status, payout_status, payout_amount, payout_completed_at, captured_at, created_at')
+          .eq('profile_id', profile.id)
+          .eq('payment_status', 'captured')
+          .not('service_price', 'is', null)
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        setEarnings(data || []);
+      } catch (err) {
+        console.error('Earnings load error:', err);
+      } finally {
+        setLoadingEarnings(false);
+      }
+    };
+    loadEarnings();
   }, [profile?.id]);
 
   const handleSavePayout = async () => {
@@ -303,9 +329,114 @@ function MyPayments() {
 
         <div style={styles.section}>
           <h3 style={styles.sectionTitle}>Earnings History</h3>
-          <div style={{ background: '#f9fafb', border: '1px dashed #d1d5db', borderRadius: 10, padding: '24px', textAlign: 'center', color: '#6b7280', fontSize: 14 }}>
-            📊 Coming soon — your payout history will appear here.
-          </div>
+
+          {loadingEarnings && (
+            <div style={{ padding: 24, textAlign: 'center', color: '#6b7280', fontSize: 14 }}>
+              Loading earnings...
+            </div>
+          )}
+
+          {!loadingEarnings && earnings.length === 0 && (
+            <div style={{ background: '#f9fafb', border: '1px dashed #d1d5db', borderRadius: 10, padding: '24px', textAlign: 'center', color: '#6b7280', fontSize: 14 }}>
+              📊 No earnings yet. Once a customer pays for your service, it will show up here.
+            </div>
+          )}
+
+          {!loadingEarnings && earnings.length > 0 && (() => {
+            const totalGross = earnings.reduce((sum, b) => sum + (Number(b.service_price || 0) * Number(b.duration_hours || 1)), 0);
+            const totalNet = earnings.reduce((sum, b) => {
+              const gross = Number(b.service_price || 0) * Number(b.duration_hours || 1);
+              return sum + Math.round(gross * 0.91);
+            }, 0);
+            const totalPaid = earnings.filter(b => b.payout_status === 'sent').reduce((sum, b) => sum + Number(b.payout_amount || 0), 0);
+            const totalPending = totalNet - totalPaid;
+            const nowMonth = new Date().toISOString().slice(0, 7);
+            const thisMonthNet = earnings.filter(b => (b.booking_date || '').startsWith(nowMonth)).reduce((sum, b) => {
+              const gross = Number(b.service_price || 0) * Number(b.duration_hours || 1);
+              return sum + Math.round(gross * 0.91);
+            }, 0);
+
+            return (
+              <>
+                <div style={styles.summaryGrid}>
+                  <div style={styles.summaryCard}>
+                    <div style={styles.summaryLabel}>Total earned</div>
+                    <div style={styles.summaryValue}>{totalNet.toLocaleString()} THB</div>
+                    <div style={styles.summaryHint}>after 9% fee</div>
+                  </div>
+                  <div style={styles.summaryCard}>
+                    <div style={styles.summaryLabel}>Pending payout</div>
+                    <div style={styles.summaryValue}>{totalPending.toLocaleString()} THB</div>
+                    <div style={styles.summaryHint}>{earnings.filter(b => b.payout_status !== 'sent').length} bookings</div>
+                  </div>
+                  <div style={styles.summaryCard}>
+                    <div style={styles.summaryLabel}>This month</div>
+                    <div style={styles.summaryValue}>{thisMonthNet.toLocaleString()} THB</div>
+                    <div style={styles.summaryHint}>{earnings.filter(b => (b.booking_date || '').startsWith(nowMonth)).length} bookings</div>
+                  </div>
+                  <div style={styles.summaryCard}>
+                    <div style={styles.summaryLabel}>Total bookings</div>
+                    <div style={styles.summaryValue}>{earnings.length}</div>
+                    <div style={styles.summaryHint}>{earnings.filter(b => b.payout_status === 'sent').length} paid out</div>
+                  </div>
+                </div>
+
+                <div style={styles.tableWrap}>
+                  <table style={styles.table}>
+                    <thead>
+                      <tr style={styles.tr}>
+                        <th style={styles.th}>Date</th>
+                        <th style={styles.th}>Customer</th>
+                        <th style={styles.th}>Service</th>
+                        <th style={{...styles.th, textAlign: 'right'}}>Gross</th>
+                        <th style={{...styles.th, textAlign: 'right'}}>Fee (9%)</th>
+                        <th style={{...styles.th, textAlign: 'right'}}>Net</th>
+                        <th style={styles.th}>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {earnings.map(b => {
+                        const gross = Math.round(Number(b.service_price || 0) * Number(b.duration_hours || 1));
+                        const net = Math.round(gross * 0.91);
+                        const fee = gross - net;
+                        const isPaid = b.payout_status === 'sent';
+                        let statusLabel = 'Pending payout';
+                        let statusColor = '#92400e';
+                        let statusBg = '#fef3c7';
+                        if (isPaid) {
+                          const paidDate = b.payout_completed_at ? new Date(b.payout_completed_at).toLocaleDateString() : '';
+                          statusLabel = paidDate ? `Paid ${paidDate}` : 'Paid out';
+                          statusColor = '#065f46';
+                          statusBg = '#ecfdf5';
+                        } else if (b.captured_at) {
+                          // Erwarte ~7 Tage nach captured_at
+                          const expected = new Date(new Date(b.captured_at).getTime() + 7 * 24 * 60 * 60 * 1000);
+                          const daysLeft = Math.max(0, Math.ceil((expected - new Date()) / (24 * 60 * 60 * 1000)));
+                          statusLabel = daysLeft > 0 ? `Pending · ~${daysLeft}d` : 'Pending · soon';
+                        }
+                        return (
+                          <tr key={b.id} style={styles.tr}>
+                            <td style={styles.td}>{b.booking_date || '—'}</td>
+                            <td style={styles.td}>{b.customer_name || '—'}</td>
+                            <td style={styles.td}>{b.service_name || '—'}</td>
+                            <td style={{...styles.td, textAlign: 'right'}}>{gross.toLocaleString()}</td>
+                            <td style={{...styles.td, textAlign: 'right', color: '#9ca3af'}}>−{fee.toLocaleString()}</td>
+                            <td style={{...styles.td, textAlign: 'right', fontWeight: 700, color: '#065f46'}}>{net.toLocaleString()}</td>
+                            <td style={styles.td}>
+                              <span style={{ background: statusBg, color: statusColor, padding: '3px 10px', borderRadius: 999, fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap' }}>
+                                {statusLabel}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 8, textAlign: 'right' }}>All amounts in THB</div>
+              </>
+            );
+          })()}
         </div>
       </div>
     </div>
@@ -332,6 +463,16 @@ const styles = {
   becomeTitle: { fontSize: 24, fontWeight: 700, color: '#1F2937', margin: '0 0 12px 0' },
   becomeText: { fontSize: 15, color: '#6b7280', lineHeight: 1.6, margin: '0 0 24px 0' },
   becomeBtn: { background: '#065f46', color: 'white', border: 'none', borderRadius: 10, padding: '12px 28px', fontSize: 15, fontWeight: 600, cursor: 'pointer' },
+  summaryGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12, marginBottom: 20 },
+  summaryCard: { background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 12, padding: '14px 16px' },
+  summaryLabel: { fontSize: 12, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 6 },
+  summaryValue: { fontSize: 22, fontWeight: 800, color: '#065f46', lineHeight: 1.2 },
+  summaryHint: { fontSize: 11, color: '#9ca3af', marginTop: 4 },
+  tableWrap: { overflowX: 'auto', maxHeight: 480, overflowY: 'auto', border: '1px solid #e5e7eb', borderRadius: 12 },
+  table: { width: '100%', borderCollapse: 'collapse', fontSize: 13, minWidth: 640 },
+  tr: { borderBottom: '1px solid #f3f4f6' },
+  th: { background: '#f9fafb', textAlign: 'left', padding: '10px 14px', fontWeight: 700, color: '#374151', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.04em', position: 'sticky', top: 0, zIndex: 1 },
+  td: { padding: '10px 14px', color: '#1f2937', whiteSpace: 'nowrap' },
 };
 
 export default MyPayments;
