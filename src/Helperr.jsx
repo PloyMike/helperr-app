@@ -315,11 +315,12 @@ function Helperr() {
           )}
 
           <div style={styles.searchWrap}>
+            <span style={styles.searchIcon}>🔍</span>
             <input
               style={styles.searchInput}
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search by name, location, skills..."
+              placeholder="Jobs, location, skills..."
             />
             {search && (
               <button onClick={() => setSearch('')} style={styles.clearBtn}>✕</button>
@@ -617,7 +618,8 @@ const styles = {
   heroTitle: { color: '#fff', fontSize: 52, fontWeight: 800, margin: '0 0 12px', letterSpacing: '-0.02em' },
   heroSub: { color: '#d1fae5', fontSize: 16, margin: '0 0 8px', lineHeight: 1.6 },
   searchWrap: { background: '#fff', borderRadius: 999, display: 'flex', alignItems: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.15)', marginTop: 24, overflow: 'hidden' },
-  searchInput: { border: 'none', outline: 'none', fontSize: 16, flex: 1, background: 'transparent', color: '#111827' },
+  searchIcon: { fontSize: 18, marginLeft: 18, marginRight: 10, opacity: 0.6 },
+  searchInput: { border: 'none', outline: 'none', fontSize: 16, flex: 1, background: 'transparent', color: '#111827', padding: '14px 0' },
   clearBtn: { background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: 18 },
   filtersWrap: { background: '#fff', borderBottom: '1px solid #e5e7eb', position: 'sticky', top: 0, zIndex: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
   filters: { maxWidth: 1400, margin: '0 auto', padding: '12px 20px', display: 'flex', gap: 8, alignItems: 'center', overflowX: 'auto' },
