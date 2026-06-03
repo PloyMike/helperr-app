@@ -314,20 +314,19 @@ function Helperr() {
             </p>
           )}
 
-          <div style={styles.searchWrap}>
-            <input
-              style={styles.searchInput}
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search by name, location, skills, category, service..."
-            />
-            {search && (
-              <button onClick={() => setSearch('')} style={styles.clearBtn}>✕</button>
-            )}
-          </div>
+          <div style={styles.searchRow}>
+            <div style={styles.searchWrap}>
+              <input
+                style={styles.searchInput}
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search by name, location, skills, category, service..."
+              />
+              {search && (
+                <button onClick={() => setSearch('')} style={styles.clearBtn}>✕</button>
+              )}
+            </div>
 
-          <div style={styles.sortWrap}>
-            <span style={styles.sortLabel}>Sort by:</span>
             <select
               value={sortBy}
               onChange={e => setSortBy(e.target.value)}
@@ -619,16 +618,15 @@ const styles = {
   heroInner: { maxWidth: 700, margin: '0 auto', textAlign: 'center' },
   heroTitle: { color: '#fff', fontSize: 52, fontWeight: 800, margin: '0 0 12px', letterSpacing: '-0.02em' },
   heroSub: { color: '#d1fae5', fontSize: 16, margin: '0 0 8px', lineHeight: 1.6 },
-  searchWrap: { background: '#fff', borderRadius: 16, padding: '14px 18px', display: 'flex', alignItems: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.15)', marginTop: 24 },
+  searchWrap: { flex: '1 1 65%', minWidth: 280, background: '#fff', borderRadius: 999, padding: '14px 18px', display: 'flex', alignItems: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.15)' },
   searchInput: { border: 'none', outline: 'none', fontSize: 16, flex: 1, background: 'transparent', color: '#111827' },
   clearBtn: { background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: 18 },
   filtersWrap: { background: '#fff', borderBottom: '1px solid #e5e7eb', position: 'sticky', top: 0, zIndex: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
   filters: { maxWidth: 1400, margin: '0 auto', padding: '12px 20px', display: 'flex', gap: 8, alignItems: 'center', overflowX: 'auto' },
   filterBtn: { background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 20, padding: '7px 16px', fontSize: 13, fontWeight: 500, color: '#6b7280', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)', transition: 'all 0.2s' },
   filterBtnActive: { background: '#065f46', borderColor: '#065f46', color: '#fff', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)', transform: 'translateY(-1px)' },
-  sortWrap: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 16, flexWrap: 'wrap' },
-  sortLabel: { color: 'white', fontSize: 14, fontWeight: 600, opacity: 0.9 },
-  sortSelect: { padding: '10px 18px', borderRadius: 999, border: 'none', background: 'white', fontSize: 14, fontFamily: 'inherit', fontWeight: 600, cursor: 'pointer', color: '#065f46', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', appearance: 'none', WebkitAppearance: 'none', paddingRight: 36, backgroundImage: 'url(\"data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\' fill=\'%23065f46\'%3e%3cpath d=\'M6 9L1 4h10z\'/%3e%3c/svg%3e\")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center' },
+  searchRow: { display: 'flex', gap: 10, alignItems: 'stretch', flexWrap: 'wrap' },
+  sortSelect: { flex: '0 1 35%', minWidth: 180, padding: '14px 40px 14px 18px', borderRadius: 999, border: 'none', background: 'white', fontSize: 15, fontFamily: 'inherit', fontWeight: 600, cursor: 'pointer', color: '#065f46', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', appearance: 'none', WebkitAppearance: 'none', backgroundImage: 'url(\"data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\' fill=\'%23065f46\'%3e%3cpath d=\'M6 9L1 4h10z\'/%3e%3c/svg%3e\")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 16px center' },
   availToggle: { marginLeft: 'auto', fontSize: 13, color: '#6b7280', cursor: 'pointer', display: 'flex', alignItems: 'center', background: '#fff', padding: '7px 16px', borderRadius: 20, border: '1.5px solid #e5e7eb', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' },
   results: { maxWidth: 1400, margin: '0 auto', padding: '24px 20px 60px' },
   resultCount: { color: '#6b7280', fontSize: 14, marginBottom: 20 },
