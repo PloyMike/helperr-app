@@ -11,6 +11,7 @@ function Helperr() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
   const [onlyAvailable, setOnlyAvailable] = useState(false);
+  const [sortBy, setSortBy] = useState('newest');
   const [selected, setSelected] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showBooking, setShowBooking] = useState(false);
@@ -198,6 +199,21 @@ function Helperr() {
     const matchesAvail = !onlyAvailable || profile.available;
     
     return matchesSearch && matchesCat && matchesAvail;
+  }).sort((a, b) => {
+    if (sortBy === 'rating') {
+      return (Number(b.rating) || 0) - (Number(a.rating) || 0);
+    }
+    if (sortBy === 'price_asc') {
+      return (Number(a.price_amount) || 0) - (Number(b.price_amount) || 0);
+    }
+    if (sortBy === 'price_desc') {
+      return (Number(b.price_amount) || 0) - (Number(a.price_amount) || 0);
+    }
+    if (sortBy === 'distance') {
+      return (a.distance || 999) - (b.distance || 999);
+    }
+    // default 'newest' - by created_at descending
+    return new Date(b.created_at || 0) - new Date(a.created_at || 0);
   });
 
   // Group by country, then by city
@@ -335,6 +351,17 @@ function Helperr() {
             />
             Available only
           </label>
+          <select
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value)}
+            style={styles.sortSelect}
+          >
+            <option value="newest">Newest first</option>
+            <option value="rating">Highest rated</option>
+            <option value="price_asc">Price: low to high</option>
+            <option value="price_desc">Price: high to low</option>
+            <option value="distance">Nearest first</option>
+          </select>
         </div>
       </div>
 
@@ -347,7 +374,7 @@ function Helperr() {
             <h3>No results found</h3>
             <p>Try a different search or category</p>
             <button
-              onClick={() => { setSearch(''); setCategory('All'); setOnlyAvailable(false); }}
+              onClick={() => { setSearch(''); setCategory('All'); setOnlyAvailable(false); setSortBy('newest'); }}
               style={styles.btnPrimary}
             >
               Clear Filters
@@ -595,6 +622,7 @@ const styles = {
   filters: { maxWidth: 1400, margin: '0 auto', padding: '12px 20px', display: 'flex', gap: 8, alignItems: 'center', overflowX: 'auto' },
   filterBtn: { background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 20, padding: '7px 16px', fontSize: 13, fontWeight: 500, color: '#6b7280', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)', transition: 'all 0.2s' },
   filterBtnActive: { background: '#065f46', borderColor: '#065f46', color: '#fff', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)', transform: 'translateY(-1px)' },
+  sortSelect: { padding: '8px 12px', borderRadius: 999, border: '1px solid #d1d5db', background: 'white', fontSize: 14, fontFamily: 'inherit', cursor: 'pointer', color: '#374151' },
   availToggle: { marginLeft: 'auto', fontSize: 13, color: '#6b7280', cursor: 'pointer', display: 'flex', alignItems: 'center', background: '#fff', padding: '7px 16px', borderRadius: 20, border: '1.5px solid #e5e7eb', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' },
   results: { maxWidth: 1400, margin: '0 auto', padding: '24px 20px 60px' },
   resultCount: { color: '#6b7280', fontSize: 14, marginBottom: 20 },
