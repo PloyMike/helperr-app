@@ -179,15 +179,14 @@ function MyBookings() {
   }, [fetchBookings]);
 
   const canReview = (booking) => {
-    if (false) return false;
-    if (booking.status !== 'confirmed') return false;
+    // Review nur erlauben wenn:
+    // - Buchung nicht cancelled
+    // - Zahlung wurde eingezogen (Service fand statt + 15 Min Karenz vorbei)
+    // - Noch kein Review fuer diese Buchung
+    if (booking.status === 'cancelled') return false;
+    if (booking.payment_status !== 'captured') return false;
     if (bookingsWithReviews.includes(booking.id)) return false;
-    
-    const bookingDate = new Date(booking.booking_date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    return bookingDate < today;
+    return true;
   };
 
   const handleOpenReview = (booking) => {
