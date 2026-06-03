@@ -325,6 +325,21 @@ function Helperr() {
               <button onClick={() => setSearch('')} style={styles.clearBtn}>✕</button>
             )}
           </div>
+
+          <div style={styles.sortWrap}>
+            <span style={styles.sortLabel}>Sort by:</span>
+            <select
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value)}
+              style={styles.sortSelect}
+            >
+              <option value="newest">Newest first</option>
+              <option value="rating">Highest rated</option>
+              <option value="price_asc">Price: low to high</option>
+              <option value="price_desc">Price: high to low</option>
+              <option value="distance">Nearest first</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -351,17 +366,6 @@ function Helperr() {
             />
             Available only
           </label>
-          <select
-            value={sortBy}
-            onChange={e => setSortBy(e.target.value)}
-            style={styles.sortSelect}
-          >
-            <option value="newest">Newest first</option>
-            <option value="rating">Highest rated</option>
-            <option value="price_asc">Price: low to high</option>
-            <option value="price_desc">Price: high to low</option>
-            <option value="distance">Nearest first</option>
-          </select>
         </div>
       </div>
 
@@ -622,7 +626,9 @@ const styles = {
   filters: { maxWidth: 1400, margin: '0 auto', padding: '12px 20px', display: 'flex', gap: 8, alignItems: 'center', overflowX: 'auto' },
   filterBtn: { background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 20, padding: '7px 16px', fontSize: 13, fontWeight: 500, color: '#6b7280', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)', transition: 'all 0.2s' },
   filterBtnActive: { background: '#065f46', borderColor: '#065f46', color: '#fff', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)', transform: 'translateY(-1px)' },
-  sortSelect: { padding: '8px 12px', borderRadius: 999, border: '1px solid #d1d5db', background: 'white', fontSize: 14, fontFamily: 'inherit', cursor: 'pointer', color: '#374151' },
+  sortWrap: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: 16, flexWrap: 'wrap' },
+  sortLabel: { color: 'white', fontSize: 14, fontWeight: 600, opacity: 0.9 },
+  sortSelect: { padding: '10px 18px', borderRadius: 999, border: 'none', background: 'white', fontSize: 14, fontFamily: 'inherit', fontWeight: 600, cursor: 'pointer', color: '#065f46', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', appearance: 'none', WebkitAppearance: 'none', paddingRight: 36, backgroundImage: 'url(\"data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\' fill=\'%23065f46\'%3e%3cpath d=\'M6 9L1 4h10z\'/%3e%3c/svg%3e\")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center' },
   availToggle: { marginLeft: 'auto', fontSize: 13, color: '#6b7280', cursor: 'pointer', display: 'flex', alignItems: 'center', background: '#fff', padding: '7px 16px', borderRadius: 20, border: '1.5px solid #e5e7eb', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' },
   results: { maxWidth: 1400, margin: '0 auto', padding: '24px 20px 60px' },
   resultCount: { color: '#6b7280', fontSize: 14, marginBottom: 20 },
