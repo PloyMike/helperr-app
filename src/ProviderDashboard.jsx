@@ -130,10 +130,10 @@ function ProviderDashboard() {
         <Header />
         <div style={styles.container}>
           <div style={styles.emptyState}>
-            <h2>No Profile Found</h2>
-            <p>Please complete your profile first.</p>
+            <h2>You are not yet an expert</h2>
+            <p>Create your expert profile to receive bookings and access your dashboard.</p>
             <button onClick={() => window.navigateTo('edit-profile')} style={styles.btnPrimary}>
-              Create Profile
+              Become an Expert
             </button>
           </div>
         </div>
