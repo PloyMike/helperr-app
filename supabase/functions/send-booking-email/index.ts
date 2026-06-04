@@ -215,6 +215,28 @@ serve(async (req) => {
         `
         break
 
+      case 'booking-cancelled-no-response':
+        subject = `Booking Cancelled - No Response`
+        content = `
+          <div class="content">
+            <h2 style="color: #dc2626; margin-top: 0;">Booking Cancelled</h2>
+            <p>Hi ${variables.customer_name},</p>
+            <p>Unfortunately, ${variables.provider_name} didn't respond to your booking request within 48 hours.</p>
+            <div class="info-box" style="background: #fee2e2; border-left-color: #dc2626;">
+              <div class="info-item"><span class="info-label" style="color: #dc2626;">Service:</span> ${variables.service}</div>
+              <div class="info-item"><span class="info-label" style="color: #dc2626;">Date:</span> ${variables.booking_date}</div>
+              <div class="info-item"><span class="info-label" style="color: #dc2626;">Time:</span> ${variables.time_slot}</div>
+            </div>
+            <p style="background: #f0fdf4; padding: 16px; border-radius: 8px; border-left: 4px solid #065f46; margin-top: 24px;">
+              <strong>Good news:</strong> Your payment authorization has been released. You were not charged for this booking.
+            </p>
+            <p style="text-align: center; margin-top: 24px;">
+              Why not try another provider? There are many great helpers waiting to assist you on Helperr.
+            </p>
+          </div>
+        `
+        break
+
       case 'booking-cancelled-by-customer':
         subject = `Booking Cancelled - ${variables.booking_date}`
         content = `

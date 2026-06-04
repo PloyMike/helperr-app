@@ -72,57 +72,6 @@ function MyBookings() {
   }, [user]);
 
   
-  const autoCancelExpiredBookings = async () => {
-    try {
-      const fortyEightHoursAgo = new Date();
-      fortyEightHoursAgo.setHours(fortyEightHoursAgo.getHours() - 48);
-      
-      const { data: expiredBookings } = await supabase
-        .from('bookings')
-        .select('*, profiles(name, email)')
-        .eq('status', 'pending')
-        .lt('created_at', fortyEightHoursAgo.toISOString());
-      
-      if (expiredBookings && expiredBookings.length > 0) {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        for (const booking of expiredBookings) {
-          await supabase
-            .from('bookings')
-            .update({ status: 'cancelled' })
-            .eq('id', booking.id);
-          
-          try {
-            await fetch('https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email', {
-              method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session?.access_token}`
-              },
-              body: JSON.stringify({
-                template: 'booking-cancelled-48h',
-                to: booking.customer_email,
-                variables: {
-                  customer_name: booking.customer_name,
-                  provider_name: booking.profiles?.name || 'Provider',
-                  booking_date: booking.booking_date,
-                  time_slot: booking.time_slot,
-                  service: booking.service_name,
-                  address: booking.service_address,
-                },
-              }),
-            });
-          } catch (emailError) {
-            console.error('Email error:', emailError);
-          }
-        }
-        console.log('Auto-cancelled expired bookings:', expiredBookings.length);
-      }
-    } catch (error) {
-      console.error('Error in autoCancelExpiredBookings:', error);
-    }
-  };
-
   const fetchBookings = useCallback(async () => {
     if (!user) {
       setLoading(false);
@@ -131,8 +80,6 @@ function MyBookings() {
 
     try {
       let data;
-
-      await autoCancelExpiredBookings();
 
       if (true) {
         const { data: customerData, error: customerError } = await supabase
