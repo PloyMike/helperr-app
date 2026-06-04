@@ -112,6 +112,34 @@ function ProviderBookingsPage() {
     }
   };
 
+  const handleCancelConfirmed = async (bookingId) => {
+    if (!window.confirm('Cancel this booking? The customer will be notified and their payment authorization released.')) return;
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const res = await fetch('https://jyuatojpkluyidpefzub.supabase.co/functions/v1/cancel-booking', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`
+        },
+        body: JSON.stringify({ bookingId, cancelledBy: 'provider' })
+      });
+      
+      const result = await res.json();
+      if (!res.ok || result.error) {
+        throw new Error(result.error || 'Cancel failed');
+      }
+      
+      alert('Booking cancelled. The customer has been notified.');
+      fetchBookings();
+    } catch (error) {
+      console.error('Cancel error:', error);
+      alert('Error: ' + error.message);
+    }
+  };
+
   const handleDecline = async (bookingId) => {
     try {
       const { data: booking } = await supabase
@@ -348,6 +376,11 @@ function ProviderBookingsPage() {
                     </div>
                   )}
 
+                  {booking.status === 'confirmed' && booking.payment_status !== 'captured' && (
+                    <button onClick={() => handleCancelConfirmed(booking.id)} style={styles.btnDecline}>
+                      Cancel Booking
+                    </button>
+                  )}
 
                 </div>
               </div>

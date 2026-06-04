@@ -231,64 +231,30 @@ function MyBookings() {
   };
 
   const handleCancel = async (bookingId) => {
-    if (!window.confirm('Cancel this booking?')) return;
+    if (!window.confirm('Cancel this booking? Your payment authorization will be released.')) return;
     
     try {
-      const { data: booking } = await supabase.from('bookings').select('*, profiles(name, email)').eq('id', bookingId).single();
-      const { error } = await supabase.from('bookings').update({ status: 'cancelled' }).eq('id', bookingId);
-      if (error) throw error;
-
       const { data: { session } } = await supabase.auth.getSession();
-
-      try { 
-        await fetch("https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email", { 
-          method: "POST", 
-          headers: { 
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${session?.access_token}`
-          }, 
-          body: JSON.stringify({ 
-            template: "customer-cancellation-confirmation", 
-            to: booking.customer_email, 
-            variables: { 
-              customer_name: booking.customer_name, 
-              provider_name: booking.profiles?.name || "Provider", 
-              booking_date: booking.booking_date, 
-              time_slot: booking.time_slot, 
-              service: booking.service_name, 
-              address: booking.service_address 
-            } 
-          }) 
-        }); 
-      } catch (e) {}
       
-      try { 
-        await fetch("https://jyuatojpkluyidpefzub.supabase.co/functions/v1/send-booking-email", { 
-          method: "POST", 
-          headers: { 
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${session?.access_token}`
-          }, 
-          body: JSON.stringify({ 
-            template: "booking-cancelled-by-customer", 
-            to: booking.profiles?.email, 
-            variables: { 
-              customer_name: booking.customer_name, 
-              provider_name: booking.profiles?.name || "Provider", 
-              booking_date: booking.booking_date, 
-              time_slot: booking.time_slot, 
-              service: booking.service_name, 
-              address: booking.service_address 
-            } 
-          }) 
-        }); 
-      } catch (e) {}
-
-      alert('Booking cancelled');
+      const res = await fetch('https://jyuatojpkluyidpefzub.supabase.co/functions/v1/cancel-booking', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`
+        },
+        body: JSON.stringify({ bookingId, cancelledBy: 'customer' })
+      });
+      
+      const result = await res.json();
+      if (!res.ok || result.error) {
+        throw new Error(result.error || 'Cancel failed');
+      }
+      
+      alert('Booking cancelled. Your payment authorization has been released.');
       fetchBookings();
     } catch (error) {
-      console.error('Error:', error);
-      alert('Error cancelling booking');
+      console.error('Cancel error:', error);
+      alert('Error: ' + error.message);
     }
   };
 
@@ -490,7 +456,7 @@ function MyBookings() {
                 </div>
 
                 <div style={styles.cardActions}>
-                  {!isBookingExpired(booking) && booking.status === 'pending' && (
+                  {booking.status === 'confirmed' && booking.payment_status !== 'captured' && (
                     <button onClick={() => handleCancel(booking.id)} style={styles.btnCancel}>
                       Cancel Booking
                     </button>

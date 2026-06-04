@@ -215,6 +215,50 @@ serve(async (req) => {
         `
         break
 
+      case 'booking-cancelled-by-customer':
+        subject = `Booking Cancelled - ${variables.booking_date}`
+        content = `
+          <div class="content">
+            <h2 style="color: #dc2626; margin-top: 0;">Booking Cancelled</h2>
+            <p>Hi ${variables.recipient_name},</p>
+            <p>${variables.canceller_name} has cancelled their booking with you.</p>
+            <div class="info-box" style="background: #fee2e2; border-left-color: #dc2626;">
+              <div class="info-item"><span class="info-label" style="color: #dc2626;">Service:</span> ${variables.service}</div>
+              <div class="info-item"><span class="info-label" style="color: #dc2626;">Date:</span> ${variables.booking_date}</div>
+              <div class="info-item"><span class="info-label" style="color: #dc2626;">Time:</span> ${variables.time_slot}</div>
+            </div>
+            <p style="background: #f0fdf4; padding: 16px; border-radius: 8px; border-left: 4px solid #065f46; margin-top: 24px;">
+              <strong>Good to know:</strong> The customer's payment authorization has been released. No charges were made.
+            </p>
+            <p style="text-align: center; margin-top: 24px; color: #6b7280; font-size: 13px;">
+              This time slot is now available for new bookings.
+            </p>
+          </div>
+        `
+        break
+
+      case 'booking-cancelled-by-provider':
+        subject = `Booking Cancelled - ${variables.booking_date}`
+        content = `
+          <div class="content">
+            <h2 style="color: #dc2626; margin-top: 0;">Booking Cancelled</h2>
+            <p>Hi ${variables.recipient_name},</p>
+            <p>Unfortunately, ${variables.canceller_name} had to cancel your booking.</p>
+            <div class="info-box" style="background: #fee2e2; border-left-color: #dc2626;">
+              <div class="info-item"><span class="info-label" style="color: #dc2626;">Service:</span> ${variables.service}</div>
+              <div class="info-item"><span class="info-label" style="color: #dc2626;">Date:</span> ${variables.booking_date}</div>
+              <div class="info-item"><span class="info-label" style="color: #dc2626;">Time:</span> ${variables.time_slot}</div>
+            </div>
+            <p style="background: #f0fdf4; padding: 16px; border-radius: 8px; border-left: 4px solid #065f46; margin-top: 24px;">
+              <strong>Good news:</strong> Your payment authorization has been released. You were not charged for this booking.
+            </p>
+            <p style="text-align: center; margin-top: 24px;">
+              You can browse other providers and book again anytime.
+            </p>
+          </div>
+        `
+        break
+
       case 'payout-sent':
         subject = `Payout Sent - ${variables.amount} on its way`
         content = `
