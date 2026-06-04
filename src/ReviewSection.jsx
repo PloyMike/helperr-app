@@ -44,11 +44,7 @@ function ReviewSection({ profileId, profileName }) {
       setShowForm(false);
       fetchReviews();
 
-      const avgRating = [...reviews, newReview].reduce((sum, r) => sum + r.rating, 0) / (reviews.length + 1);
-      await supabase.from('profiles').update({
-        rating: avgRating.toFixed(1),
-        review_count: reviews.length + 1
-      }).eq('id', profileId);
+      // review_count + rating werden automatisch via DB-Trigger aktualisiert
     } catch (error) {
       console.error('Error submitting review:', error);
       alert('Fehler beim Speichern der Bewertung');

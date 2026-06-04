@@ -215,20 +215,7 @@ function MyBookings() {
 
       if (error) throw error;
 
-      const { data: existingReviews } = await supabase
-        .from('reviews')
-        .select('rating')
-        .eq('profile_id', selectedBooking.profile_id);
-
-      const avgRating = (existingReviews.reduce((sum, r) => sum + r.rating, 0) + reviewForm.rating) / (existingReviews.length + 1);
-      
-      await supabase
-        .from('profiles')
-        .update({ 
-          rating: avgRating.toFixed(1),
-          review_count: existingReviews.length + 1 
-        })
-        .eq('id', selectedBooking.profile_id);
+      // review_count + rating werden automatisch via DB-Trigger aktualisiert
 
       alert('Review submitted successfully!');
       fetchBookings();
