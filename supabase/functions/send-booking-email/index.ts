@@ -105,7 +105,7 @@ serve(async (req) => {
               <div class="info-item"><span class="info-label">Service:</span> ${variables.service}</div>
               <div class="info-item"><span class="info-label">Address:</span> ${variables.address}</div>
             </div>
-            <p>You can now proceed with payment for this booking.</p>
+            <p style="background: #f0fdf4; padding: 16px; border-radius: 8px; border-left: 4px solid #065f46;"><strong>Payment note:</strong> Your payment is already authorized. The amount will be charged automatically after your service is completed.</p>
           </div>
         `
         break
