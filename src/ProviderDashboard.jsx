@@ -295,8 +295,9 @@ function ProviderDashboard() {
             </div>
           </div>
         )}
+
         {/* Booking Stats Grid */}
-        <div style={styles.statsGrid}>
+        <div style={{ ...styles.statsGrid, marginTop: 32 }}>
           <div style={styles.statCard}>
             <div style={styles.statIcon}>📋</div>
             <div style={styles.statContent}>
