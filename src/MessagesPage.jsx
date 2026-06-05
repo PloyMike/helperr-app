@@ -226,28 +226,15 @@ function MessagesPage() {
         {/* Conversations List */}
         {(!isMobile || !showChat) && (
           <div style={{...styles.sidebar, ...(isMobile ? { width: '100%', borderRight: 'none' } : {})}}>
-            <div style={{
-              padding: 16,
-              borderBottom: '1px solid #e5e7eb'
-            }}>
+            <div style={styles.searchContainer}>
               <input
                 type="text"
                 placeholder="Search conversations..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  border: '2px solid #e5e7eb',
-                  borderRadius: 10,
-                  fontSize: 14,
-                  fontFamily: '"Outfit", sans-serif',
-                  outline: 'none',
-                  transition: 'all 0.2s',
-                  boxSizing: 'border-box'
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#10b981'}
-                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
+                style={styles.searchInput}
+                onFocus={(e) => e.target.style.borderColor = '#14b8a6'}
+                onBlur={(e) => e.target.style.borderColor = '#ecfdf5'}
               />
             </div>
             
@@ -439,7 +426,31 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     flexShrink: 0,
-    boxShadow: '4px 0 16px rgba(6, 95, 70, 0.04)'
+    boxShadow: '4px 0 16px rgba(6, 95, 70, 0.04)',
+    height: '100%',
+    overflow: 'hidden'
+  },
+  searchContainer: {
+    padding: 16,
+    borderBottom: '1px solid #ecfdf5',
+    background: '#fff',
+    flexShrink: 0,
+    position: 'sticky',
+    top: 0,
+    zIndex: 5
+  },
+  searchInput: {
+    width: '100%',
+    padding: '11px 14px',
+    border: '2px solid #ecfdf5',
+    borderRadius: 12,
+    fontSize: 14,
+    fontFamily: '"Outfit", sans-serif',
+    outline: 'none',
+    transition: 'all 0.2s',
+    boxSizing: 'border-box',
+    background: '#f9fafb',
+    fontWeight: 500
   },
   sidebarHeader: {
     padding: '20px 16px',
@@ -458,7 +469,9 @@ const styles = {
   conversationList: { 
     flex: 1, 
     overflowY: 'auto',
-    padding: '8px 0'
+    overflowX: 'hidden',
+    padding: '8px 0',
+    minHeight: 0
   },
   conversationItem: { 
     display: 'flex', 
@@ -572,7 +585,8 @@ const styles = {
     flexDirection: 'column', 
     background: '#fff',
     position: 'relative',
-    overflowY: 'auto',
+    height: '100%',
+    overflow: 'hidden',
     minHeight: 0
   },
   emptyChat: { 
@@ -637,11 +651,14 @@ const styles = {
   // Messages — fresher Hintergrund
   messagesArea: { 
     flex: 1,
+    overflowY: 'auto',
+    overflowX: 'hidden',
     padding: '20px 16px', 
     display: 'flex', 
     flexDirection: 'column', 
     gap: 10, 
-    background: 'linear-gradient(180deg, #f0fdfa 0%, #ecfdf5 50%, #ffffff 100%)'
+    background: 'linear-gradient(180deg, #f0fdfa 0%, #ecfdf5 50%, #ffffff 100%)',
+    minHeight: 0
   },
   emptyMessages: {
     textAlign: 'center',
