@@ -702,14 +702,15 @@ const styles = {
   
   // Input — frischer, einladender
   inputArea: { 
-    padding: '16px 16px calc(16px + env(safe-area-inset-bottom)) 16px', 
+    padding: '16px 16px calc(20px + env(safe-area-inset-bottom)) 16px', 
     borderTop: '1px solid #ecfdf5', 
     background: 'linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)',
     flexShrink: 0,
     boxShadow: '0 -2px 8px rgba(6, 95, 70, 0.04)',
     position: 'sticky',
     bottom: 0,
-    zIndex: 10
+    zIndex: 10,
+    marginBottom: 60
   },
   inputForm: {
     display: 'flex',
