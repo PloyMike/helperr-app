@@ -172,7 +172,23 @@ function BookingCalendar({ profile, onClose }) {
       return `Unavailable - Already booked ${overlappingSlot}`;
     }
     
+    if (isPastTime()) {
+      return 'This time slot is in the past';
+    }
+    
     return null;
+  };
+
+  // Helper: prueft ob der Slot bereits in der Vergangenheit liegt
+  const isPastTime = () => {
+    if (!selectedDate) return false;
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    // Nur fuer heute relevant; zukuenftige Tage sind nie "past"
+    if (selectedDate !== todayStr) return false;
+    const nowMinutes = today.getHours() * 60 + today.getMinutes();
+    const endMinutes = endHour * 60 + endMinute;
+    return endMinutes <= nowMinutes;
   };
 
   const isValidTimeRange = () => {
@@ -180,6 +196,7 @@ function BookingCalendar({ profile, onClose }) {
     const end = endHour * 60 + endMinute;
     
     if (end <= start) return false;
+    if (isPastTime()) return false;
     
     const isBooked = bookedSlots.some(bookedSlot => {
       const [bookedStart, bookedEnd] = bookedSlot.split(' - ');
@@ -459,11 +476,13 @@ function BookingCalendar({ profile, onClose }) {
                 </div>
               </div>
 
-              {!isValidTimeRange() && getValidationError() && (
-                <div style={styles.errorBox}>
-                  ⚠️ {getValidationError()}
-                </div>
-              )}
+              <div style={styles.errorSlot}>
+                {!isValidTimeRange() && getValidationError() && (
+                  <div style={styles.errorBox}>
+                    ⚠️ {getValidationError()}
+                  </div>
+                )}
+              </div>
 
               <div style={isMobile ? styles.timePreviewMobile : styles.timePreview}>
                 <div style={styles.timePreviewLabel}>Selected Time</div>
@@ -962,6 +981,7 @@ const styles = {
   },
   colon: { fontSize: 20, fontWeight: 700, color: '#065f46', padding: '0 4px' },
   timeDivider: { fontSize: 16, color: '#6b7280', fontWeight: 700, display: 'flex', alignItems: 'center', padding: '0 4px' },
+  errorSlot: { minHeight: 48, marginTop: 8, marginBottom: 8 },
   errorBox: { background: '#fee2e2', color: '#dc2626', padding: 8, borderRadius: 8, fontSize: 13, fontWeight: 600, marginBottom: 10, textAlign: 'center' },
   timePreviewLabel: { fontSize: 11, color: '#d1fae5', fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' },
   timePreviewValue: { fontSize: 16, color: 'white', fontWeight: 800 },
