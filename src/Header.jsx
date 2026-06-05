@@ -3,6 +3,7 @@ import { supabase } from './supabase';
 
 function Header({ transparent, isScrolled }) {
   const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const [profile, setProfile] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -19,13 +20,26 @@ function Header({ transparent, isScrolled }) {
     return saved || 'en';
   });
   
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 768);
 
   useEffect(() => {
     checkUser();
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+
+    // Listen for auth changes (login/logout in other tabs)
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+      if (!session?.user) {
+        setProfile(null);
+        setHasProviderProfile(false);
+      }
+    });
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      authListener?.subscription?.unsubscribe();
+    };
   }, []);
 
   const checkMobile = () => {
@@ -33,8 +47,9 @@ function Header({ transparent, isScrolled }) {
   };
 
   const checkUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    setUser(user);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
     
     if (user) {
       // Search by EMAIL instead of user_id - much simpler!
@@ -50,6 +65,11 @@ function Header({ transparent, isScrolled }) {
         setProfile(data);
         setHasProviderProfile(!!data.job);
       }
+    }
+    } catch (error) {
+      console.error('Auth check failed:', error);
+    } finally {
+      setAuthLoading(false);
     }
   };
 
@@ -275,7 +295,7 @@ function Header({ transparent, isScrolled }) {
 
           {!isMobile && (
             <nav style={styles.nav}>
-              {user ? (
+              {authLoading ? null : user ? (
                 <>
                   <button onClick={() => window.navigateTo('home')} style={{
                     ...styles.navBtn,
@@ -579,7 +599,7 @@ function Header({ transparent, isScrolled }) {
             </div>
             
             <div style={styles.mobileMenuItems}>
-              {user ? (
+              {authLoading ? null : user ? (
                 <>
                   <button onClick={() => { closeMobileMenu(); window.navigateTo('home'); }} style={styles.mobileMenuItem}>
                 Home
