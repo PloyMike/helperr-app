@@ -173,13 +173,13 @@ function BookingCalendar({ profile, onClose }) {
     }
     
     if (isPastTime()) {
-      return 'This time slot is in the past';
+      return 'Please book at least 30 minutes in advance';
     }
     
     return null;
   };
 
-  // Helper: prueft ob der Slot bereits in der Vergangenheit liegt
+  // Helper: prueft ob der Slot zu kurzfristig ist (Start muss >= jetzt + 30 Min)
   const isPastTime = () => {
     if (!selectedDate) return false;
     const today = new Date();
@@ -187,8 +187,9 @@ function BookingCalendar({ profile, onClose }) {
     // Nur fuer heute relevant; zukuenftige Tage sind nie "past"
     if (selectedDate !== todayStr) return false;
     const nowMinutes = today.getHours() * 60 + today.getMinutes();
-    const endMinutes = endHour * 60 + endMinute;
-    return endMinutes <= nowMinutes;
+    const startMinutes = startHour * 60 + startMinute;
+    // Mindestens 30 Min Vorlauf
+    return startMinutes < nowMinutes + 30;
   };
 
   const isValidTimeRange = () => {
