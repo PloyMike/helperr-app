@@ -225,7 +225,7 @@ function MessagesPage() {
       <div style={styles.wrapper}>
         {/* Conversations List */}
         {(!isMobile || !showChat) && (
-          <div style={styles.sidebar}>
+          <div style={{...styles.sidebar, ...(isMobile ? { width: '100%', borderRight: 'none' } : {})}}>
             <div style={{
               padding: 16,
               borderBottom: '1px solid #e5e7eb'
@@ -405,7 +405,7 @@ function MessagesPage() {
 const styles = {
   page: { 
     fontFamily: '"Outfit", sans-serif', 
-    background: 'linear-gradient(to bottom, #f9fafb 0%, #f3f4f6 100%)', 
+    background: 'linear-gradient(135deg, #ecfdf5 0%, #f0fdfa 50%, #f9fafb 100%)', 
     minHeight: '100vh', 
     paddingTop: 70,
     display: 'flex',
@@ -425,90 +425,100 @@ const styles = {
     height: 'calc(100vh - 70px)', 
     maxWidth: 1400, 
     margin: '0 auto',
-    width: '100%'
+    width: '100%',
+    background: '#fff',
+    borderRadius: 0,
+    overflow: 'hidden'
   },
   
-  // Sidebar - Modern
+  // Sidebar — fresher, kraftiger
   sidebar: { 
-    width: 340, 
+    width: 360, 
     background: '#fff', 
-    borderRight: '1px solid #e5e7eb',
+    borderRight: '1px solid #ecfdf5',
     display: 'flex',
     flexDirection: 'column',
     flexShrink: 0,
-    boxShadow: '2px 0 8px rgba(0,0,0,0.03)'
+    boxShadow: '4px 0 16px rgba(6, 95, 70, 0.04)'
   },
   sidebarHeader: {
     padding: '20px 16px',
-    borderBottom: '1px solid #e5e7eb',
-    background: 'linear-gradient(135deg, #fff 0%, #f9fafb 100%)'
+    borderBottom: '1px solid #ecfdf5',
+    background: 'linear-gradient(135deg, #ffffff 0%, #f0fdfa 100%)'
   },
   sidebarTitle: { 
     margin: 0, 
-    fontSize: 22, 
+    fontSize: 24, 
     fontWeight: 800,
-    background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)',
+    background: 'linear-gradient(135deg, #065f46 0%, #14b8a6 100%)',
     WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent'
+    WebkitTextFillColor: 'transparent',
+    letterSpacing: '-0.5px'
   },
   conversationList: { 
     flex: 1, 
     overflowY: 'auto',
-    padding: 0
+    padding: '8px 0'
   },
   conversationItem: { 
     display: 'flex', 
     alignItems: 'center', 
     gap: 14, 
-    padding: '16px 20px', 
+    padding: '14px 18px', 
     cursor: 'pointer', 
-    borderBottom: '1px solid #f3f4f6',
+    borderBottom: '1px solid #f9fafb',
     position: 'relative',
     transition: 'all 0.2s ease',
     background: '#fff'
   },
   conversationItemActive: { 
-    background: 'linear-gradient(90deg, rgba(6, 95, 70, 0.08) 0%, rgba(236, 253, 245, 0.5) 100%)',
-    borderLeft: '3px solid #065f46'
+    background: 'linear-gradient(90deg, #ecfdf5 0%, #f0fdfa 50%, transparent 100%)',
+    borderLeft: '4px solid #14b8a6'
   },
   avatarContainer: {
     position: 'relative',
     flexShrink: 0
   },
   avatar: { 
-    width: 56, 
-    height: 56, 
+    width: 54, 
+    height: 54, 
     borderRadius: '50%', 
-    background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)', 
+    background: 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)', 
     display: 'flex', 
     alignItems: 'center', 
     justifyContent: 'center', 
     overflow: 'hidden',
-    border: '2px solid #fff',
-    boxShadow: '0 2px 8px rgba(6, 95, 70, 0.15)'
+    border: '2.5px solid #fff',
+    boxShadow: '0 4px 12px rgba(20, 184, 166, 0.25)',
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: 700
   },
   onlineDot: {
     width: 14,
     height: 14,
     borderRadius: '50%',
     background: '#10b981',
-    border: '2px solid #fff',
+    border: '2.5px solid #fff',
     position: 'absolute',
-    bottom: 2,
-    right: 2,
-    boxShadow: '0 0 0 2px rgba(16, 185, 129, 0.2)'
+    bottom: 0,
+    right: 0,
+    boxShadow: '0 0 0 2px rgba(16, 185, 129, 0.15)'
   },
   chatHeaderAvatar: { 
-    width: 40, 
-    height: 40, 
+    width: 42, 
+    height: 42, 
     borderRadius: '50%', 
-    background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)', 
+    background: 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)', 
     display: 'flex', 
     alignItems: 'center', 
     justifyContent: 'center', 
     overflow: 'hidden',
     border: '2px solid #fff',
-    boxShadow: '0 2px 6px rgba(6, 95, 70, 0.15)'
+    boxShadow: '0 3px 8px rgba(20, 184, 166, 0.25)',
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 700
   },
   avatarImage: { 
     width: '100%', 
@@ -528,14 +538,14 @@ const styles = {
   conversationName: { 
     margin: 0, 
     fontSize: 16, 
-    fontWeight: 800, 
+    fontWeight: 700, 
     overflow: 'hidden', 
     textOverflow: 'ellipsis', 
     whiteSpace: 'nowrap',
     color: '#111827'
   },
   timestamp: { 
-    fontSize: 12.5, 
+    fontSize: 12, 
     color: '#9ca3af',
     fontWeight: 500,
     flexShrink: 0,
@@ -543,7 +553,7 @@ const styles = {
   },
   lastMessage: { 
     margin: 0, 
-    fontSize: 14.5, 
+    fontSize: 14, 
     color: '#6b7280', 
     overflow: 'hidden', 
     textOverflow: 'ellipsis', 
@@ -555,7 +565,7 @@ const styles = {
     textAlign: 'center'
   },
   
-  // Chat Area - Modern
+  // Chat Area — frischer, mehr Leben
   chatArea: { 
     flex: 1,
     display: 'flex', 
@@ -570,29 +580,31 @@ const styles = {
     alignItems: 'center', 
     justifyContent: 'center', 
     gap: 16,
-    background: 'linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%)'
+    background: 'linear-gradient(135deg, #ecfdf5 0%, #f0fdfa 50%, #f9fafb 100%)'
   },
   emptyChatIcon: {
-    fontSize: 72,
-    opacity: 0.5
+    fontSize: 80,
+    opacity: 0.4
   },
   emptyChatTitle: {
     margin: 0,
     fontSize: 24,
-    fontWeight: 700,
-    color: '#111827'
+    fontWeight: 800,
+    background: 'linear-gradient(135deg, #065f46 0%, #14b8a6 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent'
   },
   emptyChatText: {
     margin: 0,
     fontSize: 15,
-    color: '#9ca3af'
+    color: '#6b7280'
   },
   chatHeader: { 
-    padding: '16px 20px', 
-    borderBottom: '1px solid #e5e7eb', 
-    background: 'linear-gradient(135deg, #fff 0%, #f9fafb 100%)',
+    padding: '14px 20px', 
+    borderBottom: '1px solid #ecfdf5', 
+    background: 'linear-gradient(135deg, #ffffff 0%, #f0fdfa 100%)',
     flexShrink: 0,
-    boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+    boxShadow: '0 2px 8px rgba(6, 95, 70, 0.04)'
   },
   chatHeaderContent: {
     display: 'flex',
@@ -606,9 +618,9 @@ const styles = {
     fontWeight: 700, 
     color: '#065f46', 
     cursor: 'pointer', 
-    padding: '4px 8px',
+    padding: '4px 10px',
     borderRadius: 8,
-    transition: 'background 0.2s'
+    transition: 'all 0.2s'
   },
   chatName: { 
     margin: 0, 
@@ -617,40 +629,45 @@ const styles = {
     color: '#111827'
   },
   
-  // Messages
+  // Messages — fresher Hintergrund
   messagesArea: { 
     flex: 1,
     overflowY: 'auto', 
-    padding: 16, 
+    padding: '20px 16px', 
     display: 'flex', 
     flexDirection: 'column', 
     gap: 10, 
-    background: 'linear-gradient(to bottom, #f9fafb 0%, #fff 100%)'
+    background: 'linear-gradient(180deg, #f0fdfa 0%, #ecfdf5 50%, #ffffff 100%)',
+    backgroundAttachment: 'local'
   },
   emptyMessages: {
     textAlign: 'center',
-    padding: '40px 20px'
+    padding: '40px 20px',
+    color: '#9ca3af',
+    fontSize: 14
   },
   messageRow: { 
     display: 'flex' 
   },
   bubble: { 
     maxWidth: '75%', 
-    padding: '10px 14px', 
-    borderRadius: 18, 
+    padding: '11px 16px', 
+    borderRadius: 20, 
     wordWrap: 'break-word',
-    boxShadow: '0 1px 2px rgba(0,0,0,0.08)'
+    boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
   },
   bubbleMine: { 
-    background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', 
+    background: 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)', 
     color: '#fff', 
-    borderBottomRightRadius: 6
+    borderBottomRightRadius: 6,
+    boxShadow: '0 3px 12px rgba(20, 184, 166, 0.3)'
   },
   bubbleTheirs: { 
     background: '#fff', 
     color: '#111827', 
-    border: '1px solid #e5e7eb', 
-    borderBottomLeftRadius: 6
+    border: '1px solid #ecfdf5', 
+    borderBottomLeftRadius: 6,
+    boxShadow: '0 2px 8px rgba(6, 95, 70, 0.05)'
   },
   bubbleText: { 
     margin: '0 0 4px', 
@@ -659,81 +676,58 @@ const styles = {
   },
   bubbleTime: { 
     fontSize: 11, 
-    opacity: 0.7,
+    opacity: 0.75,
     fontWeight: 500
   },
   
-  // Input - Modern
+  // Input — frischer, einladender
   inputArea: { 
     padding: 16, 
-    borderTop: '1px solid #e5e7eb', 
-    background: '#fff',
+    borderTop: '1px solid #ecfdf5', 
+    background: 'linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)',
     flexShrink: 0,
-    boxShadow: '0 -1px 3px rgba(0,0,0,0.05)'
+    boxShadow: '0 -2px 8px rgba(6, 95, 70, 0.04)'
   },
   inputForm: {
     display: 'flex',
-    gap: 10
+    gap: 10,
+    alignItems: 'center'
   },
   textInput: { 
     flex: 1, 
-    padding: '12px 18px', 
-    border: '2px solid #e5e7eb', 
+    padding: '13px 20px', 
+    border: '2px solid #ecfdf5', 
     borderRadius: 24, 
     fontSize: 15, 
     outline: 'none', 
     fontFamily: '"Outfit", sans-serif',
-    background: '#f9fafb',
+    background: '#fff',
     transition: 'all 0.2s',
-    fontWeight: 500
+    fontWeight: 500,
+    boxShadow: '0 1px 4px rgba(6, 95, 70, 0.04)'
   },
   sendButton: { 
-    width: 48, 
-    height: 48, 
+    width: 50, 
+    height: 50, 
     borderRadius: '50%', 
-    background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', 
+    background: 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)', 
     color: '#fff', 
     border: 'none', 
-    fontSize: 20, 
+    fontSize: 22, 
     fontWeight: 700, 
     cursor: 'pointer', 
     fontFamily: '"Outfit", sans-serif',
     flexShrink: 0,
-    boxShadow: '0 2px 8px rgba(6, 95, 70, 0.3)',
-    transition: 'all 0.2s'
+    boxShadow: '0 4px 14px rgba(20, 184, 166, 0.35)',
+    transition: 'all 0.2s',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   sendButtonDisabled: { 
     opacity: 0.4, 
     cursor: 'not-allowed',
     boxShadow: 'none'
-  },
-  
-  // Mobile-specific modern styles
-  '@media (maxWidth: 768px)': {
-    sidebar: {
-      width: '100%',
-      borderRight: 'none'
-    },
-    conversationItem: {
-      padding: '16px 20px',
-      borderBottom: '1px solid #f3f4f6',
-      borderRadius: 0
-    },
-    avatar: {
-      width: 56,
-      height: 56,
-      boxShadow: '0 3px 10px rgba(6, 95, 70, 0.2)'
-    },
-    conversationName: {
-      fontSize: 16,
-      fontWeight: 700
-    },
-    lastMessage: {
-      fontSize: 14
-    },
-    timestamp: {
-      fontSize: 13
-    }
   }
 };
 
