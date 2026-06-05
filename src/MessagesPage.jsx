@@ -422,7 +422,8 @@ const styles = {
     width: '100%',
     background: '#fff',
     overflow: 'hidden',
-    minHeight: 0
+    minHeight: 0,
+    height: '100%'
   },
   
   // Sidebar — fresher, kraftiger
