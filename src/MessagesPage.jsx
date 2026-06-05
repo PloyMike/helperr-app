@@ -393,17 +393,11 @@ const styles = {
   page: { 
     fontFamily: '"Outfit", sans-serif', 
     background: '#fff', 
-    minHeight: '100vh',
-    height: '100vh',
+    height: '100vh', 
     paddingTop: 70,
     display: 'flex',
     flexDirection: 'column',
-    overflow: 'hidden',
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0
+    overflow: 'hidden'
   },
   loading: { 
     minHeight: '60vh', 
