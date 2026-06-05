@@ -571,7 +571,9 @@ const styles = {
     display: 'flex', 
     flexDirection: 'column', 
     background: '#fff',
-    position: 'relative'
+    position: 'relative',
+    overflowY: 'auto',
+    minHeight: 0
   },
   emptyChat: { 
     flex: 1, 
@@ -604,7 +606,10 @@ const styles = {
     borderBottom: '1px solid #ecfdf5', 
     background: 'linear-gradient(135deg, #ffffff 0%, #f0fdfa 100%)',
     flexShrink: 0,
-    boxShadow: '0 2px 8px rgba(6, 95, 70, 0.04)'
+    boxShadow: '0 2px 8px rgba(6, 95, 70, 0.04)',
+    position: 'sticky',
+    top: 0,
+    zIndex: 10
   },
   chatHeaderContent: {
     display: 'flex',
@@ -632,13 +637,11 @@ const styles = {
   // Messages — fresher Hintergrund
   messagesArea: { 
     flex: 1,
-    overflowY: 'auto', 
     padding: '20px 16px', 
     display: 'flex', 
     flexDirection: 'column', 
     gap: 10, 
-    background: 'linear-gradient(180deg, #f0fdfa 0%, #ecfdf5 50%, #ffffff 100%)',
-    backgroundAttachment: 'local'
+    background: 'linear-gradient(180deg, #f0fdfa 0%, #ecfdf5 50%, #ffffff 100%)'
   },
   emptyMessages: {
     textAlign: 'center',
@@ -686,7 +689,10 @@ const styles = {
     borderTop: '1px solid #ecfdf5', 
     background: 'linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)',
     flexShrink: 0,
-    boxShadow: '0 -2px 8px rgba(6, 95, 70, 0.04)'
+    boxShadow: '0 -2px 8px rgba(6, 95, 70, 0.04)',
+    position: 'sticky',
+    bottom: 0,
+    zIndex: 10
   },
   inputForm: {
     display: 'flex',
