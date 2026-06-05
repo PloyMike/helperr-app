@@ -405,7 +405,7 @@ function MessagesPage() {
 const styles = {
   page: { 
     fontFamily: '"Outfit", sans-serif', 
-    background: 'linear-gradient(135deg, #ecfdf5 0%, #f0fdfa 50%, #f9fafb 100%)', 
+    background: '#fff', 
     minHeight: '100vh', 
     paddingTop: 70,
     display: 'flex',
@@ -422,12 +422,12 @@ const styles = {
   },
   wrapper: { 
     display: 'flex', 
-    height: 'calc(100vh - 70px)', 
+    flex: 1,
+    height: 'calc(100vh - 70px)',
     maxWidth: 1400, 
     margin: '0 auto',
     width: '100%',
     background: '#fff',
-    borderRadius: 0,
     overflow: 'hidden'
   },
   
@@ -685,7 +685,7 @@ const styles = {
   
   // Input — frischer, einladender
   inputArea: { 
-    padding: 16, 
+    padding: '16px 16px calc(16px + env(safe-area-inset-bottom)) 16px', 
     borderTop: '1px solid #ecfdf5', 
     background: 'linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)',
     flexShrink: 0,
