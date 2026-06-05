@@ -203,65 +203,6 @@ function ProviderDashboard() {
           </div>
         </div>
 
-        {/* Booking Stats Grid */}
-        <div style={styles.statsGrid}>
-          <div style={styles.statCard}>
-            <div style={styles.statIcon}>📋</div>
-            <div style={styles.statContent}>
-              <div style={styles.statValue}>{stats.totalBookings}</div>
-              <div style={styles.statLabel}>Total Bookings</div>
-            </div>
-          </div>
-
-          <div style={styles.statCard}>
-            <div style={styles.statIcon}>⏳</div>
-            <div style={styles.statContent}>
-              <div style={styles.statValue}>{stats.pendingBookings}</div>
-              <div style={styles.statLabel}>Pending</div>
-            </div>
-          </div>
-
-          <div style={styles.statCard}>
-            <div style={styles.statIcon}>✅</div>
-            <div style={styles.statContent}>
-              <div style={styles.statValue}>{stats.confirmedBookings}</div>
-              <div style={styles.statLabel}>Confirmed</div>
-            </div>
-          </div>
-
-          <div style={styles.statCard}>
-            <div style={styles.statIcon}>⭐</div>
-            <div style={styles.statContent}>
-              <div style={styles.statValue}>{profile.rating || '5.0'}</div>
-              <div style={styles.statLabel}>Rating</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Top Time Slots */}
-        {analytics.topTimeSlots.length > 0 && (
-          <div style={styles.timeSlotCard}>
-            <h3 style={styles.sectionTitle}>Most Popular Time Slots</h3>
-            <div style={styles.timeSlotList}>
-              {analytics.topTimeSlots.map((item, index) => (
-                <div key={item.slot} style={styles.timeSlotItem}>
-                  <div style={styles.timeSlotRank}>#{index + 1}</div>
-                  <div style={styles.timeSlotInfo}>
-                    <div style={styles.timeSlotTime}>{item.slot}</div>
-                    <div style={styles.timeSlotCount}>{item.count} bookings</div>
-                  </div>
-                  <div style={styles.timeSlotBar}>
-                    <div style={{
-                      ...styles.timeSlotBarFill,
-                      width: `${(item.count / analytics.topTimeSlots[0].count) * 100}%`
-                    }}></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Profile Info Card */}
         <div style={styles.profileCard}>
           <h3 style={styles.sectionTitle}>Your Profile</h3>
@@ -299,6 +240,30 @@ function ProviderDashboard() {
           </div>
         </div>
 
+        {/* Top Time Slots */}
+        {analytics.topTimeSlots.length > 0 && (
+          <div style={styles.timeSlotCard}>
+            <h3 style={styles.sectionTitle}>Most Popular Time Slots</h3>
+            <div style={styles.timeSlotList}>
+              {analytics.topTimeSlots.map((item, index) => (
+                <div key={item.slot} style={styles.timeSlotItem}>
+                  <div style={styles.timeSlotRank}>#{index + 1}</div>
+                  <div style={styles.timeSlotInfo}>
+                    <div style={styles.timeSlotTime}>{item.slot}</div>
+                    <div style={styles.timeSlotCount}>{item.count} bookings</div>
+                  </div>
+                  <div style={styles.timeSlotBar}>
+                    <div style={{
+                      ...styles.timeSlotBarFill,
+                      width: `${(item.count / analytics.topTimeSlots[0].count) * 100}%`
+                    }}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Recent Bookings */}
         {recentBookings.length > 0 && (
           <div style={styles.bookingsCard}>
@@ -330,6 +295,41 @@ function ProviderDashboard() {
             </div>
           </div>
         )}
+        {/* Booking Stats Grid */}
+        <div style={styles.statsGrid}>
+          <div style={styles.statCard}>
+            <div style={styles.statIcon}>📋</div>
+            <div style={styles.statContent}>
+              <div style={styles.statValue}>{stats.totalBookings}</div>
+              <div style={styles.statLabel}>Total Bookings</div>
+            </div>
+          </div>
+
+          <div style={styles.statCard}>
+            <div style={styles.statIcon}>⏳</div>
+            <div style={styles.statContent}>
+              <div style={styles.statValue}>{stats.pendingBookings}</div>
+              <div style={styles.statLabel}>Pending</div>
+            </div>
+          </div>
+
+          <div style={styles.statCard}>
+            <div style={styles.statIcon}>✅</div>
+            <div style={styles.statContent}>
+              <div style={styles.statValue}>{stats.confirmedBookings}</div>
+              <div style={styles.statLabel}>Confirmed</div>
+            </div>
+          </div>
+
+          <div style={styles.statCard}>
+            <div style={styles.statIcon}>⭐</div>
+            <div style={styles.statContent}>
+              <div style={styles.statValue}>{profile.rating || '5.0'}</div>
+              <div style={styles.statLabel}>Rating</div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   );
