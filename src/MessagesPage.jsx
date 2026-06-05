@@ -393,10 +393,11 @@ const styles = {
   page: { 
     fontFamily: '"Outfit", sans-serif', 
     background: '#fff', 
-    minHeight: '100vh', 
+    height: '100vh', 
     paddingTop: 70,
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
+    overflow: 'hidden'
   },
   loading: { 
     minHeight: '60vh', 
@@ -410,12 +411,12 @@ const styles = {
   wrapper: { 
     display: 'flex', 
     flex: 1,
-    height: 'calc(100vh - 70px)',
     maxWidth: 1400, 
     margin: '0 auto',
     width: '100%',
     background: '#fff',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    minHeight: 0
   },
   
   // Sidebar — fresher, kraftiger
