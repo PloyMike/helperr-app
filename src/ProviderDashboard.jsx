@@ -169,33 +169,33 @@ function ProviderDashboard() {
         <div style={styles.analyticsSection}>
           <h2 style={styles.sectionTitle}>Analytics</h2>
           <div style={styles.statsGrid}>
-            <div style={{ ...styles.statCard, ...styles.statCardPink }}>
-              
-              <div>
+            <div style={styles.statCard}>
+              <div style={styles.statIcon}>👁️</div>
+              <div style={styles.statContent}>
                 <div style={styles.statValue}>{analytics.viewsToday}</div>
                 <div style={styles.statLabel}>Views Today</div>
               </div>
             </div>
 
-            <div style={{ ...styles.statCard, ...styles.statCardOrange }}>
-              
-              <div>
+            <div style={styles.statCard}>
+              <div style={styles.statIcon}>📅</div>
+              <div style={styles.statContent}>
                 <div style={styles.statValue}>{analytics.viewsThisWeek}</div>
                 <div style={styles.statLabel}>Views This Week</div>
               </div>
             </div>
 
-            <div style={{ ...styles.statCard, ...styles.statCardTeal }}>
-              
-              <div>
+            <div style={styles.statCard}>
+              <div style={styles.statIcon}>📊</div>
+              <div style={styles.statContent}>
                 <div style={styles.statValue}>{analytics.viewsThisMonth}</div>
                 <div style={styles.statLabel}>Views This Month</div>
               </div>
             </div>
 
-            <div style={{ ...styles.statCard, ...styles.statCardIndigo }}>
-              
-              <div>
+            <div style={styles.statCard}>
+              <div style={styles.statIcon}>📈</div>
+              <div style={styles.statContent}>
                 <div style={styles.statValue}>{analytics.conversionRate}%</div>
                 <div style={styles.statLabel}>Conversion Rate</div>
               </div>
@@ -205,33 +205,33 @@ function ProviderDashboard() {
 
         {/* Booking Stats Grid */}
         <div style={styles.statsGrid}>
-          <div style={{ ...styles.statCard, ...styles.statCardGreen }}>
-            
-            <div>
+          <div style={styles.statCard}>
+            <div style={styles.statIcon}>📋</div>
+            <div style={styles.statContent}>
               <div style={styles.statValue}>{stats.totalBookings}</div>
               <div style={styles.statLabel}>Total Bookings</div>
             </div>
           </div>
 
-          <div style={{ ...styles.statCard, ...styles.statCardYellow }}>
-            
-            <div>
+          <div style={styles.statCard}>
+            <div style={styles.statIcon}>⏳</div>
+            <div style={styles.statContent}>
               <div style={styles.statValue}>{stats.pendingBookings}</div>
               <div style={styles.statLabel}>Pending</div>
             </div>
           </div>
 
-          <div style={{ ...styles.statCard, ...styles.statCardBlue }}>
-            
-            <div>
+          <div style={styles.statCard}>
+            <div style={styles.statIcon}>✅</div>
+            <div style={styles.statContent}>
               <div style={styles.statValue}>{stats.confirmedBookings}</div>
               <div style={styles.statLabel}>Confirmed</div>
             </div>
           </div>
 
-          <div style={{ ...styles.statCard, ...styles.statCardPurple }}>
-            
-            <div>
+          <div style={styles.statCard}>
+            <div style={styles.statIcon}>⭐</div>
+            <div style={styles.statContent}>
               <div style={styles.statValue}>{profile.rating || '5.0'}</div>
               <div style={styles.statLabel}>Rating</div>
             </div>
@@ -394,62 +394,51 @@ const styles = {
     marginBottom: 32 
   },
   statCard: { 
-    background: '#fff', 
+    background: 'linear-gradient(135deg, #ffffff 0%, #f0fdfa 100%)', 
     borderRadius: 16, 
-    padding: 24, 
+    padding: 22, 
     display: 'flex', 
     alignItems: 'center', 
     gap: 16,
-    border: '2px solid',
-    transition: 'all 0.2s',
-    boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)'
-  },
-  statCardGreen: { 
-    borderColor: '#d1fae5', 
-    background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)' 
-  },
-  statCardYellow: { 
-    borderColor: '#fef3c7', 
-    background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)' 
-  },
-  statCardBlue: { 
-    borderColor: '#dbeafe', 
-    background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)' 
-  },
-  statCardPurple: { 
-    borderColor: '#e9d5ff', 
-    background: 'linear-gradient(135deg, #faf5ff 0%, #e9d5ff 100%)' 
-  },
-  statCardPink: {
-    borderColor: '#fce7f3',
-    background: 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%)'
-  },
-  statCardOrange: {
-    borderColor: '#fed7aa',
-    background: 'linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%)'
-  },
-  statCardTeal: {
-    borderColor: '#99f6e4',
-    background: 'linear-gradient(135deg, #f0fdfa 0%, #99f6e4 100%)'
-  },
-  statCardIndigo: {
-    borderColor: '#c7d2fe',
-    background: 'linear-gradient(135deg, #eef2ff 0%, #c7d2fe 100%)'
+    border: '1px solid #ecfdf5',
+    transition: 'all 0.25s ease',
+    boxShadow: '0 4px 14px rgba(20, 184, 166, 0.08)',
+    cursor: 'default',
+    position: 'relative',
+    overflow: 'hidden'
   },
   statIcon: { 
-    fontSize: 40 
+    fontSize: 36,
+    width: 56,
+    height: 56,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)',
+    borderRadius: 14,
+    boxShadow: '0 4px 12px rgba(20, 184, 166, 0.25)',
+    flexShrink: 0
+  },
+  statContent: {
+    flex: 1,
+    minWidth: 0
   },
   statValue: { 
-    fontSize: 32, 
+    fontSize: 30, 
     fontWeight: 800, 
-    color: '#111827', 
-    lineHeight: 1 
+    background: 'linear-gradient(135deg, #065f46 0%, #14b8a6 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    lineHeight: 1.1,
+    letterSpacing: '-0.5px'
   },
   statLabel: { 
-    fontSize: 14, 
+    fontSize: 13, 
     color: '#6b7280', 
     marginTop: 4, 
-    fontWeight: 500 
+    fontWeight: 600,
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px'
   },
   timeSlotCard: {
     background: '#fff',
