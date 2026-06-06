@@ -345,7 +345,15 @@ function ProviderBookingsPage() {
                   <div style={styles.infoRow}>
                     <div>
                       <span style={styles.infoLabel}>Contact</span>
-                      <span style={styles.infoValue}>{booking.customer_email}</span>
+                      <button
+                        onClick={() => {
+                          localStorage.setItem('helperr_message_to', booking.customer_email);
+                          window.navigateTo('messages');
+                        }}
+                        style={styles.contactBtn}
+                      >
+                        💬 Contact via Helperr Messages
+                      </button>
                     </div>
                   </div>
 
@@ -418,6 +426,7 @@ const styles = {
   messageText: { margin: '4px 0 0', fontSize: 13, color: '#374151', lineHeight: 1.6 },
   cardActions: { padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: 8 },
   btnAccept: { flex: 1, padding: '12px', background: '#065f46', color: 'white', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)' },
+  contactBtn: { background: 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)', color: '#fff', border: 'none', borderRadius: 10, padding: '8px 16px', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 3px 10px rgba(20, 184, 166, 0.25)', marginTop: 4, transition: 'all 0.2s' },
   btnDecline: { flex: 1, padding: '12px', background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' },
   empty: { textAlign: 'center', padding: '60px 20px', background: 'white', borderRadius: 16, border: '1.5px solid #e5e7eb', boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)' },
   btnPrimary: { padding: '12px 24px', background: '#065f46', color: 'white', border: 'none', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', marginTop: 16 },
