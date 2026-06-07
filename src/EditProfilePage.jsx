@@ -55,8 +55,12 @@ function EditProfilePage() {
     'Beauty & Spa': ['Manicure/Pedicure', 'Hair Styling', 'Facials', 'Makeup', 'Waxing'],
     'Photography': ['Wedding', 'Portrait', 'Events', 'Product', 'Travel'],
     'Teaching & Tutoring': ['English', 'Thai Language', 'Music', 'Art', 'Math/Science'],
-    'Home Services': ['Cleaning', 'Repairs', 'Gardening', 'Pet Care', 'Babysitting'],
-    'Transportation': ['Airport Transfer', 'Car Rental', 'Motorbike Rental', 'Private Driver'],
+    'Home Services': ['Cleaning', 'Repairs', 'Gardening', 'Plumber', 'Electrician', 'Air Conditioning Service', 'Pool Service'],
+    'Child Care': ['Babysitting', 'Nanny / Au pair', 'After-school care', 'Day care'],
+    'Pet Care': ['Dog walking', 'Cat care', 'Pet sitting', 'Aquarium maintenance', 'Pet grooming', 'Vet transport'],
+    'Senior Care': ['Senior care', 'Handicap support', 'Companion care', 'Medical assistance'],
+    'Transportation': ['Airport Transfer', 'Car Rental', 'Motorbike Rental', 'Private Driver', 'Boat Tour (Long-tail)', 'Speedboat'],
+    'Water Delivery': ['Small truck', 'Big truck', 'Bottle delivery', 'Office delivery'],
     'Diving & Water Sports': ['PADI Courses', 'Snorkeling', 'Kayaking', 'Paddleboarding'],
     'Other': ['Custom Service']
   };
