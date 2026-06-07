@@ -179,7 +179,7 @@ function MyPayments() {
       <div style={styles.app}>
         <Header transparent={true} isScrolled={isScrolled} />
         <div style={styles.loading}>
-          <h2>Loading...</h2>
+          <h2>Loading payments...</h2>
         </div>
       </div>
     );
