@@ -327,6 +327,27 @@ function EditProfilePage() {
     }
   };
 
+  // Helper: Geocode address via Nominatim (OpenStreetMap - free, no API key)
+  const geocodeAddress = async (city, country) => {
+    if (!city || !country) return { latitude: null, longitude: null };
+    try {
+      const query = encodeURIComponent(`${city}, ${country}`);
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`, {
+        headers: { 'Accept-Language': 'en' }
+      });
+      const data = await res.json();
+      if (data && data[0]) {
+        return {
+          latitude: parseFloat(data[0].lat),
+          longitude: parseFloat(data[0].lon)
+        };
+      }
+    } catch (err) {
+      console.error('Geocoding error:', err);
+    }
+    return { latitude: null, longitude: null };
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -335,12 +356,17 @@ function EditProfilePage() {
       const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
       const languagesArray = formData.languages.split(',').map(lang => lang.trim()).filter(lang => lang.length > 0);
 
+      // Geocode city + country to lat/lng
+      const { latitude, longitude } = await geocodeAddress(formData.city, formData.country);
+
       const profilePayload = {
         name: formData.name,
         phone: formData.phone,
         bio: formData.bio,
         city: formData.city,
         country: formData.country,
+        latitude,
+        longitude,
         category: formData.category,
         subcategory: formData.subcategory,
         job: formData.job,
