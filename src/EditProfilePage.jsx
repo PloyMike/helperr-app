@@ -26,8 +26,37 @@ function EditProfilePage() {
     languages: '',
     line_id: '',
     available: true,
-    image_url: ''
+    image_url: '',
+    latitude: null,
+    longitude: null
   });
+
+  const [gpsLoading, setGpsLoading] = useState(false);
+  const [gpsCaptured, setGpsCaptured] = useState(false);
+
+  const handleGetGPS = () => {
+    if (!navigator.geolocation) {
+      alert('GPS is not supported by your browser');
+      return;
+    }
+    setGpsLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setFormData(prev => ({
+          ...prev,
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude
+        }));
+        setGpsCaptured(true);
+        setGpsLoading(false);
+      },
+      (err) => {
+        setGpsLoading(false);
+        alert('Could not get GPS location: ' + err.message + '\n\nPlease allow location access in your browser.');
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const handleDeleteAccount = async () => {
     if (!window.confirm("Are you absolutely sure? This will permanently delete your account, all your bookings, and reviews. This action cannot be undone.")) return;
@@ -356,8 +385,14 @@ function EditProfilePage() {
       const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
       const languagesArray = formData.languages.split(',').map(lang => lang.trim()).filter(lang => lang.length > 0);
 
-      // Geocode city + country to lat/lng
-      const { latitude, longitude } = await geocodeAddress(formData.city, formData.country);
+      // Geocoding: GPS coordinates take priority; otherwise fallback to city geocoding
+      let latitude = formData.latitude;
+      let longitude = formData.longitude;
+      if (!latitude || !longitude) {
+        const geo = await geocodeAddress(formData.city, formData.country);
+        latitude = geo.latitude;
+        longitude = geo.longitude;
+      }
 
       const profilePayload = {
         name: formData.name,
@@ -535,6 +570,39 @@ function EditProfilePage() {
                   <option value="">-- Select City --</option>
                   {citiesByCountry[formData.country]?.map(city => <option key={city} value={city}>{city}</option>)}
                 </select>
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={styles.label}>Precise Location (optional)</label>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={handleGetGPS}
+                    disabled={gpsLoading}
+                    style={{
+                      background: gpsCaptured ? 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)' : '#fff',
+                      color: gpsCaptured ? '#fff' : '#065f46',
+                      border: '2px solid #14b8a6',
+                      borderRadius: 10,
+                      padding: '10px 20px',
+                      fontSize: 14,
+                      fontWeight: 600,
+                      cursor: gpsLoading ? 'wait' : 'pointer',
+                      fontFamily: '"Outfit", sans-serif',
+                      boxShadow: gpsCaptured ? '0 4px 12px rgba(20, 184, 166, 0.3)' : 'none',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {gpsLoading ? '⏳ Getting location...' : gpsCaptured ? '✓ Location captured' : '📍 Use my current GPS location'}
+                  </button>
+                  {gpsCaptured && (
+                    <span style={{ fontSize: 12, color: '#6b7280' }}>
+                      ({formData.latitude?.toFixed(4)}, {formData.longitude?.toFixed(4)})
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 6 }}>
+                  Optional but recommended. Provides better matches for customers nearby.
+                </div>
               </div>
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={styles.label}>About You *</label>
