@@ -37,7 +37,7 @@ function ProviderBookingsPage() {
 
   const fetchBookings = useCallback(async () => {
     if (!user || !userProfile?.id) {
-      setLoading(false);
+      // Still waiting for user/profile to load — keep loading state true
       return;
     }
 
