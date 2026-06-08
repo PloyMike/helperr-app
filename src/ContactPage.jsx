@@ -11,16 +11,16 @@ function ContactPage() {
       <p><strong>Response Time:</strong> We typically respond within 24-48 hours</p>
       
       <h2 style={{ marginTop: 32, fontSize: 24, fontWeight: 700, color: '#111827' }}>For Experts</h2>
-      <p><strong>Email:</strong> experts@helperr.co</p>
+      <p><strong>Email:</strong> support@helperr.co</p>
       <p>Questions about becoming an Expert, managing your profile, or platform features</p>
       
       <h2 style={{ marginTop: 32, fontSize: 24, fontWeight: 700, color: '#111827' }}>Privacy & Legal</h2>
-      <p><strong>Privacy Requests:</strong> privacy@helperr.co</p>
-      <p><strong>Legal Matters:</strong> legal@helperr.co</p>
+      <p><strong>Privacy Requests:</strong> support@helperr.co</p>
+      <p><strong>Legal Matters:</strong> support@helperr.co</p>
       
       <h2 style={{ marginTop: 32, fontSize: 24, fontWeight: 700, color: '#111827' }}>Safety & Trust</h2>
       <p>If you have safety concerns or need to report a violation:</p>
-      <p><strong>Email:</strong> safety@helperr.co</p>
+      <p><strong>Email:</strong> support@helperr.co</p>
       <p><strong>Urgent Safety Issues:</strong> Contact local authorities first, then notify us</p>
       
       <h2 style={{ marginTop: 32, fontSize: 24, fontWeight: 700, color: '#111827' }}>Business Address</h2>

@@ -23,7 +23,7 @@ function CookiesPage() {
       <p>You can control cookies through your browser settings. Note that blocking essential cookies may limit platform functionality.</p>
       
       <h2 style={{ marginTop: 32, fontSize: 24, fontWeight: 700, color: '#111827' }}>5. Contact</h2>
-      <p>For questions about cookies, contact us at: privacy@helperr.co</p>
+      <p>For questions about cookies, contact us at: support@helperr.co</p>
       
       <p style={{ marginTop: 40, fontSize: 14, color: '#6b7280' }}>
         Helperr Co., Ltd.<br />

@@ -35,7 +35,7 @@ function TermsPage() {
       <p>We may update these Terms at any time. Continued use of Helperr after changes constitutes acceptance of the revised Terms.</p>
       
       <h2 style={{ marginTop: 32, fontSize: 24, fontWeight: 700, color: '#111827' }}>10. Contact</h2>
-      <p>For questions about these Terms, contact us at: legal@helperr.co</p>
+      <p>For questions about these Terms, contact us at: support@helperr.co</p>
       
       <p style={{ marginTop: 40, fontSize: 14, color: '#6b7280' }}>
         Helperr Co., Ltd.<br />

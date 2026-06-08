@@ -43,7 +43,7 @@ function ExpertAgreementPage() {
       <p>Disputes between you and customers should be resolved directly. Helperr may assist but is not obligated to mediate. Legal disputes are governed by Thai law.</p>
       
       <h2 style={{ marginTop: 32, fontSize: 24, fontWeight: 700, color: '#111827' }}>10. Contact</h2>
-      <p>For questions about this Agreement, contact us at: experts@helperr.co</p>
+      <p>For questions about this Agreement, contact us at: support@helperr.co</p>
       
       <p style={{ marginTop: 40, fontSize: 14, color: '#6b7280' }}>
         Helperr Co., Ltd.<br />
