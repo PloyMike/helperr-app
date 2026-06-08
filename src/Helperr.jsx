@@ -11,7 +11,7 @@ function Helperr() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
   const [onlyAvailable, setOnlyAvailable] = useState(false);
-  const [sortBy, setSortBy] = useState('newest');
+  const [sortBy, setSortBy] = useState('distance');
   const [selected, setSelected] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showBooking, setShowBooking] = useState(false);
@@ -331,11 +331,11 @@ function Helperr() {
               onChange={e => setSortBy(e.target.value)}
               style={styles.sortSelect}
             >
+              <option value="distance">Nearest first</option>
               <option value="newest">Newest first</option>
               <option value="rating">Highest rated</option>
               <option value="price_asc">Price: low to high</option>
               <option value="price_desc">Price: high to low</option>
-              <option value="distance">Nearest first</option>
             </select>
           </div>
         </div>
@@ -376,7 +376,7 @@ function Helperr() {
             <h3>No results found</h3>
             <p>Try a different search or category</p>
             <button
-              onClick={() => { setSearch(''); setCategory('All'); setOnlyAvailable(false); setSortBy('newest'); }}
+              onClick={() => { setSearch(''); setCategory('All'); setOnlyAvailable(false); setSortBy('distance'); }}
               style={styles.btnPrimary}
             >
               Clear Filters
