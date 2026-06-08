@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from './supabase';
 import Header from './Header';
 
@@ -26,6 +26,12 @@ function MessagesPage() {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = prevOverflow; };
   }, []);
+
+  // Auto-scroll to latest message
+  const messagesEndRef = useRef(null);
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -307,6 +313,7 @@ function MessagesPage() {
                       );
                     })
                   )}
+                  <div ref={messagesEndRef} />
                 </div>
 
                 <form onSubmit={sendMessage} style={styles.inputArea}>
