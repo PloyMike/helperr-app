@@ -630,7 +630,7 @@ const styles = {
     padding: '13px 20px',
     border: '2px solid #ecfdf5',
     borderRadius: 24,
-    fontSize: 15,
+    fontSize: 16,
     outline: 'none',
     fontFamily: '"Outfit", sans-serif',
     background: '#fff',
