@@ -570,7 +570,7 @@ function DistanceRow({ title, profiles, onSelect }) {
               ))}
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, paddingTop: 14, borderTop: '1px solid #f3f4f6' }}>
-              <span style={styles.locationBadge}>📍 {p.city}</span>
+              <span style={styles.locationBadge}>📍 {p.area ? `${p.city} · ${p.area}` : p.city}</span>
               <div style={{ textAlign: 'right' }}>
                 <div style={styles.price}>{p.price}</div>
               </div>
