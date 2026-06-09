@@ -28,7 +28,8 @@ function EditProfilePage() {
     available: true,
     image_url: '',
     latitude: null,
-    longitude: null
+    longitude: null,
+    area: ''
   });
 
   const [gpsLoading, setGpsLoading] = useState(false);
@@ -293,6 +294,7 @@ function EditProfilePage() {
           bio: data.bio || '',
           city: data.city || '',
           country: data.country || 'Thailand',
+          area: data.area || '',
           category: data.category || '',
           subcategory: data.subcategory || '',
           job: data.job || '',
@@ -400,6 +402,7 @@ function EditProfilePage() {
         bio: formData.bio,
         city: formData.city,
         country: formData.country,
+        area: formData.area,
         latitude,
         longitude,
         category: formData.category,
@@ -570,6 +573,19 @@ function EditProfilePage() {
                   <option value="">-- Select City --</option>
                   {citiesByCountry[formData.country]?.map(city => <option key={city} value={city}>{city}</option>)}
                 </select>
+              </div>
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={styles.label}>Area / Neighborhood (optional)</label>
+                <input
+                  type="text"
+                  value={formData.area}
+                  onChange={(e) => setFormData({...formData, area: e.target.value})}
+                  placeholder="e.g. Bophut, Sukhumvit Soi 11, near Big Buddha"
+                  style={styles.input}
+                />
+                <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 4 }}>
+                  More specific location helps customers find you. Visible on your profile.
+                </div>
               </div>
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={styles.label}>Precise Location (optional)</label>

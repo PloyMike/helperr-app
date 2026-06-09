@@ -59,7 +59,7 @@ function ProfilDetail({ profile, onBack }) {
             <div className="info-box">
               <h1 className="profile-name">{profile.name}</h1>
               <p className="profile-job">{profile.job}</p>
-              <p className="profile-location">{profile.city}, {profile.country}</p>
+              <p className="profile-location">{profile.area ? `${profile.area}, ${profile.city}` : profile.city}, {profile.country}</p>
               
               <div className="badges">
                 {profile.verified&&<span className="badge badge-verified">Verifiziert</span>}

@@ -186,6 +186,7 @@ function Helperr() {
       profile.name?.toLowerCase().includes(search.toLowerCase()) || 
       profile.job?.toLowerCase().includes(search.toLowerCase()) || 
       profile.city?.toLowerCase().includes(search.toLowerCase()) ||
+      profile.area?.toLowerCase().includes(search.toLowerCase()) ||
       profile.category?.toLowerCase().includes(search.toLowerCase()) ||
       profile.subcategory?.toLowerCase().includes(search.toLowerCase()) ||
       (typeof profile.tags === 'string' ? profile.tags.toLowerCase().includes(search.toLowerCase()) : profile.tags?.some(tag => tag.toLowerCase().includes(search.toLowerCase()))) ||
