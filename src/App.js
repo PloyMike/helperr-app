@@ -18,6 +18,7 @@ import Impressum from './Impressum';
 import Datenschutz from './Datenschutz';
 import AGB from './AGB';
 import PaymentPage from './PaymentPage';
+import RepayPage from './RepayPage';
 import TermsPage from './TermsPage';
 import PrivacyPage from './PrivacyPage';
 import CookiesPage from './CookiesPage';
@@ -35,7 +36,16 @@ function App() {
   const hashParams = new URLSearchParams(window.location.hash.substring(1));
   const isRecovery = hashParams.get('type') === 'recovery';
   
-  const [currentView, setCurrentView] = useState(isRecovery ? 'update-password' : 'home');
+  // Check for repay link: /repay?booking=ID
+  const urlPath = window.location.pathname;
+  const urlSearch = new URLSearchParams(window.location.search);
+  const isRepay = urlPath === '/repay' && urlSearch.get('booking');
+  if (isRepay) {
+    window.currentBookingId = urlSearch.get('booking');
+  }
+
+  const initialView = isRecovery ? 'update-password' : (isRepay ? 'repay' : 'home');
+  const [currentView, setCurrentView] = useState(initialView);
   const [selectedProfile, setSelectedProfile] = useState(null);
 
   window.navigateTo = (view, profile) => {
@@ -92,7 +102,9 @@ function App() {
   return (
     <AuthProvider>
       <div className="App">
-        {currentView === 'home' ? (
+        {currentView === 'repay' ? (
+          <RepayPage />
+        ) : currentView === 'home' ? (
           <Helperr />
         ) : currentView === 'profile' ? (
           <ProfilDetail profile={selectedProfile} onBack={() => setCurrentView('home')} />
