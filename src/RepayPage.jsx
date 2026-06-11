@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from './supabase';
 import Header from './Header';
 import PaymentSelection from './PaymentSelection';
 
@@ -26,23 +25,36 @@ function RepayPage() {
 
   const fetchBooking = async () => {
     try {
-      const { data, error } = await supabase
-        .from('bookings')
-        .select('*, profiles(name, email)')
-        .eq('id', bookingId)
-        .single();
+      const SUPABASE_URL = 'https://jyuatojpkluyidpefzub.supabase.co';
+      const SUPABASE_ANON = process.env.REACT_APP_SUPABASE_ANON_KEY;
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/repay-fetch-booking`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_ANON}`
+        },
+        body: JSON.stringify({ bookingId })
+      });
+      const result = await res.json();
 
-      if (error) throw error;
-      if (!data) {
-        setError('Booking not found.');
-      } else if (data.payment_status === 'captured' || data.status === 'completed') {
+      if (!res.ok || !result.success) {
+        setError(result.error || 'Booking not found.');
+        setLoading(false);
+        return;
+      }
+
+      const data = result.booking;
+      if (data.payment_status === 'captured' || data.status === 'completed') {
         setError('This booking has already been paid. No further action needed.');
       } else if (data.status === 'cancelled') {
         setError('This booking has been cancelled and cannot be repaid.');
       } else if (data.payment_status !== 'capture_failed' && data.payment_status !== 'failed_permanent') {
         setError('This booking does not require repayment at this time.');
       } else {
-        setBooking(data);
+        setBooking({
+          ...data,
+          profiles: { name: data.provider_name }
+        });
       }
     } catch (err) {
       console.error('Error:', err);
@@ -67,15 +79,16 @@ function RepayPage() {
 
   const handlePaymentSuccess = async () => {
     try {
-      // Reset capture counters so auto-capture starts fresh
-      await supabase
-        .from('bookings')
-        .update({
-          capture_attempts: 0,
-          capture_error: null,
-          capture_attempted_at: null
-        })
-        .eq('id', bookingId);
+      const SUPABASE_URL = 'https://jyuatojpkluyidpefzub.supabase.co';
+      const SUPABASE_ANON = process.env.REACT_APP_SUPABASE_ANON_KEY;
+      await fetch(`${SUPABASE_URL}/functions/v1/repay-reset-booking`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_ANON}`
+        },
+        body: JSON.stringify({ bookingId, customerEmail: emailInput })
+      });
       setSuccess(true);
       setShowPaymentSelection(false);
     } catch (err) {
@@ -102,7 +115,7 @@ function RepayPage() {
         <Header />
         <div style={styles.container}>
           <div style={styles.errorBox}>
-            <h2 style={styles.errorTitle}>⚠ Unable to Repay</h2>
+            <h2 style={styles.errorTitle}>⚠️ Unable to Repay</h2>
             <p style={styles.errorText}>{error}</p>
             <p style={styles.errorText}>If you need help, contact us at <a href="mailto:support@helperr.co" style={styles.link}>support@helperr.co</a></p>
             <button onClick={() => { window.location.href = '/'; }} style={styles.primaryBtn}>Back to Homepage</button>
@@ -167,7 +180,6 @@ function RepayPage() {
     );
   }
 
-  // Verified — show booking details + payment button
   return (
     <div style={styles.page}>
       <Header />
