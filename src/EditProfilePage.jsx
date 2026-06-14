@@ -29,8 +29,29 @@ function EditProfilePage() {
     image_url: '',
     latitude: null,
     longitude: null,
-    area: ''
+    area: '',
+    schedule: {
+      mon: { open: true, start: '09:00', end: '18:00' },
+      tue: { open: true, start: '09:00', end: '18:00' },
+      wed: { open: true, start: '09:00', end: '18:00' },
+      thu: { open: true, start: '09:00', end: '18:00' },
+      fri: { open: true, start: '09:00', end: '18:00' },
+      sat: { open: true, start: '09:00', end: '18:00' },
+      sun: { open: false, start: '09:00', end: '18:00' }
+    },
+    dayDurationHours: 8
   });
+
+  // Helper to update nested schedule field
+  const updateSchedule = (day, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      schedule: {
+        ...prev.schedule,
+        [day]: { ...prev.schedule[day], [field]: value }
+      }
+    }));
+  };
 
   const [gpsLoading, setGpsLoading] = useState(false);
   const [gpsCaptured, setGpsCaptured] = useState(false);
@@ -295,6 +316,16 @@ function EditProfilePage() {
           city: data.city || '',
           country: data.country || 'Thailand',
           area: data.area || '',
+          schedule: data.schedule || {
+            mon: { open: true, start: '09:00', end: '18:00' },
+            tue: { open: true, start: '09:00', end: '18:00' },
+            wed: { open: true, start: '09:00', end: '18:00' },
+            thu: { open: true, start: '09:00', end: '18:00' },
+            fri: { open: true, start: '09:00', end: '18:00' },
+            sat: { open: true, start: '09:00', end: '18:00' },
+            sun: { open: false, start: '09:00', end: '18:00' }
+          },
+          dayDurationHours: data.day_duration_hours || 8,
           category: data.category || '',
           subcategory: data.subcategory || '',
           job: data.job || '',
@@ -403,6 +434,8 @@ function EditProfilePage() {
         city: formData.city,
         country: formData.country,
         area: formData.area,
+        schedule: formData.schedule,
+        day_duration_hours: formData.dayDurationHours,
         latitude,
         longitude,
         category: formData.category,
@@ -721,7 +754,96 @@ function EditProfilePage() {
             </div>
           </div>
 
-          
+          <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>Working Hours</h3>
+            <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>
+              Set when you are available. Customers can only book within these hours.
+            </div>
+            {[
+              { key: 'mon', label: 'Monday' },
+              { key: 'tue', label: 'Tuesday' },
+              { key: 'wed', label: 'Wednesday' },
+              { key: 'thu', label: 'Thursday' },
+              { key: 'fri', label: 'Friday' },
+              { key: 'sat', label: 'Saturday' },
+              { key: 'sun', label: 'Sunday' }
+            ].map(d => {
+              const dayData = formData.schedule?.[d.key] || { open: false, start: '09:00', end: '18:00' };
+              return (
+                <div key={d.key} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid #f3f4f6', flexWrap: 'wrap' }}>
+                  <div style={{ minWidth: 110, fontSize: 14, fontWeight: 600, color: '#065f46' }}>
+                    {d.label}
+                  </div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={dayData.open}
+                      onChange={(e) => updateSchedule(d.key, 'open', e.target.checked)}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    <span style={{ fontSize: 14, color: dayData.open ? '#065f46' : '#9ca3af', fontWeight: 600 }}>
+                      {dayData.open ? 'Available' : 'Not Available'}
+                    </span>
+                  </label>
+                  {dayData.open && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginLeft: 'auto' }}>
+                      <input
+                        type="time"
+                        value={dayData.start}
+                        onChange={(e) => updateSchedule(d.key, 'start', e.target.value)}
+                        style={{ ...styles.input, width: 120, padding: '6px 10px' }}
+                      />
+                      <span style={{ color: '#6b7280' }}>—</span>
+                      <input
+                        type="time"
+                        value={dayData.end}
+                        onChange={(e) => updateSchedule(d.key, 'end', e.target.value)}
+                        style={{ ...styles.input, width: 120, padding: '6px 10px' }}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {formData.priceType === 'day' && (
+              <div style={{ marginTop: 20, padding: 16, background: '#ecfdf5', borderRadius: 12, border: '1px solid #14b8a6' }}>
+                <label style={{ ...styles.label, color: '#065f46' }}>One Day Means:</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginTop: 10 }}>
+                  {[
+                    { val: 8, label: '8 hours', sub: 'Workday' },
+                    { val: 12, label: '12 hours', sub: 'Overnight' },
+                    { val: 24, label: '24 hours', sub: 'Live-in' }
+                  ].map(opt => {
+                    const isSelected = formData.dayDurationHours === opt.val;
+                    return (
+                      <button
+                        key={opt.val}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, dayDurationHours: opt.val })}
+                        style={{
+                          padding: '12px 8px',
+                          background: isSelected ? 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)' : '#fff',
+                          color: isSelected ? '#fff' : '#065f46',
+                          border: '2px solid ' + (isSelected ? '#065f46' : '#ecfdf5'),
+                          borderRadius: 10,
+                          cursor: 'pointer',
+                          fontFamily: '"Outfit", sans-serif',
+                          textAlign: 'center'
+                        }}
+                      >
+                        <div style={{ fontSize: 15, fontWeight: 700 }}>{opt.label}</div>
+                        <div style={{ fontSize: 11, fontWeight: 500, opacity: 0.8, marginTop: 2 }}>{opt.sub}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div style={{ fontSize: 12, color: '#065f46', marginTop: 8 }}>
+                  Examples: 8h = Nanny/Care, 12h = Babysitter (overnight), 24h = Pet Sitter (live-in)
+                </div>
+              </div>
+            )}
+          </div>
 
           <div style={styles.section}>
             <h3 style={styles.sectionTitle}>Availability</h3>
