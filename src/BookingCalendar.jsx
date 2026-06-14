@@ -192,6 +192,63 @@ function BookingCalendar({ profile, onClose }) {
     return startMinutes < nowMinutes + 30;
   };
 
+  // Generate all 30-min start slots from 8:00 to 21:30 (last slot)
+  const getAllStartSlots = () => {
+    const slots = [];
+    for (let h = 8; h <= 21; h++) {
+      slots.push({ h, m: 0, label: `${h.toString().padStart(2, '0')}:00` });
+      slots.push({ h, m: 30, label: `${h.toString().padStart(2, '0')}:30` });
+    }
+    return slots;
+  };
+
+  // Check if a slot (h:m) plus duration would overlap with booked slots
+  const wouldOverlapBooked = (h, m, durationMin) => {
+    const startMin = h * 60 + m;
+    const endMin = startMin + durationMin;
+    return bookedSlots.some(slot => {
+      const [bs, be] = slot.split(' - ');
+      const [bsH, bsM] = bs.split(':').map(Number);
+      const [beH, beM] = be.split(':').map(Number);
+      const bsMin = bsH * 60 + bsM;
+      const beMin = beH * 60 + beM;
+      return startMin < beMin && endMin > bsMin;
+    });
+  };
+
+  // Check if slot is past (with 30min buffer for today)
+  const slotIsPast = (h, m) => {
+    if (!selectedDate) return false;
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    if (selectedDate !== todayStr) return false;
+    const nowMinutes = today.getHours() * 60 + today.getMinutes();
+    const slotMinutes = h * 60 + m;
+    return slotMinutes < nowMinutes + 30;
+  };
+
+  // Duration in minutes (current state)
+  const currentDurationMin = (endHour * 60 + endMinute) - (startHour * 60 + startMinute);
+
+  // Set start slot + duration (updates all 4 states)
+  const setStartSlotAndDuration = (h, m, durationMin) => {
+    setStartHour(h);
+    setStartMinute(m);
+    const endTotal = h * 60 + m + durationMin;
+    setEndHour(Math.floor(endTotal / 60));
+    setEndMinute(endTotal % 60);
+  };
+
+  // Duration presets in minutes
+  const DURATION_OPTIONS = [
+    { label: '30 min', min: 30 },
+    { label: '1h', min: 60 },
+    { label: '1.5h', min: 90 },
+    { label: '2h', min: 120 },
+    { label: '3h', min: 180 },
+    { label: '4h', min: 240 }
+  ];
+
   const isValidTimeRange = () => {
     const start = startHour * 60 + startMinute;
     const end = endHour * 60 + endMinute;
@@ -455,25 +512,54 @@ function BookingCalendar({ profile, onClose }) {
               <h3 style={styles.stepTitle}>Select Time</h3>
               <p style={styles.selectedInfo}>{formatDateFull(selectedDate)}</p>
               
-              <div style={isMobile ? styles.mobileTimeContainer : styles.desktopTimeContainer}>
-                <div style={isMobile ? styles.timeSectionMobile : styles.timeSection}>
-                  <div style={isMobile ? styles.timeSectionLabelMobile : styles.timeSectionLabel}>Start Time</div>
-                  <div style={styles.pickerRow}>
-                    <AppleScrollPicker items={hours} value={startHour} onChange={setStartHour} pickerRef={startHourRef} />
-                    <span style={styles.colon}>:</span>
-                    <AppleScrollPicker items={minutes} value={startMinute} onChange={setStartMinute} pickerRef={startMinuteRef} />
-                  </div>
+              <div style={styles.durationSection}>
+                <div style={styles.durationLabel}>Duration</div>
+                <div style={styles.durationGrid}>
+                  {DURATION_OPTIONS.map(opt => {
+                    const isSelected = currentDurationMin === opt.min;
+                    return (
+                      <button
+                        key={opt.min}
+                        type="button"
+                        onClick={() => setStartSlotAndDuration(startHour, startMinute, opt.min)}
+                        style={{
+                          ...styles.durationBtn,
+                          ...(isSelected ? styles.durationBtnSelected : {})
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
                 </div>
+              </div>
 
-                {!isMobile && <div style={styles.timeDivider}>→</div>}
-
-                <div style={isMobile ? styles.timeSectionMobile : styles.timeSection}>
-                  <div style={isMobile ? styles.timeSectionLabelMobile : styles.timeSectionLabel}>End Time</div>
-                  <div style={styles.pickerRow}>
-                    <AppleScrollPicker items={hours} value={endHour} onChange={setEndHour} pickerRef={endHourRef} />
-                    <span style={styles.colon}>:</span>
-                    <AppleScrollPicker items={minutes} value={endMinute} onChange={setEndMinute} pickerRef={endMinuteRef} />
-                  </div>
+              <div style={styles.slotsSection}>
+                <div style={styles.slotsLabel}>Start Time</div>
+                <div style={styles.slotsGrid}>
+                  {getAllStartSlots().map(slot => {
+                    const past = slotIsPast(slot.h, slot.m);
+                    const booked = wouldOverlapBooked(slot.h, slot.m, currentDurationMin);
+                    const isSelected = startHour === slot.h && startMinute === slot.m;
+                    const disabled = past || booked;
+                    return (
+                      <button
+                        key={slot.label}
+                        type="button"
+                        onClick={() => !disabled && setStartSlotAndDuration(slot.h, slot.m, currentDurationMin)}
+                        disabled={disabled}
+                        style={{
+                          ...styles.slotBtn,
+                          ...(isSelected && !disabled ? styles.slotBtnSelected : {}),
+                          ...(disabled ? styles.slotBtnDisabled : {}),
+                          ...(booked && !past ? styles.slotBtnBooked : {})
+                        }}
+                        title={past ? 'Past' : booked ? 'Already booked' : ''}
+                      >
+                        {slot.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -999,7 +1085,19 @@ const styles = {
   btnSubmit: { flex: 1, padding: '10px 14px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)' },
   btnSecondary: { padding: '14px 24px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: 10, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.2s' },
   btnPrimary: { flex: 1, padding: '14px 24px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 10, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)', transition: 'all 0.2s' },
-  footer: { display: 'flex', gap: 12, marginTop: 20 }
+  footer: { display: 'flex', gap: 12, marginTop: 20 },
+  durationSection: { marginBottom: 20 },
+  durationLabel: { fontSize: 13, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 },
+  durationGrid: { display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8 },
+  durationBtn: { padding: '10px 4px', background: '#fff', color: '#065f46', border: '2px solid #ecfdf5', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.15s' },
+  durationBtnSelected: { background: 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)', color: '#fff', borderColor: '#065f46', boxShadow: '0 4px 12px rgba(20, 184, 166, 0.3)' },
+  slotsSection: { marginBottom: 16 },
+  slotsLabel: { fontSize: 13, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 },
+  slotsGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 },
+  slotBtn: { padding: '12px 4px', background: '#fff', color: '#065f46', border: '2px solid #ecfdf5', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.15s' },
+  slotBtnSelected: { background: 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)', color: '#fff', borderColor: '#065f46', boxShadow: '0 4px 12px rgba(20, 184, 166, 0.3)' },
+  slotBtnDisabled: { background: '#f9fafb', color: '#d1d5db', borderColor: '#f3f4f6', cursor: 'not-allowed', textDecoration: 'line-through' },
+  slotBtnBooked: { background: '#fef2f2', color: '#dc2626', borderColor: '#fee2e2', cursor: 'not-allowed', textDecoration: 'line-through' }
 };
 
 export default BookingCalendar;
