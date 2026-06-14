@@ -4,9 +4,13 @@ import { supabase } from './supabase';
 import { useAuth } from './AuthContext';
 
 function BookingCalendar({ profile, onClose }) {
+  // Multi-day vs hourly booking based on provider's price_type
+  const isDayBooking = profile?.price_type === 'day';
+
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
   const [startHour, setStartHour] = useState(10);
@@ -295,21 +299,50 @@ function BookingCalendar({ profile, onClose }) {
       window.navigateTo("signup");
       return;
     }
-    if (!selectedDate || !selectedTimeSlot || !customerName.trim()) {
+    // Validation: hourly vs day-booking
+    if (!selectedDate || !customerName.trim()) {
       alert('Please complete all required fields');
       return;
+    }
+    if (isDayBooking) {
+      if (!endDate) {
+        alert('Please select an end date for your booking');
+        return;
+      }
+    } else {
+      if (!selectedTimeSlot) {
+        alert('Please select a time slot');
+        return;
+      }
     }
 
     setSubmitting(true);
 
-    // Dauer (Stunden) aus Start-/Endzeit berechnen
-    const startMin = startHour * 60 + startMinute;
-    const endMin = endHour * 60 + endMinute;
-    const durationHours = (endMin - startMin) / 60;
-    // Stundenlohn als Zahl aus profile.price ziehen (z.B. "1000฿/Hr" -> 1000)
-    const hourlyMatch = String(profile.price || '').match(/(\d+)/);
-    const hourlyRate = hourlyMatch ? parseInt(hourlyMatch[0]) : 0;
-    const servicePrice = Math.round(hourlyRate * durationHours);
+    // Calculate booking specifics based on type (hourly vs day)
+    let durationHours, servicePrice, bookingTimeSlot, bookingEndDate;
+    
+    if (isDayBooking) {
+      // Day-Booking
+      const start = new Date(selectedDate);
+      const end = new Date(endDate);
+      const days = Math.floor((end - start) / (24 * 60 * 60 * 1000)) + 1;
+      const dailyMatch = String(profile.price || '').match(/(\d+)/);
+      const dailyRate = dailyMatch ? parseInt(dailyMatch[0]) : 0;
+      servicePrice = days * dailyRate;
+      durationHours = days * 24;
+      bookingTimeSlot = `${days} day${days > 1 ? 's' : ''}`;
+      bookingEndDate = endDate;
+    } else {
+      // Hourly-Booking
+      const startMin = startHour * 60 + startMinute;
+      const endMin = endHour * 60 + endMinute;
+      durationHours = (endMin - startMin) / 60;
+      const hourlyMatch = String(profile.price || '').match(/(\d+)/);
+      const hourlyRate = hourlyMatch ? parseInt(hourlyMatch[0]) : 0;
+      servicePrice = Math.round(hourlyRate * durationHours);
+      bookingTimeSlot = selectedTimeSlot;
+      bookingEndDate = null;
+    }
 
     try {
       const { data, error } = await supabase.from('bookings').insert([{
@@ -318,7 +351,8 @@ function BookingCalendar({ profile, onClose }) {
         customer_email: user.email,
         customer_phone: '',
         booking_date: selectedDate,
-        time_slot: selectedTimeSlot,
+        end_date: bookingEndDate,
+        time_slot: bookingTimeSlot,
         service_address: locationMethod === 'gps' 
           ? `GPS Location: ${gpsLocation.latitude.toFixed(6)}, ${gpsLocation.longitude.toFixed(6)}`
           : `${address.street} ${address.houseNumber}, ${address.postalCode} ${address.city}`,
@@ -476,15 +510,48 @@ function BookingCalendar({ profile, onClose }) {
                   const dateISO = formatDateISO(date);
                   const isSelected = selectedDate === dateISO;
                   
+                  // For day-booking: check if this date is in selected range
+                  const isInRange = isDayBooking && selectedDate && endDate &&
+                    dateISO > selectedDate && dateISO < endDate;
+                  const isRangeEnd = isDayBooking && endDate === dateISO;
+                  
+                  const handleClick = () => {
+                    if (isDisabled) return;
+                    if (!isDayBooking) {
+                      setSelectedDate(dateISO);
+                      return;
+                    }
+                    // Day-booking: 2-click logic
+                    if (!selectedDate || (selectedDate && endDate)) {
+                      // Erstes Klick oder Reset nach komplettem Range
+                      setSelectedDate(dateISO);
+                      setEndDate('');
+                    } else if (selectedDate && !endDate) {
+                      // Zweites Klick - End-Date
+                      if (dateISO < selectedDate) {
+                        // User hat frueheren Tag gewaehlt -> tausche
+                        setEndDate(selectedDate);
+                        setSelectedDate(dateISO);
+                      } else if (dateISO === selectedDate) {
+                        // Gleicher Tag -> 1-Tag-Booking
+                        setEndDate(dateISO);
+                      } else {
+                        setEndDate(dateISO);
+                      }
+                    }
+                  };
+                  
                   return (
                     <button 
                       key={dateISO} 
-                      onClick={() => !isDisabled && setSelectedDate(dateISO)} 
+                      onClick={handleClick} 
                       disabled={isDisabled}
                       title={isTooFar ? 'Max. 6 days in advance' : ''}
                       style={{
                         ...styles.calendarDay,
                         ...(isSelected ? styles.calendarDaySelected : {}),
+                        ...(isInRange ? styles.calendarDayInRange : {}),
+                        ...(isRangeEnd ? styles.calendarDaySelected : {}),
                         ...(isDisabled ? styles.calendarDayDisabled : {})
                       }}
                     >
@@ -498,8 +565,42 @@ function BookingCalendar({ profile, onClose }) {
                 You can book up to 6 days in advance
               </p>
 
-              <button onClick={() => setStep(2)} disabled={!selectedDate} style={{...styles.btnNext, opacity: !selectedDate ? 0.5 : 1, cursor: !selectedDate ? 'not-allowed' : 'pointer'}}>
-                Continue to Time Selection →
+              {isDayBooking && selectedDate && !endDate && (
+                <p style={{ fontSize: 13, color: '#065f46', textAlign: 'center', margin: '12px 0 0', fontFamily: '"Outfit", sans-serif', fontWeight: 600 }}>
+                  ✓ Start date selected. Click another day to set end date (or click same day for 1-day booking).
+                </p>
+              )}
+              {isDayBooking && selectedDate && endDate && (
+                <div style={{ background: '#ecfdf5', borderRadius: 12, padding: 16, marginTop: 12, border: '1px solid #14b8a6' }}>
+                  <div style={{ fontSize: 13, color: '#065f46', fontWeight: 600, marginBottom: 4 }}>SELECTED RANGE</div>
+                  <div style={{ fontSize: 15, color: '#065f46', fontWeight: 700 }}>
+                    {selectedDate} → {endDate}
+                  </div>
+                  <div style={{ fontSize: 13, color: '#065f46', marginTop: 4 }}>
+                    {(() => {
+                      const start = new Date(selectedDate);
+                      const end = new Date(endDate);
+                      const days = Math.floor((end - start) / (24 * 60 * 60 * 1000)) + 1;
+                      const dailyMatch = String(profile.price || '').match(/(\d+)/);
+                      const dailyRate = dailyMatch ? parseInt(dailyMatch[0]) : 0;
+                      const total = days * dailyRate;
+                      return `${days} day${days > 1 ? 's' : ''} × ${dailyRate} = ${total}`;
+                    })()}
+                  </div>
+                </div>
+              )}
+              <button 
+                onClick={() => {
+                  if (isDayBooking) {
+                    setStep(3);  // Skip Time Selection for day-bookings
+                  } else {
+                    setStep(2);
+                  }
+                }} 
+                disabled={!selectedDate || (isDayBooking && !endDate)} 
+                style={{...styles.btnNext, opacity: (!selectedDate || (isDayBooking && !endDate)) ? 0.5 : 1, cursor: (!selectedDate || (isDayBooking && !endDate)) ? 'not-allowed' : 'pointer'}}
+              >
+                {isDayBooking ? 'Continue to Location →' : 'Continue to Time Selection →'}
               </button>
             </div>
           )}
@@ -1094,7 +1195,8 @@ const styles = {
   slotBtn: { padding: '12px 4px', background: '#fff', color: '#065f46', border: '2px solid #ecfdf5', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.15s' },
   slotBtnSelected: { background: 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)', color: '#fff', borderColor: '#065f46', boxShadow: '0 4px 12px rgba(20, 184, 166, 0.3)' },
   slotBtnDisabled: { background: '#f9fafb', color: '#d1d5db', borderColor: '#f3f4f6', cursor: 'not-allowed', textDecoration: 'line-through' },
-  slotBtnBooked: { background: '#fef2f2', color: '#dc2626', borderColor: '#fee2e2', cursor: 'not-allowed', textDecoration: 'line-through' }
+  slotBtnBooked: { background: '#fef2f2', color: '#dc2626', borderColor: '#fee2e2', cursor: 'not-allowed', textDecoration: 'line-through' },
+  calendarDayInRange: { background: '#ccfbf1', color: '#065f46', borderColor: '#14b8a6' }
 };
 
 export default BookingCalendar;
