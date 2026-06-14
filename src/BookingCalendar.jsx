@@ -510,48 +510,20 @@ function BookingCalendar({ profile, onClose }) {
                   const dateISO = formatDateISO(date);
                   const isSelected = selectedDate === dateISO;
                   
-                  // For day-booking: check if this date is in selected range
+                  // For day-booking: highlight range from selectedDate to endDate
                   const isInRange = isDayBooking && selectedDate && endDate &&
-                    dateISO > selectedDate && dateISO < endDate;
-                  const isRangeEnd = isDayBooking && endDate === dateISO;
-                  
-                  const handleClick = () => {
-                    if (isDisabled) return;
-                    if (!isDayBooking) {
-                      setSelectedDate(dateISO);
-                      return;
-                    }
-                    // Day-booking: 2-click logic
-                    if (!selectedDate || (selectedDate && endDate)) {
-                      // Erstes Klick oder Reset nach komplettem Range
-                      setSelectedDate(dateISO);
-                      setEndDate('');
-                    } else if (selectedDate && !endDate) {
-                      // Zweites Klick - End-Date
-                      if (dateISO < selectedDate) {
-                        // User hat frueheren Tag gewaehlt -> tausche
-                        setEndDate(selectedDate);
-                        setSelectedDate(dateISO);
-                      } else if (dateISO === selectedDate) {
-                        // Gleicher Tag -> 1-Tag-Booking
-                        setEndDate(dateISO);
-                      } else {
-                        setEndDate(dateISO);
-                      }
-                    }
-                  };
+                    dateISO > selectedDate && dateISO <= endDate;
                   
                   return (
                     <button 
                       key={dateISO} 
-                      onClick={handleClick} 
+                      onClick={() => !isDisabled && setSelectedDate(dateISO)} 
                       disabled={isDisabled}
                       title={isTooFar ? 'Max. 6 days in advance' : ''}
                       style={{
                         ...styles.calendarDay,
                         ...(isSelected ? styles.calendarDaySelected : {}),
                         ...(isInRange ? styles.calendarDayInRange : {}),
-                        ...(isRangeEnd ? styles.calendarDaySelected : {}),
                         ...(isDisabled ? styles.calendarDayDisabled : {})
                       }}
                     >
@@ -565,14 +537,58 @@ function BookingCalendar({ profile, onClose }) {
                 You can book up to 6 days in advance
               </p>
 
-              {isDayBooking && selectedDate && !endDate && (
-                <p style={{ fontSize: 13, color: '#065f46', textAlign: 'center', margin: '12px 0 0', fontFamily: '"Outfit", sans-serif', fontWeight: 600 }}>
-                  ✓ Start date selected. Click another day to set end date (or click same day for 1-day booking).
-                </p>
+              {isDayBooking && selectedDate && (
+                <div style={{ marginTop: 16 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>
+                    How many days?
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8 }}>
+                    {[1, 2, 3, 4, 5, 6].map(days => {
+                      // Berechne EndDate fuer diese Anzahl Tage
+                      const start = new Date(selectedDate);
+                      const calcEnd = new Date(start);
+                      calcEnd.setDate(start.getDate() + days - 1);
+                      const calcEndISO = formatDateISO(calcEnd);
+                      // Check: ueberschreitet 6-Tage-Max?
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      const maxAllowed = new Date(today);
+                      maxAllowed.setDate(maxAllowed.getDate() + 6);
+                      const exceedsMax = calcEnd > maxAllowed;
+                      
+                      const currentDays = endDate ? 
+                        Math.floor((new Date(endDate) - new Date(selectedDate)) / (24 * 60 * 60 * 1000)) + 1 : 0;
+                      const isSelected = currentDays === days;
+                      
+                      return (
+                        <button
+                          key={days}
+                          type="button"
+                          onClick={() => !exceedsMax && setEndDate(calcEndISO)}
+                          disabled={exceedsMax}
+                          style={{
+                            padding: '12px 4px',
+                            background: isSelected ? 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)' : (exceedsMax ? '#f9fafb' : '#fff'),
+                            color: isSelected ? '#fff' : (exceedsMax ? '#d1d5db' : '#065f46'),
+                            border: '2px solid ' + (isSelected ? '#065f46' : (exceedsMax ? '#f3f4f6' : '#ecfdf5')),
+                            borderRadius: 10,
+                            fontSize: 14,
+                            fontWeight: 600,
+                            cursor: exceedsMax ? 'not-allowed' : 'pointer',
+                            fontFamily: '"Outfit", sans-serif',
+                            boxShadow: isSelected ? '0 4px 12px rgba(20, 184, 166, 0.3)' : 'none'
+                          }}
+                        >
+                          {days}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
               {isDayBooking && selectedDate && endDate && (
-                <div style={{ background: '#ecfdf5', borderRadius: 12, padding: 16, marginTop: 12, border: '1px solid #14b8a6' }}>
-                  <div style={{ fontSize: 13, color: '#065f46', fontWeight: 600, marginBottom: 4 }}>SELECTED RANGE</div>
+                <div style={{ background: '#ecfdf5', borderRadius: 12, padding: 16, marginTop: 16, border: '1px solid #14b8a6' }}>
+                  <div style={{ fontSize: 13, color: '#065f46', fontWeight: 600, marginBottom: 4 }}>BOOKING PREVIEW</div>
                   <div style={{ fontSize: 15, color: '#065f46', fontWeight: 700 }}>
                     {selectedDate} → {endDate}
                   </div>
@@ -592,7 +608,7 @@ function BookingCalendar({ profile, onClose }) {
               <button 
                 onClick={() => {
                   if (isDayBooking) {
-                    setStep(3);  // Skip Time Selection for day-bookings
+                    setStep(3);
                   } else {
                     setStep(2);
                   }
