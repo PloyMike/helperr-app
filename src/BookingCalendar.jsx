@@ -7,6 +7,54 @@ function BookingCalendar({ profile, onClose }) {
   // Multi-day vs hourly booking based on provider's price_type
   const isDayBooking = profile?.price_type === 'day';
 
+  // Default schedule (used if provider has no schedule yet)
+  const defaultSchedule = {
+    mon: { open: true, start: '09:00', end: '18:00' },
+    tue: { open: true, start: '09:00', end: '18:00' },
+    wed: { open: true, start: '09:00', end: '18:00' },
+    thu: { open: true, start: '09:00', end: '18:00' },
+    fri: { open: true, start: '09:00', end: '18:00' },
+    sat: { open: true, start: '09:00', end: '18:00' },
+    sun: { open: false, start: '09:00', end: '18:00' }
+  };
+  const providerSchedule = profile?.schedule || defaultSchedule;
+
+  // Map Date to day-key ('mon', 'tue', ...)
+  const dayKeyFromDate = (date) => {
+    const keys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    return keys[date.getDay()];
+  };
+
+  // Check if a specific date is available per schedule
+  const isDateAvailable = (date) => {
+    const dayKey = dayKeyFromDate(date);
+    return providerSchedule[dayKey]?.open === true;
+  };
+
+  // Get provider's working hours for a date (returns { startH, startM, endH, endM } or null)
+  const getProviderHoursForDate = (dateISO) => {
+    if (!dateISO) return null;
+    const date = new Date(dateISO);
+    const dayKey = dayKeyFromDate(date);
+    const dayInfo = providerSchedule[dayKey];
+    if (!dayInfo?.open) return null;
+    const [sH, sM] = (dayInfo.start || '09:00').split(':').map(Number);
+    const [eH, eM] = (dayInfo.end || '18:00').split(':').map(Number);
+    return { startH: sH, startM: sM, endH: eH, endM: eM };
+  };
+
+  // Check if every day from start to end (inclusive) is available
+  const isRangeFullyAvailable = (startISO, daysCount) => {
+    if (!startISO || !daysCount) return false;
+    const start = new Date(startISO);
+    for (let i = 0; i < daysCount; i++) {
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
+      if (!isDateAvailable(d)) return false;
+    }
+    return true;
+  };
+
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [selectedDate, setSelectedDate] = useState('');
@@ -203,6 +251,17 @@ function BookingCalendar({ profile, onClose }) {
       slots.push({ h, m: 0, label: `${h.toString().padStart(2, '0')}:00` });
     }
     return slots;
+  };
+
+  // Check if slot is outside provider's working hours for selected date
+  const slotIsOutsideHours = (h, m, durationMin) => {
+    const hours = getProviderHoursForDate(selectedDate);
+    if (!hours) return true;  // No hours available = blocked
+    const slotStart = h * 60 + m;
+    const slotEnd = slotStart + durationMin;
+    const providerStart = hours.startH * 60 + hours.startM;
+    const providerEnd = hours.endH * 60 + hours.endM;
+    return slotStart < providerStart || slotEnd > providerEnd;
   };
 
   // Check if a slot (h:m) plus duration would overlap with booked slots
@@ -506,7 +565,8 @@ function BookingCalendar({ profile, onClose }) {
                   const maxDate = new Date(today);
                   maxDate.setDate(maxDate.getDate() + 6);
                   const isTooFar = date > maxDate;
-                  const isDisabled = isPast || isTooFar;
+                  const isUnavailable = !isDateAvailable(date);
+                  const isDisabled = isPast || isTooFar || isUnavailable;
                   const dateISO = formatDateISO(date);
                   const isSelected = selectedDate === dateISO;
                   
@@ -519,7 +579,7 @@ function BookingCalendar({ profile, onClose }) {
                       key={dateISO} 
                       onClick={() => !isDisabled && setSelectedDate(dateISO)} 
                       disabled={isDisabled}
-                      title={isTooFar ? 'Max. 6 days in advance' : ''}
+                      title={isUnavailable ? 'Provider not available on this day' : (isTooFar ? 'Max. 6 days in advance' : '')}
                       style={{
                         ...styles.calendarDay,
                         ...(isSelected ? styles.calendarDaySelected : {}),
@@ -555,6 +615,8 @@ function BookingCalendar({ profile, onClose }) {
                       const maxAllowed = new Date(today);
                       maxAllowed.setDate(maxAllowed.getDate() + 6);
                       const exceedsMax = calcEnd > maxAllowed;
+                      const rangeUnavailable = !isRangeFullyAvailable(selectedDate, days);
+                      const isDisabled = exceedsMax || rangeUnavailable;
                       
                       const currentDays = endDate ? 
                         Math.floor((new Date(endDate) - new Date(selectedDate)) / (24 * 60 * 60 * 1000)) + 1 : 0;
@@ -564,17 +626,18 @@ function BookingCalendar({ profile, onClose }) {
                         <button
                           key={days}
                           type="button"
-                          onClick={() => !exceedsMax && setEndDate(calcEndISO)}
-                          disabled={exceedsMax}
+                          onClick={() => !isDisabled && setEndDate(calcEndISO)}
+                          disabled={isDisabled}
+                          title={rangeUnavailable ? 'Provider not available on all days' : (exceedsMax ? 'Exceeds 6-day limit' : '')}
                           style={{
                             padding: '12px 4px',
-                            background: isSelected ? 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)' : (exceedsMax ? '#f9fafb' : '#fff'),
-                            color: isSelected ? '#fff' : (exceedsMax ? '#d1d5db' : '#065f46'),
-                            border: '2px solid ' + (isSelected ? '#065f46' : (exceedsMax ? '#f3f4f6' : '#ecfdf5')),
+                            background: isSelected ? 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)' : (isDisabled ? '#f9fafb' : '#fff'),
+                            color: isSelected ? '#fff' : (isDisabled ? '#d1d5db' : '#065f46'),
+                            border: '2px solid ' + (isSelected ? '#065f46' : (isDisabled ? '#f3f4f6' : '#ecfdf5')),
                             borderRadius: 10,
                             fontSize: 14,
                             fontWeight: 600,
-                            cursor: exceedsMax ? 'not-allowed' : 'pointer',
+                            cursor: isDisabled ? 'not-allowed' : 'pointer',
                             fontFamily: '"Outfit", sans-serif',
                             boxShadow: isSelected ? '0 4px 12px rgba(20, 184, 166, 0.3)' : 'none'
                           }}
@@ -654,8 +717,9 @@ function BookingCalendar({ profile, onClose }) {
                   {getAllStartSlots().map(slot => {
                     const past = slotIsPast(slot.h, slot.m);
                     const booked = wouldOverlapBooked(slot.h, slot.m, currentDurationMin);
+                    const outsideHours = slotIsOutsideHours(slot.h, slot.m, currentDurationMin);
                     const isSelected = startHour === slot.h && startMinute === slot.m;
-                    const disabled = past || booked;
+                    const disabled = past || booked || outsideHours;
                     return (
                       <button
                         key={slot.label}
@@ -668,7 +732,7 @@ function BookingCalendar({ profile, onClose }) {
                           ...(disabled ? styles.slotBtnDisabled : {}),
                           ...(booked && !past ? styles.slotBtnBooked : {})
                         }}
-                        title={past ? 'Past' : booked ? 'Already booked' : ''}
+                        title={past ? 'Past' : booked ? 'Already booked' : outsideHours ? 'Outside provider hours' : ''}
                       >
                         {slot.label}
                       </button>
