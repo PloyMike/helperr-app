@@ -192,12 +192,11 @@ function BookingCalendar({ profile, onClose }) {
     return startMinutes < nowMinutes + 30;
   };
 
-  // Generate all 30-min start slots from 8:00 to 21:30 (last slot)
+  // Generate hourly start slots from 8:00 to 21:00
   const getAllStartSlots = () => {
     const slots = [];
     for (let h = 8; h <= 21; h++) {
       slots.push({ h, m: 0, label: `${h.toString().padStart(2, '0')}:00` });
-      slots.push({ h, m: 30, label: `${h.toString().padStart(2, '0')}:30` });
     }
     return slots;
   };
@@ -239,11 +238,9 @@ function BookingCalendar({ profile, onClose }) {
     setEndMinute(endTotal % 60);
   };
 
-  // Duration presets in minutes
+  // Duration presets in minutes (full hours only)
   const DURATION_OPTIONS = [
-    { label: '30 min', min: 30 },
     { label: '1h', min: 60 },
-    { label: '1.5h', min: 90 },
     { label: '2h', min: 120 },
     { label: '3h', min: 180 },
     { label: '4h', min: 240 }
@@ -1088,7 +1085,7 @@ const styles = {
   footer: { display: 'flex', gap: 12, marginTop: 20 },
   durationSection: { marginBottom: 20 },
   durationLabel: { fontSize: 13, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 },
-  durationGrid: { display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 8 },
+  durationGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 },
   durationBtn: { padding: '10px 4px', background: '#fff', color: '#065f46', border: '2px solid #ecfdf5', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.15s' },
   durationBtnSelected: { background: 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)', color: '#fff', borderColor: '#065f46', boxShadow: '0 4px 12px rgba(20, 184, 166, 0.3)' },
   slotsSection: { marginBottom: 16 },
