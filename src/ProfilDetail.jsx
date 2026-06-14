@@ -88,6 +88,39 @@ function ProfilDetail({ profile, onBack }) {
                 {profile.services.split(',').map((service,i)=><span key={i} className="detail-tag detail-tag-service">{service.trim()}</span>)}
               </div>
             </div>}
+
+            {profile.schedule && (
+              <div className="detail-box">
+                <h3 className="detail-title">Working Hours</h3>
+                <div style={{ marginTop: 8 }}>
+                  {[
+                    { key: 'mon', label: 'Monday' },
+                    { key: 'tue', label: 'Tuesday' },
+                    { key: 'wed', label: 'Wednesday' },
+                    { key: 'thu', label: 'Thursday' },
+                    { key: 'fri', label: 'Friday' },
+                    { key: 'sat', label: 'Saturday' },
+                    { key: 'sun', label: 'Sunday' }
+                  ].map(d => {
+                    const dayData = profile.schedule[d.key];
+                    if (!dayData) return null;
+                    return (
+                      <div key={d.key} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f3f4f6', fontSize: 14 }}>
+                        <span style={{ color: '#374151', fontWeight: 500 }}>{d.label}</span>
+                        <span style={{ color: dayData.open ? '#065f46' : '#9ca3af', fontWeight: dayData.open ? 600 : 400 }}>
+                          {dayData.open ? `${dayData.start} - ${dayData.end}` : 'Not Available'}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                {profile.price_type === 'day' && profile.day_duration_hours && (
+                  <div style={{ marginTop: 12, padding: 10, background: '#ecfdf5', borderRadius: 8, fontSize: 13, color: '#065f46', textAlign: 'center' }}>
+                    1 Day = {profile.day_duration_hours} hours
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
