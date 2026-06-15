@@ -96,6 +96,7 @@ function CheckoutForm({ booking, onSuccess, onCancel }) {
               provider_name: booking.profiles?.name || 'Provider',
               service: booking.service_name,
               booking_date: booking.booking_date,
+              end_date: booking.end_date,
               time_slot: booking.time_slot,
               address: booking.service_address || 'N/A',
               amount: `${curSym}${totalAmount}`,

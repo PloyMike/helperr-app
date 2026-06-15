@@ -52,6 +52,16 @@ serve(async (req) => {
     let subject = ''
     let content = ''
 
+        // Helper: build date/time HTML block (handles both single-day and multi-day)
+    const dateBlock = (variables.end_date && variables.end_date !== variables.booking_date)
+      ? `
+              <div class="info-item"><span class="info-label">From:</span> ${variables.booking_date}</div>
+              <div class="info-item"><span class="info-label">To:</span> ${variables.end_date}</div>
+              <div class="info-item"><span class="info-label">Duration:</span> ${variables.time_slot}</div>`
+      : `
+              <div class="info-item"><span class="info-label">Date:</span> ${variables.booking_date}</div>
+              <div class="info-item"><span class="info-label">Time:</span> ${variables.time_slot}</div>`;
+
     switch (template) {
       case 'booking-request':
         subject = `New Booking Request from ${variables.customer_name}`
@@ -61,8 +71,7 @@ serve(async (req) => {
             <p>You have received a new booking request:</p>
             <div class="info-box">
               <div class="info-item"><span class="info-label">Customer:</span> ${variables.customer_name}</div>
-              <div class="info-item"><span class="info-label">Date:</span> ${variables.booking_date}</div>
-              <div class="info-item"><span class="info-label">Time:</span> ${variables.time_slot}</div>
+${dateBlock}
               <div class="info-item"><span class="info-label">Service:</span> ${variables.service}</div>
               <div class="info-item"><span class="info-label">Address:</span> ${variables.address}</div>
             </div>
@@ -81,8 +90,7 @@ serve(async (req) => {
             <div class="info-box">
               <div class="info-item"><span class="info-label">Expert:</span> ${variables.provider_name}</div>
               <div class="info-item"><span class="info-label">Service:</span> ${variables.service}</div>
-              <div class="info-item"><span class="info-label">Date:</span> ${variables.booking_date}</div>
-              <div class="info-item"><span class="info-label">Time:</span> ${variables.time_slot}</div>
+${dateBlock}
               <div class="info-item"><span class="info-label">Address:</span> ${variables.address}</div>
             </div>
             <p style="background: #fef3c7; padding: 16px; border-radius: 8px; border-left: 4px solid #f59e0b;">
@@ -100,8 +108,7 @@ serve(async (req) => {
             <h2 style="color: #065f46; margin-top: 0;">Your Booking is Confirmed!</h2>
             <p>Great news! ${variables.provider_name} has accepted your booking.</p>
             <div class="info-box">
-              <div class="info-item"><span class="info-label">Date:</span> ${variables.booking_date}</div>
-              <div class="info-item"><span class="info-label">Time:</span> ${variables.time_slot}</div>
+${dateBlock}
               <div class="info-item"><span class="info-label">Service:</span> ${variables.service}</div>
               <div class="info-item"><span class="info-label">Address:</span> ${variables.address}</div>
             </div>
@@ -117,8 +124,7 @@ serve(async (req) => {
             <h2 style="color: #dc2626; margin-top: 0;">Booking Not Available</h2>
             <p>Unfortunately, ${variables.provider_name} is not available for your requested time.</p>
             <div class="info-box">
-              <div class="info-item"><span class="info-label">Date:</span> ${variables.booking_date}</div>
-              <div class="info-item"><span class="info-label">Time:</span> ${variables.time_slot}</div>
+${dateBlock}
               <div class="info-item"><span class="info-label">Service:</span> ${variables.service}</div>
             </div>
             <p>Please try booking another provider or different time slot.</p>
@@ -137,8 +143,7 @@ serve(async (req) => {
             <div class="info-box">
               <div class="info-item"><span class="info-label">Expert:</span> ${variables.provider_name}</div>
               <div class="info-item"><span class="info-label">Service:</span> ${variables.service}</div>
-              <div class="info-item"><span class="info-label">Date:</span> ${variables.booking_date}</div>
-              <div class="info-item"><span class="info-label">Time:</span> ${variables.time_slot}</div>
+${dateBlock}
               <div class="info-item"><span class="info-label">Address:</span> ${variables.address}</div>
             </div>
             <p style="background: #fef3c7; padding: 16px; border-radius: 8px; border-left: 4px solid #f59e0b;">
@@ -205,7 +210,7 @@ serve(async (req) => {
               <div class="info-item"><span class="info-label">Customer:</span> ${variables.customer_name} (${variables.customer_email})</div>
               <div class="info-item"><span class="info-label">Expert:</span> ${variables.provider_name}</div>
               <div class="info-item"><span class="info-label">Service:</span> ${variables.service}</div>
-              <div class="info-item"><span class="info-label">Date:</span> ${variables.booking_date} ${variables.time_slot}</div>
+${dateBlock}
               <div class="info-item"><span class="info-label">Amount:</span> ${variables.amount}</div>
               <div class="info-item"><span class="info-label">Payment Provider:</span> ${variables.payment_method}</div>
               <div class="info-item"><span class="info-label">Error:</span> ${variables.error}</div>
@@ -224,8 +229,7 @@ serve(async (req) => {
             <p>Unfortunately, ${variables.provider_name} didn't respond to your booking request within 48 hours.</p>
             <div class="info-box" style="background: #fee2e2; border-left-color: #dc2626;">
               <div class="info-item"><span class="info-label" style="color: #dc2626;">Service:</span> ${variables.service}</div>
-              <div class="info-item"><span class="info-label" style="color: #dc2626;">Date:</span> ${variables.booking_date}</div>
-              <div class="info-item"><span class="info-label" style="color: #dc2626;">Time:</span> ${variables.time_slot}</div>
+${dateBlock}
             </div>
             <p style="background: #f0fdf4; padding: 16px; border-radius: 8px; border-left: 4px solid #065f46; margin-top: 24px;">
               <strong>Good news:</strong> Your payment authorization has been released. You were not charged for this booking.
@@ -246,8 +250,7 @@ serve(async (req) => {
             <p>${variables.canceller_name} has cancelled their booking with you.</p>
             <div class="info-box" style="background: #fee2e2; border-left-color: #dc2626;">
               <div class="info-item"><span class="info-label" style="color: #dc2626;">Service:</span> ${variables.service}</div>
-              <div class="info-item"><span class="info-label" style="color: #dc2626;">Date:</span> ${variables.booking_date}</div>
-              <div class="info-item"><span class="info-label" style="color: #dc2626;">Time:</span> ${variables.time_slot}</div>
+${dateBlock}
             </div>
             <p style="background: #f0fdf4; padding: 16px; border-radius: 8px; border-left: 4px solid #065f46; margin-top: 24px;">
               <strong>Good to know:</strong> The customer's payment authorization has been released. No charges were made.
@@ -268,8 +271,7 @@ serve(async (req) => {
             <p>Unfortunately, ${variables.canceller_name} had to cancel your booking.</p>
             <div class="info-box" style="background: #fee2e2; border-left-color: #dc2626;">
               <div class="info-item"><span class="info-label" style="color: #dc2626;">Service:</span> ${variables.service}</div>
-              <div class="info-item"><span class="info-label" style="color: #dc2626;">Date:</span> ${variables.booking_date}</div>
-              <div class="info-item"><span class="info-label" style="color: #dc2626;">Time:</span> ${variables.time_slot}</div>
+${dateBlock}
             </div>
             <p style="background: #f0fdf4; padding: 16px; border-radius: 8px; border-left: 4px solid #065f46; margin-top: 24px;">
               <strong>Good news:</strong> Your payment authorization has been released. You were not charged for this booking.
