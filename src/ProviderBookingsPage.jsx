@@ -66,7 +66,7 @@ function ProviderBookingsPage() {
     try {
       const { data: booking } = await supabase
         .from('bookings')
-        .select('*, profiles(name, email)')
+        .select('*, profiles(name, email, schedule, day_duration_hours)')
         .eq('id', bookingId)
         .single();
 
@@ -95,6 +95,18 @@ function ProviderBookingsPage() {
               booking_date: booking.booking_date,
               end_date: booking.end_date,
               time_slot: booking.time_slot,
+
+              start_time: (() => {
+
+                if (!booking.end_date) return null;
+
+                const date = new Date(booking.booking_date);
+
+                const dayKey = ['sun','mon','tue','wed','thu','fri','sat'][date.getDay()];
+
+                return booking.profiles?.schedule?.[dayKey]?.start || null;
+
+              })(),
               service: booking.service_name,
               address: booking.service_address,
             },
@@ -145,7 +157,7 @@ function ProviderBookingsPage() {
     try {
       const { data: booking } = await supabase
         .from('bookings')
-        .select('*, profiles(name, email)')
+        .select('*, profiles(name, email, schedule, day_duration_hours)')
         .eq('id', bookingId)
         .single();
 
@@ -174,6 +186,18 @@ function ProviderBookingsPage() {
               booking_date: booking.booking_date,
               end_date: booking.end_date,
               time_slot: booking.time_slot,
+
+              start_time: (() => {
+
+                if (!booking.end_date) return null;
+
+                const date = new Date(booking.booking_date);
+
+                const dayKey = ['sun','mon','tue','wed','thu','fri','sat'][date.getDay()];
+
+                return booking.profiles?.schedule?.[dayKey]?.start || null;
+
+              })(),
               service: booking.service_name,
               address: booking.service_address,
             },

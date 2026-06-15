@@ -111,6 +111,18 @@ function OmisePayment({ booking, onSuccess, onCancel }) {
                   booking_date: booking.booking_date,
                   end_date: booking.end_date,
                   time_slot: booking.time_slot,
+
+                  start_time: (() => {
+
+                    if (!booking.end_date) return null;
+
+                    const date = new Date(booking.booking_date);
+
+                    const dayKey = ['sun','mon','tue','wed','thu','fri','sat'][date.getDay()];
+
+                    return booking.profiles?.schedule?.[dayKey]?.start || null;
+
+                  })(),
                   address: booking.service_address || 'N/A',
                   amount: `${curSym}${totalAmount}`,
                 },

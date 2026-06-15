@@ -57,7 +57,8 @@ serve(async (req) => {
       ? `
               <div class="info-item"><span class="info-label">From:</span> ${variables.booking_date}</div>
               <div class="info-item"><span class="info-label">To:</span> ${variables.end_date}</div>
-              <div class="info-item"><span class="info-label">Duration:</span> ${variables.time_slot}</div>`
+              <div class="info-item"><span class="info-label">Duration:</span> ${variables.time_slot}</div>${variables.start_time ? `
+              <div class="info-item"><span class="info-label">Service starts at:</span> ${variables.start_time}</div>` : ''}`
       : `
               <div class="info-item"><span class="info-label">Date:</span> ${variables.booking_date}</div>
               <div class="info-item"><span class="info-label">Time:</span> ${variables.time_slot}</div>`;
