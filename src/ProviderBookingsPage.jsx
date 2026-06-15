@@ -44,7 +44,7 @@ function ProviderBookingsPage() {
     try {
       const { data, error } = await supabase
         .from('bookings')
-        .select('*')
+        .select('*, profiles(schedule, day_duration_hours)')
         .eq('profile_id', userProfile.id)
         .order('booking_date', { ascending: false });
 
