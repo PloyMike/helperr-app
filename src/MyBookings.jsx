@@ -86,7 +86,7 @@ function MyBookings() {
           .from('bookings')
           .select(`
             *,
-            provider:profiles!bookings_profile_id_fkey(name, image_url, subcategory, city)
+            provider:profiles!bookings_profile_id_fkey(name, image_url, subcategory, city, schedule, day_duration_hours)
           `)
           .eq('customer_email', user.email)
           .order('booking_date', { ascending: false });
@@ -381,6 +381,20 @@ function MyBookings() {
                           <span style={styles.infoValue}>{booking.time_slot}</span>
                         </div>
                       </div>
+                      {(() => {
+                        const date = new Date(booking.booking_date);
+                        const dayKey = ['sun','mon','tue','wed','thu','fri','sat'][date.getDay()];
+                        const startTime = booking.provider?.schedule?.[dayKey]?.start || booking.profiles?.schedule?.[dayKey]?.start;
+                        if (!startTime) return null;
+                        return (
+                          <div style={styles.infoRow}>
+                            <div>
+                              <span style={styles.infoLabel}>Service starts at</span>
+                              <span style={styles.infoValue}>{startTime}</span>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </>
                   ) : (
                     <>

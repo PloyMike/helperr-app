@@ -362,6 +362,20 @@ function ProviderBookingsPage() {
                           <span style={styles.infoValue}>{booking.time_slot}</span>
                         </div>
                       </div>
+                      {(() => {
+                        const date = new Date(booking.booking_date);
+                        const dayKey = ['sun','mon','tue','wed','thu','fri','sat'][date.getDay()];
+                        const startTime = booking.profiles?.schedule?.[dayKey]?.start;
+                        if (!startTime) return null;
+                        return (
+                          <div style={styles.infoRow}>
+                            <div>
+                              <span style={styles.infoLabel}>Service starts at</span>
+                              <span style={styles.infoValue}>{startTime}</span>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </>
                   ) : (
                     <>
