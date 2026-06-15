@@ -812,7 +812,7 @@ function EditProfilePage() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginTop: 10 }}>
                   {[
                     { val: 8, label: '8 hours', sub: 'Workday' },
-                    { val: 12, label: '12 hours', sub: 'Overnight' },
+                    { val: 12, label: '12 hours', sub: 'Long Day' },
                     { val: 24, label: '24 hours', sub: 'Live-in' }
                   ].map(opt => {
                     const isSelected = formData.dayDurationHours === opt.val;
@@ -839,7 +839,7 @@ function EditProfilePage() {
                   })}
                 </div>
                 <div style={{ fontSize: 12, color: '#065f46', marginTop: 8 }}>
-                  Examples: 8h = Nanny/Care, 12h = Babysitter (overnight), 24h = Pet Sitter (live-in)
+                  Examples: 8h = Nanny/Care, 12h = Long shift, 24h = Live-in (Pet Sitter, Babysitter overnight)
                 </div>
               </div>
             )}

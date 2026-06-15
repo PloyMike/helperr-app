@@ -192,6 +192,9 @@ function BookingCalendar({ profile, onClose }) {
 
   // Live-Preis: Stundenlohn x gebuchte Dauer (fuer Anzeige in der Confirm-Page)
   const liveDuration = ((endHour * 60 + endMinute) - (startHour * 60 + startMinute)) / 60;
+  // For day-booking: calculate days and total price separately
+  const liveDays = isDayBooking && selectedDate && endDate ? 
+    Math.floor((new Date(endDate) - new Date(selectedDate)) / (24 * 60 * 60 * 1000)) + 1 : 0;
   const liveHourlyMatch = String(profile.price || '').match(/(\d+)/);
   const liveHourlyRate = liveHourlyMatch ? parseInt(liveHourlyMatch[0]) : 0;
   const liveCurSym = getCurrencySymbol(getCurrencyCode(profile.price));
@@ -244,10 +247,11 @@ function BookingCalendar({ profile, onClose }) {
     return startMinutes < nowMinutes + 30;
   };
 
-  // Generate hourly start slots from 8:00 to 21:00
+  // Generate all 24 hourly start slots (00:00 - 23:00)
+  // Provider's actual working hours filter what's clickable
   const getAllStartSlots = () => {
     const slots = [];
-    for (let h = 8; h <= 21; h++) {
+    for (let h = 0; h <= 23; h++) {
       slots.push({ h, m: 0, label: `${h.toString().padStart(2, '0')}:00` });
     }
     return slots;
@@ -605,7 +609,7 @@ function BookingCalendar({ profile, onClose }) {
                   <div style={{ fontSize: 14, color: '#065f46', fontWeight: 600 }}>
                     📌 1 Day = {profile?.day_duration_hours || 8} hours
                     {profile?.day_duration_hours === 8 && ' (Workday)'}
-                    {profile?.day_duration_hours === 12 && ' (Overnight)'}
+                    {profile?.day_duration_hours === 12 && ' (Long Day)'}
                     {profile?.day_duration_hours === 24 && ' (Live-in)'}
                   </div>
                   {selectedDate && (() => {
@@ -1092,7 +1096,13 @@ function BookingCalendar({ profile, onClose }) {
                 </div>
                 <div style={styles.summaryRow}>
                   <span style={styles.summaryLabel}>Price:</span>
-                  <span style={styles.summaryValue}>{liveCurSym}{livePrice} ({liveCurSym}{liveHourlyRate} × {liveDuration} {liveDuration === 1 ? 'hr' : 'hrs'})</span>
+                  <span style={styles.summaryValue}>
+                    {isDayBooking ? (
+                      `${liveCurSym}${liveHourlyRate * liveDays} (${liveCurSym}${liveHourlyRate} × ${liveDays} ${liveDays === 1 ? 'day' : 'days'})`
+                    ) : (
+                      `${liveCurSym}${livePrice} (${liveCurSym}${liveHourlyRate} × ${liveDuration} ${liveDuration === 1 ? 'hr' : 'hrs'})`
+                    )}
+                  </span>
                 </div>
                 <div style={{
                   background: '#f0fdf4',
