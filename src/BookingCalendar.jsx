@@ -597,6 +597,29 @@ function BookingCalendar({ profile, onClose }) {
                 You can book up to 6 days in advance
               </p>
 
+              {isDayBooking && (
+                <div style={{ marginTop: 16, padding: 14, background: '#ecfdf5', borderRadius: 12, border: '1px solid #14b8a6' }}>
+                  <div style={{ fontSize: 12, color: '#065f46', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>
+                    Service Details
+                  </div>
+                  <div style={{ fontSize: 14, color: '#065f46', fontWeight: 600 }}>
+                    📌 1 Day = {profile?.day_duration_hours || 8} hours
+                    {profile?.day_duration_hours === 8 && ' (Workday)'}
+                    {profile?.day_duration_hours === 12 && ' (Overnight)'}
+                    {profile?.day_duration_hours === 24 && ' (Live-in)'}
+                  </div>
+                  {selectedDate && (() => {
+                    const hours = getProviderHoursForDate(selectedDate);
+                    if (!hours) return null;
+                    const startStr = `${String(hours.startH).padStart(2,'0')}:${String(hours.startM).padStart(2,'0')}`;
+                    return (
+                      <div style={{ fontSize: 13, color: '#065f46', marginTop: 6 }}>
+                        🕐 Service starts at {startStr} on your start date
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
               {isDayBooking && selectedDate && (
                 <div style={{ marginTop: 16 }}>
                   <div style={{ fontSize: 13, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 }}>
