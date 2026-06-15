@@ -361,19 +361,43 @@ function MyBookings() {
                 </div>
 
                 <div style={styles.cardBody}>
-                  <div style={styles.infoRow}>
-                    <div>
-                      <span style={styles.infoLabel}>Date</span>
-                      <span style={styles.infoValue}>{new Date(booking.booking_date).toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span>
-                    </div>
-                  </div>
-
-                  <div style={styles.infoRow}>
-                    <div>
-                      <span style={styles.infoLabel}>Time</span>
-                      <span style={styles.infoValue}>{booking.time_slot}</span>
-                    </div>
-                  </div>
+                  {booking.end_date && booking.end_date !== booking.booking_date ? (
+                    <>
+                      <div style={styles.infoRow}>
+                        <div>
+                          <span style={styles.infoLabel}>From</span>
+                          <span style={styles.infoValue}>{new Date(booking.booking_date).toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                        </div>
+                      </div>
+                      <div style={styles.infoRow}>
+                        <div>
+                          <span style={styles.infoLabel}>To</span>
+                          <span style={styles.infoValue}>{new Date(booking.end_date).toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                        </div>
+                      </div>
+                      <div style={styles.infoRow}>
+                        <div>
+                          <span style={styles.infoLabel}>Duration</span>
+                          <span style={styles.infoValue}>{booking.time_slot}</span>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div style={styles.infoRow}>
+                        <div>
+                          <span style={styles.infoLabel}>Date</span>
+                          <span style={styles.infoValue}>{new Date(booking.booking_date).toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                        </div>
+                      </div>
+                      <div style={styles.infoRow}>
+                        <div>
+                          <span style={styles.infoLabel}>Time</span>
+                          <span style={styles.infoValue}>{booking.time_slot}</span>
+                        </div>
+                      </div>
+                    </>
+                  )}
 
                   {booking.service_address && (
                     <div style={styles.infoRow}>
