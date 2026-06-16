@@ -213,6 +213,8 @@ function BookingCalendar({ profile, onClose }) {
     }
     
     const overlappingSlot = bookedSlots.find(bookedSlot => {
+      // Skip multi-day slots (e.g. "3 days") - they block whole dates via calendar
+      if (!bookedSlot.includes(' - ')) return false;
       const [bookedStart, bookedEnd] = bookedSlot.split(' - ');
       const [bsH, bsM] = bookedStart.split(':').map(Number);
       const [beH, beM] = bookedEnd.split(':').map(Number);
@@ -273,6 +275,8 @@ function BookingCalendar({ profile, onClose }) {
     const startMin = h * 60 + m;
     const endMin = startMin + durationMin;
     return bookedSlots.some(slot => {
+      // Skip multi-day slots
+      if (!slot.includes(' - ')) return false;
       const [bs, be] = slot.split(' - ');
       const [bsH, bsM] = bs.split(':').map(Number);
       const [beH, beM] = be.split(':').map(Number);
@@ -321,6 +325,8 @@ function BookingCalendar({ profile, onClose }) {
     if (isPastTime()) return false;
     
     const isBooked = bookedSlots.some(bookedSlot => {
+      // Skip multi-day slots
+      if (!bookedSlot.includes(' - ')) return false;
       const [bookedStart, bookedEnd] = bookedSlot.split(' - ');
       const [bsH, bsM] = bookedStart.split(':').map(Number);
       const [beH, beM] = bookedEnd.split(':').map(Number);
