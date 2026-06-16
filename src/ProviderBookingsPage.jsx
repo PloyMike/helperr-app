@@ -8,6 +8,63 @@ function ProviderBookingsPage() {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
+
+  // === Calendar View State ===
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
+  const [currentCalendarMonth, setCurrentCalendarMonth] = useState(new Date());
+  const [expandedDate, setExpandedDate] = useState(null);
+  const [expandedBookingId, setExpandedBookingId] = useState(null);
+
+  // Helper: format date as YYYY-MM-DD
+  const formatDateISOLocal = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  // Helper: get all bookings for a given date (handles multi-day bookings)
+  const getBookingsForDate = (dateISO) => {
+    return filteredBookings.filter(b => {
+      const start = b.booking_date;
+      const end = b.end_date || b.booking_date;
+      return dateISO >= start && dateISO <= end;
+    });
+  };
+
+  // Helper: parse time_slot start hour for sorting (e.g. "10:00 - 11:00" -> 600, "3 days" -> 0)
+  const parseSlotStartMin = (slot) => {
+    if (!slot || !slot.includes(' - ')) return 0; // multi-day: top
+    const [start] = slot.split(' - ');
+    const [h, m] = start.split(':').map(Number);
+    return h * 60 + m;
+  };
+
+  // Helper: get all dates in current calendar month
+  const getCalendarMonthDates = () => {
+    const year = currentCalendarMonth.getFullYear();
+    const month = currentCalendarMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const dates = [];
+    // Padding for first week (Monday-based)
+    let firstWeekday = firstDay.getDay();
+    firstWeekday = firstWeekday === 0 ? 6 : firstWeekday - 1; // Mon=0, Sun=6
+    for (let i = 0; i < firstWeekday; i++) dates.push(null);
+    for (let d = 1; d <= lastDay.getDate(); d++) {
+      dates.push(new Date(year, month, d));
+    }
+    return dates;
+  };
+
+  const changeCalendarMonth = (delta) => {
+    setExpandedDate(null);
+    setCurrentCalendarMonth(prev => {
+      const newDate = new Date(prev);
+      newDate.setMonth(newDate.getMonth() + delta);
+      return newDate;
+    });
+  };
   const [userProfile, setUserProfile] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -301,22 +358,142 @@ function ProviderBookingsPage() {
       </div>
 
       <div style={styles.container}>
-        <div style={styles.filters}>
-          {['all', 'pending', 'confirmed', 'cancelled', 'archived'].map(status => (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+          <div style={styles.filters}>
+            {['all', 'pending', 'confirmed', 'cancelled', 'archived'].map(status => (
+              <button
+                key={status}
+                onClick={() => setStatusFilter(status)}
+                style={{
+                  ...styles.filterBtn,
+                  ...(statusFilter === status ? styles.filterBtnActive : {})
+                }}
+              >
+                {status.charAt(0).toUpperCase() + status.slice(1)}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: 8, background: '#fff', padding: 6, borderRadius: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
             <button
-              key={status}
-              onClick={() => setStatusFilter(status)}
+              onClick={() => setViewMode('list')}
               style={{
-                ...styles.filterBtn,
-                ...(statusFilter === status ? styles.filterBtnActive : {})
+                padding: '8px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                background: viewMode === 'list' ? '#065f46' : 'transparent',
+                color: viewMode === 'list' ? '#fff' : '#6b7280',
+                fontWeight: 600, fontSize: 14, fontFamily: '"Outfit", sans-serif'
               }}
             >
-              {status.charAt(0).toUpperCase() + status.slice(1)}
+              📋 List
             </button>
-          ))}
+            <button
+              onClick={() => setViewMode('calendar')}
+              style={{
+                padding: '8px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                background: viewMode === 'calendar' ? '#065f46' : 'transparent',
+                color: viewMode === 'calendar' ? '#fff' : '#6b7280',
+                fontWeight: 600, fontSize: 14, fontFamily: '"Outfit", sans-serif'
+              }}
+            >
+              📅 Calendar
+            </button>
+          </div>
         </div>
 
-        {filteredBookings.length === 0 ? (
+        {viewMode === 'calendar' ? (
+          <div style={{ background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)', marginBottom: 24 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <button onClick={() => changeCalendarMonth(-1)} style={{ background: '#f3f4f6', border: 'none', padding: '8px 14px', borderRadius: 8, fontSize: 18, cursor: 'pointer', fontWeight: 700, color: '#065f46' }}>←</button>
+              <h3 style={{ fontSize: 20, fontWeight: 700, color: '#065f46', margin: 0, fontFamily: '"Outfit", sans-serif' }}>
+                {currentCalendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              </h3>
+              <button onClick={() => changeCalendarMonth(1)} style={{ background: '#f3f4f6', border: 'none', padding: '8px 14px', borderRadius: 8, fontSize: 18, cursor: 'pointer', fontWeight: 700, color: '#065f46' }}>→</button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, marginBottom: 8 }}>
+              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                <div key={day} style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', textAlign: 'center', padding: 6 }}>{day}</div>
+              ))}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
+              {getCalendarMonthDates().map((date, idx) => {
+                if (!date) return <div key={'empty-' + idx} style={{ aspectRatio: '1' }} />;
+                const iso = formatDateISOLocal(date);
+                const dayBookings = getBookingsForDate(iso);
+                const hasBookings = dayBookings.length > 0;
+                const isExpanded = expandedDate === iso;
+                const today = formatDateISOLocal(new Date());
+                const isToday = iso === today;
+                return (
+                  <button
+                    key={iso}
+                    onClick={() => setExpandedDate(isExpanded ? null : iso)}
+                    style={{
+                      aspectRatio: '1',
+                      background: isExpanded ? '#14b8a6' : (hasBookings ? '#ecfdf5' : '#fff'),
+                      color: isExpanded ? '#fff' : (hasBookings ? '#065f46' : '#374151'),
+                      border: isToday ? '2px solid #14b8a6' : '2px solid #f3f4f6',
+                      borderRadius: 10,
+                      cursor: 'pointer',
+                      fontWeight: hasBookings ? 700 : 500,
+                      fontSize: 14,
+                      fontFamily: '"Outfit", sans-serif',
+                      position: 'relative',
+                      transition: 'all 0.15s'
+                    }}
+                  >
+                    {date.getDate()}
+                    {hasBookings && (
+                      <div style={{ position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 2 }}>
+                        {Array.from({ length: Math.min(dayBookings.length, 3) }).map((_, i) => (
+                          <div key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: isExpanded ? '#fff' : '#14b8a6' }} />
+                        ))}
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            {expandedDate && (
+              <div style={{ marginTop: 20, padding: 16, background: '#f9fafb', borderRadius: 12 }}>
+                <h4 style={{ margin: '0 0 12px', color: '#065f46', fontSize: 16, fontFamily: '"Outfit", sans-serif' }}>
+                  {new Date(expandedDate).toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
+                </h4>
+                {getBookingsForDate(expandedDate).length === 0 ? (
+                  <div style={{ color: '#9ca3af', fontSize: 14 }}>No bookings</div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {getBookingsForDate(expandedDate)
+                      .sort((a, b) => parseSlotStartMin(a.time_slot) - parseSlotStartMin(b.time_slot))
+                      .map(b => (
+                        <button
+                          key={b.id}
+                          onClick={() => setExpandedBookingId(expandedBookingId === b.id ? null : b.id)}
+                          style={{
+                            padding: '10px 14px',
+                            background: '#fff',
+                            border: '2px solid #ecfdf5',
+                            borderRadius: 10,
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            fontFamily: '"Outfit", sans-serif'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                              <div style={{ fontSize: 14, fontWeight: 700, color: '#065f46' }}>{b.time_slot}</div>
+                              <div style={{ fontSize: 13, color: '#6b7280' }}>{b.customer_name} • {b.service_name}</div>
+                            </div>
+                            <div style={{ fontSize: 11, padding: '4px 8px', borderRadius: 6, background: b.status === 'confirmed' ? '#d1fae5' : b.status === 'pending' ? '#fef3c7' : '#f3f4f6', color: b.status === 'confirmed' ? '#065f46' : b.status === 'pending' ? '#92400e' : '#6b7280', fontWeight: 600 }}>
+                              {b.status}
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ) : filteredBookings.length === 0 ? (
           <div style={styles.empty}>
             <h3>No bookings found</h3>
             <p>You don't have any {statusFilter !== 'all' ? statusFilter : ''} bookings yet</p>
