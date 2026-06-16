@@ -10,7 +10,15 @@ function ProviderBookingsPage() {
   const [statusFilter, setStatusFilter] = useState('all');
 
   // === Calendar View State ===
-  const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
+  const [viewMode, setViewMode] = useState('list'); // 'list', 'calendar', or 'week'
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   const [currentCalendarMonth, setCurrentCalendarMonth] = useState(new Date());
   const [expandedDate, setExpandedDate] = useState(null);
   const [expandedBookingId, setExpandedBookingId] = useState(null);
@@ -483,7 +491,73 @@ function ProviderBookingsPage() {
           </div>
         </div>
 
-        {viewMode === 'week' ? (
+        {viewMode === 'week' && isMobile ? (
+          <div style={{ background: '#fff', borderRadius: 16, padding: 16, boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)', marginBottom: 24 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <button onClick={() => changeWeek(-1)} style={{ background: '#f3f4f6', border: 'none', padding: '8px 14px', borderRadius: 8, fontSize: 18, cursor: 'pointer', fontWeight: 700, color: '#065f46' }}>←</button>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#065f46', margin: 0, fontFamily: '"Outfit", sans-serif', textAlign: 'center' }}>
+                {currentWeekStart.toLocaleDateString('en-US', { day: '2-digit', month: 'short' })} - {(() => { const e = new Date(currentWeekStart); e.setDate(e.getDate() + 6); return e.toLocaleDateString('en-US', { day: '2-digit', month: 'short' }); })()}
+              </h3>
+              <button onClick={() => changeWeek(1)} style={{ background: '#f3f4f6', border: 'none', padding: '8px 14px', borderRadius: 8, fontSize: 18, cursor: 'pointer', fontWeight: 700, color: '#065f46' }}>→</button>
+            </div>
+            {/* Multi-Day Banner */}
+            {(() => {
+              const weekStart = formatDateISOLocal(currentWeekStart);
+              const weekEndDate = new Date(currentWeekStart); weekEndDate.setDate(weekEndDate.getDate() + 6);
+              const weekEnd = formatDateISOLocal(weekEndDate);
+              const multiDay = filteredBookings.filter(b => b.end_date && b.end_date !== b.booking_date && b.booking_date <= weekEnd && b.end_date >= weekStart);
+              if (multiDay.length === 0) return null;
+              return (
+                <div style={{ marginBottom: 12, padding: 10, background: '#ecfdf5', borderRadius: 10, border: '1px solid #14b8a6' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#065f46', textTransform: 'uppercase', marginBottom: 6 }}>Multi-Day This Week</div>
+                  {multiDay.map(b => (
+                    <div key={b.id} style={{ fontSize: 13, color: '#065f46', padding: '4px 0' }}>
+                      ● {b.customer_name} • {b.time_slot} ({b.booking_date} → {b.end_date})
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+            {/* Tag-Karten */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {getWeekDates().map(date => {
+                const iso = formatDateISOLocal(date);
+                const today = formatDateISOLocal(new Date());
+                const isToday = iso === today;
+                const dayOpen = isDayOpen(date);
+                const dayBookings = getBookingsForDate(iso)
+                  .filter(b => !b.end_date || b.end_date === b.booking_date) // exclude multi-day (shown in banner)
+                  .sort((a, b) => parseSlotStartMin(a.time_slot) - parseSlotStartMin(b.time_slot));
+                return (
+                  <div key={iso} style={{ background: isToday ? '#ecfdf5' : '#fff', border: isToday ? '2px solid #14b8a6' : '1px solid #f3f4f6', borderRadius: 12, padding: 12 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                        <div style={{ fontSize: 18, fontWeight: 700, color: dayOpen ? '#065f46' : '#9ca3af' }}>{date.getDate()}</div>
+                      </div>
+                      {!dayOpen && <div style={{ fontSize: 10, color: '#dc2626', fontWeight: 700, padding: '2px 6px', background: '#fef2f2', borderRadius: 4 }}>CLOSED</div>}
+                    </div>
+                    {dayBookings.length === 0 ? (
+                      <div style={{ fontSize: 12, color: '#9ca3af', fontStyle: 'italic' }}>No bookings</div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        {dayBookings.map(b => {
+                          const bgColor = b.status === 'confirmed' ? '#14b8a6' : b.status === 'pending' ? '#fbbf24' : '#9ca3af';
+                          return (
+                            <div key={b.id} onClick={() => { setExpandedDate(iso); setExpandedBookingId(b.id); }} style={{ background: bgColor, color: '#fff', borderRadius: 8, padding: '8px 10px', cursor: 'pointer' }}>
+                              <div style={{ fontSize: 13, fontWeight: 700 }}>{b.time_slot}</div>
+                              <div style={{ fontSize: 11, opacity: 0.95 }}>{b.customer_name} • {b.service_name}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : viewMode === 'week' ? (
           <div style={{ background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)', marginBottom: 24, overflowX: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <button onClick={() => changeWeek(-1)} style={{ background: '#f3f4f6', border: 'none', padding: '8px 14px', borderRadius: 8, fontSize: 18, cursor: 'pointer', fontWeight: 700, color: '#065f46' }}>←</button>
@@ -492,6 +566,26 @@ function ProviderBookingsPage() {
               </h3>
               <button onClick={() => changeWeek(1)} style={{ background: '#f3f4f6', border: 'none', padding: '8px 14px', borderRadius: 8, fontSize: 18, cursor: 'pointer', fontWeight: 700, color: '#065f46' }}>→</button>
             </div>
+            {/* Multi-Day Banner Desktop */}
+            {(() => {
+              const weekStart = formatDateISOLocal(currentWeekStart);
+              const weekEndDate = new Date(currentWeekStart); weekEndDate.setDate(weekEndDate.getDate() + 6);
+              const weekEnd = formatDateISOLocal(weekEndDate);
+              const multiDay = filteredBookings.filter(b => b.end_date && b.end_date !== b.booking_date && b.booking_date <= weekEnd && b.end_date >= weekStart);
+              if (multiDay.length === 0) return null;
+              return (
+                <div style={{ marginBottom: 16, padding: 12, background: '#ecfdf5', borderRadius: 10, border: '1px solid #14b8a6' }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: '#065f46', textTransform: 'uppercase', marginBottom: 6 }}>Multi-Day This Week</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {multiDay.map(b => (
+                      <div key={b.id} style={{ fontSize: 12, color: '#065f46', padding: '4px 10px', background: '#fff', borderRadius: 8, border: '1px solid #14b8a6' }}>
+                        ● {b.customer_name} • {b.time_slot} ({b.booking_date} → {b.end_date})
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
             {(() => {
               const { minH, maxH } = getWeekHourRange();
               const totalHours = maxH - minH;
