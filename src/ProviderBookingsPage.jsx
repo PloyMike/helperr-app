@@ -65,6 +65,79 @@ function ProviderBookingsPage() {
       return newDate;
     });
   };
+
+  // === Weekly View State + Helpers ===
+  const [currentWeekStart, setCurrentWeekStart] = useState(() => {
+    // Start of current week (Monday)
+    const d = new Date();
+    const day = d.getDay();
+    const diff = day === 0 ? -6 : 1 - day; // Monday-based
+    d.setDate(d.getDate() + diff);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
+
+  const changeWeek = (delta) => {
+    setCurrentWeekStart(prev => {
+      const newDate = new Date(prev);
+      newDate.setDate(newDate.getDate() + delta * 7);
+      return newDate;
+    });
+  };
+
+  // Get the 7 dates of current week (Mon-Sun)
+  const getWeekDates = () => {
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(currentWeekStart);
+      d.setDate(d.getDate() + i);
+      dates.push(d);
+    }
+    return dates;
+  };
+
+  // Get min/max hours across all days in current week
+  // Falls back to 8-18 if no schedule data
+  const getWeekHourRange = () => {
+    const weekDates = getWeekDates();
+    const dayKeys = ['mon','tue','wed','thu','fri','sat','sun'];
+    let minH = 24, maxH = 0;
+    weekDates.forEach((date, idx) => {
+      const booking = filteredBookings.find(b => b.profiles?.schedule);
+      const schedule = booking?.profiles?.schedule;
+      if (!schedule) return;
+      const jsDay = date.getDay();
+      const dayKey = jsDay === 0 ? 'sun' : dayKeys[jsDay - 1];
+      const dayInfo = schedule[dayKey];
+      if (dayInfo?.open) {
+        const [sH] = dayInfo.start.split(':').map(Number);
+        const [eH, eM] = dayInfo.end.split(':').map(Number);
+        if (sH < minH) minH = sH;
+        if (eH + (eM > 0 ? 1 : 0) > maxH) maxH = eH + (eM > 0 ? 1 : 0);
+      }
+    });
+    if (minH >= maxH) { minH = 8; maxH = 18; }
+    return { minH, maxH };
+  };
+
+  // Check if a day is "open" per provider schedule
+  const isDayOpen = (date) => {
+    const dayKeys = ['mon','tue','wed','thu','fri','sat','sun'];
+    const jsDay = date.getDay();
+    const dayKey = jsDay === 0 ? 'sun' : dayKeys[jsDay - 1];
+    const booking = filteredBookings.find(b => b.profiles?.schedule);
+    const schedule = booking?.profiles?.schedule;
+    return schedule?.[dayKey]?.open !== false;
+  };
+
+  // Parse time_slot like "10:00 - 11:00" -> { startMin, endMin }
+  const parseSlotRange = (slot) => {
+    if (!slot || !slot.includes(' - ')) return null;
+    const [s, e] = slot.split(' - ');
+    const [sH, sM] = s.split(':').map(Number);
+    const [eH, eM] = e.split(':').map(Number);
+    return { startMin: sH * 60 + sM, endMin: eH * 60 + eM };
+  };
   const [userProfile, setUserProfile] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
 
@@ -394,12 +467,94 @@ function ProviderBookingsPage() {
                 fontWeight: 600, fontSize: 14, fontFamily: '"Outfit", sans-serif'
               }}
             >
-              📅 Calendar
+              📅 Month
+            </button>
+            <button
+              onClick={() => setViewMode('week')}
+              style={{
+                padding: '8px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                background: viewMode === 'week' ? '#065f46' : 'transparent',
+                color: viewMode === 'week' ? '#fff' : '#6b7280',
+                fontWeight: 600, fontSize: 14, fontFamily: '"Outfit", sans-serif'
+              }}
+            >
+              🗓 Week
             </button>
           </div>
         </div>
 
-        {viewMode === 'calendar' ? (
+        {viewMode === 'week' ? (
+          <div style={{ background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)', marginBottom: 24, overflowX: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <button onClick={() => changeWeek(-1)} style={{ background: '#f3f4f6', border: 'none', padding: '8px 14px', borderRadius: 8, fontSize: 18, cursor: 'pointer', fontWeight: 700, color: '#065f46' }}>←</button>
+              <h3 style={{ fontSize: 18, fontWeight: 700, color: '#065f46', margin: 0, fontFamily: '"Outfit", sans-serif' }}>
+                Week of {currentWeekStart.toLocaleDateString('en-US', { day: '2-digit', month: 'short' })} - {(() => { const e = new Date(currentWeekStart); e.setDate(e.getDate() + 6); return e.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }); })()}
+              </h3>
+              <button onClick={() => changeWeek(1)} style={{ background: '#f3f4f6', border: 'none', padding: '8px 14px', borderRadius: 8, fontSize: 18, cursor: 'pointer', fontWeight: 700, color: '#065f46' }}>→</button>
+            </div>
+            {(() => {
+              const { minH, maxH } = getWeekHourRange();
+              const totalHours = maxH - minH;
+              const hourHeight = 50;
+              const weekDates = getWeekDates();
+              const today = formatDateISOLocal(new Date());
+              return (
+                <div style={{ minWidth: 700 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '60px repeat(7, 1fr)', gap: 4, marginBottom: 8 }}>
+                    <div></div>
+                    {weekDates.map(date => {
+                      const iso = formatDateISOLocal(date);
+                      const isToday = iso === today;
+                      const dayOpen = isDayOpen(date);
+                      return (
+                        <div key={iso} style={{ textAlign: 'center', padding: 8, background: isToday ? '#ecfdf5' : (dayOpen ? '#f9fafb' : '#fef2f2'), borderRadius: 8, border: isToday ? '2px solid #14b8a6' : '1px solid #f3f4f6' }}>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                          <div style={{ fontSize: 16, fontWeight: 700, color: dayOpen ? '#065f46' : '#9ca3af' }}>{date.getDate()}</div>
+                          {!dayOpen && <div style={{ fontSize: 9, color: '#dc2626', fontWeight: 600 }}>CLOSED</div>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '60px repeat(7, 1fr)', gap: 4, position: 'relative' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                      {Array.from({ length: totalHours }).map((_, i) => (
+                        <div key={i} style={{ height: hourHeight, fontSize: 11, color: '#9ca3af', fontWeight: 600, paddingRight: 6, textAlign: 'right', borderTop: '1px solid #f3f4f6' }}>
+                          {String(minH + i).padStart(2, '0')}:00
+                        </div>
+                      ))}
+                    </div>
+                    {weekDates.map(date => {
+                      const iso = formatDateISOLocal(date);
+                      const dayOpen = isDayOpen(date);
+                      const dayBookings = getBookingsForDate(iso).filter(b => parseSlotRange(b.time_slot));
+                      return (
+                        <div key={iso} style={{ position: 'relative', height: totalHours * hourHeight, background: dayOpen ? '#fff' : '#fafafa', border: '1px solid #f3f4f6', borderRadius: 6 }}>
+                          {Array.from({ length: totalHours }).map((_, i) => (
+                            <div key={i} style={{ position: 'absolute', top: i * hourHeight, left: 0, right: 0, height: 1, background: '#f3f4f6' }} />
+                          ))}
+                          {dayBookings.map(b => {
+                            const range = parseSlotRange(b.time_slot);
+                            if (!range) return null;
+                            const top = ((range.startMin / 60) - minH) * hourHeight;
+                            const height = ((range.endMin - range.startMin) / 60) * hourHeight;
+                            if (top < 0 || top > totalHours * hourHeight) return null;
+                            const bgColor = b.status === 'confirmed' ? '#14b8a6' : b.status === 'pending' ? '#fbbf24' : '#9ca3af';
+                            return (
+                              <div key={b.id} onClick={() => { setExpandedDate(iso); setExpandedBookingId(b.id); }} style={{ position: 'absolute', top, left: 2, right: 2, height: Math.max(height - 2, 28), background: bgColor, color: '#fff', borderRadius: 6, padding: '4px 6px', fontSize: 11, fontWeight: 600, cursor: 'pointer', overflow: 'hidden', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
+                                <div style={{ fontWeight: 700, fontSize: 11 }}>{b.time_slot}</div>
+                                <div style={{ fontSize: 10, opacity: 0.95, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.customer_name}</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        ) : viewMode === 'calendar' ? (
           <div style={{ background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)', marginBottom: 24 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <button onClick={() => changeCalendarMonth(-1)} style={{ background: '#f3f4f6', border: 'none', padding: '8px 14px', borderRadius: 8, fontSize: 18, cursor: 'pointer', fontWeight: 700, color: '#065f46' }}>←</button>
