@@ -309,12 +309,18 @@ function BookingCalendar({ profile, onClose }) {
     setEndMinute(endTotal % 60);
   };
 
-  // Duration presets in minutes (full hours only)
+  // Duration presets in minutes (full hours, 1h to 10h)
   const DURATION_OPTIONS = [
     { label: '1h', min: 60 },
     { label: '2h', min: 120 },
     { label: '3h', min: 180 },
-    { label: '4h', min: 240 }
+    { label: '4h', min: 240 },
+    { label: '5h', min: 300 },
+    { label: '6h', min: 360 },
+    { label: '7h', min: 420 },
+    { label: '8h', min: 480 },
+    { label: '9h', min: 540 },
+    { label: '10h', min: 600 }
   ];
 
   const isValidTimeRange = () => {
@@ -723,8 +729,11 @@ function BookingCalendar({ profile, onClose }) {
               <p style={styles.selectedInfo}>{formatDateFull(selectedDate)}</p>
               
               <div style={styles.durationSection}>
-                <div style={styles.durationLabel}>Duration</div>
-                <div style={styles.durationGrid}>
+                <div style={styles.durationLabel}>
+                  Duration
+                  <span style={styles.durationHint}>← scroll for more →</span>
+                </div>
+                <div style={styles.durationScroll}>
                   {DURATION_OPTIONS.map(opt => {
                     const isSelected = currentDurationMin === opt.min;
                     return (
@@ -733,8 +742,8 @@ function BookingCalendar({ profile, onClose }) {
                         type="button"
                         onClick={() => setStartSlotAndDuration(startHour, startMinute, opt.min)}
                         style={{
-                          ...styles.durationBtn,
-                          ...(isSelected ? styles.durationBtnSelected : {})
+                          ...styles.durationBtnScroll,
+                          ...(isSelected ? styles.durationBtnScrollSelected : {})
                         }}
                       >
                         {opt.label}
@@ -1304,10 +1313,14 @@ const styles = {
   btnPrimary: { flex: 1, padding: '14px 24px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 10, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)', transition: 'all 0.2s' },
   footer: { display: 'flex', gap: 12, marginTop: 20 },
   durationSection: { marginBottom: 20 },
-  durationLabel: { fontSize: 13, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 },
+  durationLabel: { fontSize: 13, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  durationHint: { fontSize: 10, fontWeight: 500, color: '#14b8a6', textTransform: 'none', letterSpacing: 0 },
   durationGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 },
+  durationScroll: { display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', gap: 8, paddingBottom: 6, scrollbarWidth: 'thin' },
   durationBtn: { padding: '10px 4px', background: '#fff', color: '#065f46', border: '2px solid #ecfdf5', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.15s' },
   durationBtnSelected: { background: 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)', color: '#fff', borderColor: '#065f46', boxShadow: '0 4px 12px rgba(20, 184, 166, 0.3)' },
+  durationBtnScroll: { padding: '12px 18px', minWidth: 70, background: '#fff', color: '#065f46', border: '2px solid #ecfdf5', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.15s', scrollSnapAlign: 'start', flexShrink: 0 },
+  durationBtnScrollSelected: { background: 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)', color: '#fff', borderColor: '#065f46', boxShadow: '0 4px 12px rgba(20, 184, 166, 0.3)' },
   slotsSection: { marginBottom: 16 },
   slotsLabel: { fontSize: 13, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 },
   slotsGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 },
