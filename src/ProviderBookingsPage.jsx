@@ -439,55 +439,105 @@ function ProviderBookingsPage() {
       </div>
 
       <div style={styles.container}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
-          <div style={styles.filters}>
-            {['all', 'pending', 'confirmed', 'cancelled', 'archived'].map(status => (
-              <button
-                key={status}
-                onClick={() => setStatusFilter(status)}
-                style={{
-                  ...styles.filterBtn,
-                  ...(statusFilter === status ? styles.filterBtnActive : {})
-                }}
-              >
-                {status.charAt(0).toUpperCase() + status.slice(1)}
-              </button>
-            ))}
+        {/* Pyramide-Style Filter + Toggle - Profi Design */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, marginBottom: 24 }}>
+          {/* Status-Filter Card - Card mit Gradient + Pills */}
+          <div style={{
+            background: 'linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%)',
+            padding: '14px 20px',
+            borderRadius: 16,
+            boxShadow: '0 8px 24px rgba(6, 95, 70, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)',
+            border: '1px solid rgba(20, 184, 166, 0.15)',
+            display: 'flex',
+            gap: 8,
+            flexWrap: 'wrap',
+            justifyContent: 'center'
+          }}>
+            {[
+              { key: 'all', label: 'All', icon: '📋' },
+              { key: 'pending', label: 'Pending', icon: '⏳' },
+              { key: 'confirmed', label: 'Confirmed', icon: '✅' },
+              { key: 'cancelled', label: 'Cancelled', icon: '❌' },
+              { key: 'archived', label: 'Archived', icon: '📦' }
+            ].map(({ key, label, icon }) => {
+              const isActive = statusFilter === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setStatusFilter(key)}
+                  style={{
+                    padding: '9px 16px',
+                    borderRadius: 999,
+                    border: 'none',
+                    cursor: 'pointer',
+                    background: isActive ? 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)' : 'transparent',
+                    color: isActive ? '#fff' : '#6b7280',
+                    fontWeight: 600,
+                    fontSize: 13,
+                    fontFamily: '"Outfit", sans-serif',
+                    boxShadow: isActive ? '0 4px 12px rgba(20, 184, 166, 0.35)' : 'none',
+                    transform: isActive ? 'translateY(-1px)' : 'translateY(0)',
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    whiteSpace: 'nowrap'
+                  }}
+                  onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'rgba(20, 184, 166, 0.08)'; }}
+                  onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
+                >
+                  <span style={{ fontSize: 14 }}>{icon}</span>
+                  <span>{label}</span>
+                </button>
+              );
+            })}
           </div>
-          <div style={{ display: 'flex', gap: 8, background: '#fff', padding: 6, borderRadius: 10, boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-            <button
-              onClick={() => setViewMode('list')}
-              style={{
-                padding: '8px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                background: viewMode === 'list' ? '#065f46' : 'transparent',
-                color: viewMode === 'list' ? '#fff' : '#6b7280',
-                fontWeight: 600, fontSize: 14, fontFamily: '"Outfit", sans-serif'
-              }}
-            >
-              📋 List
-            </button>
-            <button
-              onClick={() => setViewMode('calendar')}
-              style={{
-                padding: '8px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                background: viewMode === 'calendar' ? '#065f46' : 'transparent',
-                color: viewMode === 'calendar' ? '#fff' : '#6b7280',
-                fontWeight: 600, fontSize: 14, fontFamily: '"Outfit", sans-serif'
-              }}
-            >
-              📅 Month
-            </button>
-            <button
-              onClick={() => setViewMode('week')}
-              style={{
-                padding: '8px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
-                background: viewMode === 'week' ? '#065f46' : 'transparent',
-                color: viewMode === 'week' ? '#fff' : '#6b7280',
-                fontWeight: 600, fontSize: 14, fontFamily: '"Outfit", sans-serif'
-              }}
-            >
-              🗓 Week
-            </button>
+
+          {/* View-Toggle drunter - schmaler */}
+          <div style={{
+            background: '#ffffff',
+            padding: '8px 12px',
+            borderRadius: 14,
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.06)',
+            border: '1px solid #f3f4f6',
+            display: 'flex',
+            gap: 6
+          }}>
+            {[
+              { key: 'list', label: 'List', icon: '📋' },
+              { key: 'calendar', label: 'Month', icon: '📅' },
+              { key: 'week', label: 'Week', icon: '🗓' }
+            ].map(({ key, label, icon }) => {
+              const isActive = viewMode === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setViewMode(key)}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: 10,
+                    border: 'none',
+                    cursor: 'pointer',
+                    background: isActive ? 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)' : 'transparent',
+                    color: isActive ? '#fff' : '#6b7280',
+                    fontWeight: 600,
+                    fontSize: 13,
+                    fontFamily: '"Outfit", sans-serif',
+                    boxShadow: isActive ? '0 4px 12px rgba(20, 184, 166, 0.35)' : 'none',
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 5,
+                    whiteSpace: 'nowrap'
+                  }}
+                  onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'rgba(20, 184, 166, 0.08)'; }}
+                  onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
+                >
+                  <span style={{ fontSize: 14 }}>{icon}</span>
+                  <span>{label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
