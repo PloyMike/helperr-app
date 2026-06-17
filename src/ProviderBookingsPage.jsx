@@ -586,67 +586,43 @@ function ProviderBookingsPage() {
                 </div>
               );
             })()}
-            {(() => {
-              const { minH, maxH } = getWeekHourRange();
-              const totalHours = maxH - minH;
-              const hourHeight = 50;
-              const weekDates = getWeekDates();
-              const today = formatDateISOLocal(new Date());
-              return (
-                <div style={{ minWidth: 700 }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '60px repeat(7, 1fr)', gap: 4, marginBottom: 8 }}>
-                    <div></div>
-                    {weekDates.map(date => {
-                      const iso = formatDateISOLocal(date);
-                      const isToday = iso === today;
-                      const dayOpen = isDayOpen(date);
-                      return (
-                        <div key={iso} style={{ textAlign: 'center', padding: 8, background: isToday ? '#ecfdf5' : (dayOpen ? '#f9fafb' : '#fef2f2'), borderRadius: 8, border: isToday ? '2px solid #14b8a6' : '1px solid #f3f4f6' }}>
-                          <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
-                          <div style={{ fontSize: 16, fontWeight: 700, color: dayOpen ? '#065f46' : '#9ca3af' }}>{date.getDate()}</div>
-                          {!dayOpen && <div style={{ fontSize: 9, color: '#dc2626', fontWeight: 600 }}>CLOSED</div>}
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '60px repeat(7, 1fr)', gap: 4, position: 'relative' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      {Array.from({ length: totalHours }).map((_, i) => (
-                        <div key={i} style={{ height: hourHeight, fontSize: 11, color: '#9ca3af', fontWeight: 600, paddingRight: 6, textAlign: 'right', borderTop: '1px solid #f3f4f6' }}>
-                          {String(minH + i).padStart(2, '0')}:00
-                        </div>
-                      ))}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
+              {getWeekDates().map(date => {
+                const iso = formatDateISOLocal(date);
+                const today = formatDateISOLocal(new Date());
+                const isToday = iso === today;
+                const dayOpen = isDayOpen(date);
+                const visibleStatuses = ['pending', 'confirmed', 'completed'];
+                const dayBookings = getBookingsForDate(iso)
+                  .filter(b => visibleStatuses.includes(b.status))
+                  .filter(b => !b.end_date || b.end_date === b.booking_date)
+                  .sort((a, b) => parseSlotStartMin(a.time_slot) - parseSlotStartMin(b.time_slot));
+                return (
+                  <div key={iso} style={{ minHeight: 220, background: isToday ? '#ecfdf5' : '#fff', border: isToday ? '2px solid #14b8a6' : '1px solid #f3f4f6', borderRadius: 10, padding: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <div style={{ textAlign: 'center', paddingBottom: 6, borderBottom: '1px solid #f3f4f6', marginBottom: 4 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase' }}>{date.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                      <div style={{ fontSize: 18, fontWeight: 700, color: dayOpen ? '#065f46' : '#9ca3af' }}>{date.getDate()}</div>
+                      {!dayOpen && <div style={{ fontSize: 9, color: '#dc2626', fontWeight: 600 }}>CLOSED</div>}
                     </div>
-                    {weekDates.map(date => {
-                      const iso = formatDateISOLocal(date);
-                      const dayOpen = isDayOpen(date);
-                      const dayBookings = getBookingsForDate(iso).filter(b => parseSlotRange(b.time_slot));
-                      return (
-                        <div key={iso} style={{ position: 'relative', height: totalHours * hourHeight, background: dayOpen ? '#fff' : '#fafafa', border: '1px solid #f3f4f6', borderRadius: 6 }}>
-                          {Array.from({ length: totalHours }).map((_, i) => (
-                            <div key={i} style={{ position: 'absolute', top: i * hourHeight, left: 0, right: 0, height: 1, background: '#f3f4f6' }} />
-                          ))}
-                          {dayBookings.map(b => {
-                            const range = parseSlotRange(b.time_slot);
-                            if (!range) return null;
-                            const top = ((range.startMin / 60) - minH) * hourHeight;
-                            const height = ((range.endMin - range.startMin) / 60) * hourHeight;
-                            if (top < 0 || top > totalHours * hourHeight) return null;
-                            const bgColor = b.status === 'confirmed' ? '#14b8a6' : b.status === 'pending' ? '#fbbf24' : '#9ca3af';
-                            return (
-                              <div key={b.id} onClick={() => { setExpandedDate(iso); setExpandedBookingId(b.id); }} style={{ position: 'absolute', top, left: 2, right: 2, height: Math.max(height - 2, 28), background: bgColor, color: '#fff', borderRadius: 6, padding: '4px 6px', fontSize: 11, fontWeight: 600, cursor: 'pointer', overflow: 'hidden', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                                <div style={{ fontWeight: 700, fontSize: 11 }}>{b.time_slot}</div>
-                                <div style={{ fontSize: 10, opacity: 0.95, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.customer_name}</div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      );
-                    })}
+                    {dayBookings.length === 0 ? (
+                      <div style={{ fontSize: 11, color: '#9ca3af', fontStyle: 'italic', textAlign: 'center', padding: 10 }}>No bookings</div>
+                    ) : (
+                      dayBookings.map(b => {
+                        const bgColor = b.status === 'confirmed' ? '#14b8a6' : b.status === 'pending' ? '#fbbf24' : '#9ca3af';
+                        const isMulti = b.end_date && b.end_date !== b.booking_date;
+                        const shortTime = isMulti ? b.time_slot : (b.time_slot?.split(' - ')[0] || '');
+                        return (
+                          <div key={b.id} onClick={() => { setExpandedDate(iso); setExpandedBookingId(b.id); }} style={{ background: bgColor, color: '#fff', borderRadius: 6, padding: '5px 7px', fontSize: 11, fontWeight: 600, cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }} title={`${b.time_slot} - ${b.customer_name}`}>
+                            <div style={{ fontWeight: 700 }}>{shortTime}</div>
+                            <div style={{ fontSize: 10, opacity: 0.95, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.customer_name}</div>
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
-                </div>
-              );
-            })()}
+                );
+              })}
+            </div>
           </div>
         ) : viewMode === 'calendar' ? (
           <div style={{ background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)', marginBottom: 24 }}>
