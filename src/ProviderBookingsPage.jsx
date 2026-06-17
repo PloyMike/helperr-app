@@ -566,26 +566,7 @@ function ProviderBookingsPage() {
               </h3>
               <button onClick={() => changeWeek(1)} style={{ background: '#f3f4f6', border: 'none', padding: '8px 14px', borderRadius: 8, fontSize: 18, cursor: 'pointer', fontWeight: 700, color: '#065f46' }}>→</button>
             </div>
-            {/* Multi-Day Banner Desktop */}
-            {(() => {
-              const weekStart = formatDateISOLocal(currentWeekStart);
-              const weekEndDate = new Date(currentWeekStart); weekEndDate.setDate(weekEndDate.getDate() + 6);
-              const weekEnd = formatDateISOLocal(weekEndDate);
-              const multiDay = filteredBookings.filter(b => b.end_date && b.end_date !== b.booking_date && b.booking_date <= weekEnd && b.end_date >= weekStart);
-              if (multiDay.length === 0) return null;
-              return (
-                <div style={{ marginBottom: 16, padding: 12, background: '#ecfdf5', borderRadius: 10, border: '1px solid #14b8a6' }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: '#065f46', textTransform: 'uppercase', marginBottom: 6 }}>Multi-Day This Week</div>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {multiDay.map(b => (
-                      <div key={b.id} style={{ fontSize: 12, color: '#065f46', padding: '4px 10px', background: '#fff', borderRadius: 8, border: '1px solid #14b8a6' }}>
-                        ● {b.customer_name} • {b.time_slot} ({b.booking_date} → {b.end_date})
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })()}
+
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
               {getWeekDates().map(date => {
                 const iso = formatDateISOLocal(date);
@@ -623,6 +604,49 @@ function ProviderBookingsPage() {
                 );
               })}
             </div>
+            {expandedDate && (
+              <div style={{ marginTop: 20, padding: 16, background: '#f9fafb', borderRadius: 12 }}>
+                <h4 style={{ margin: '0 0 12px', color: '#065f46', fontSize: 16, fontFamily: '"Outfit", sans-serif' }}>
+                  {new Date(expandedDate).toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
+                </h4>
+                {(() => {
+                  const visibleStatuses = ['pending', 'confirmed', 'completed'];
+                  const dayBookings = getBookingsForDate(expandedDate)
+                    .filter(b => visibleStatuses.includes(b.status))
+                    .sort((a, b) => parseSlotStartMin(a.time_slot) - parseSlotStartMin(b.time_slot));
+                  if (dayBookings.length === 0) return <div style={{ color: '#9ca3af', fontSize: 14 }}>No bookings</div>;
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                      {dayBookings.map(b => (
+                        <button
+                          key={b.id}
+                          onClick={() => setExpandedBookingId(expandedBookingId === b.id ? null : b.id)}
+                          style={{
+                            padding: '10px 14px',
+                            background: '#fff',
+                            border: '2px solid #ecfdf5',
+                            borderRadius: 10,
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            fontFamily: '"Outfit", sans-serif'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                              <div style={{ fontSize: 14, fontWeight: 700, color: '#065f46' }}>{b.time_slot}</div>
+                              <div style={{ fontSize: 13, color: '#6b7280' }}>{b.customer_name} • {b.service_name}</div>
+                            </div>
+                            <div style={{ fontSize: 11, padding: '4px 8px', borderRadius: 6, background: b.status === 'confirmed' ? '#d1fae5' : b.status === 'pending' ? '#fef3c7' : '#f3f4f6', color: b.status === 'confirmed' ? '#065f46' : b.status === 'pending' ? '#92400e' : '#6b7280', fontWeight: 600 }}>
+                              {b.status}
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
           </div>
         ) : viewMode === 'calendar' ? (
           <div style={{ background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)', marginBottom: 24 }}>
