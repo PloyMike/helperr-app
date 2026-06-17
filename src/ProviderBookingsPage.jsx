@@ -662,42 +662,101 @@ function ProviderBookingsPage() {
                 <div key={day} style={{ fontSize: 12, fontWeight: 700, color: '#6b7280', textAlign: 'center', padding: 6 }}>{day}</div>
               ))}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, alignItems: 'stretch' }}>
               {getCalendarMonthDates().map((date, idx) => {
-                if (!date) return <div key={'empty-' + idx} style={{ aspectRatio: '1' }} />;
+                if (!date) return <div key={'empty-' + idx} style={{ minHeight: isMobile ? 50 : 100 }} />;
                 const iso = formatDateISOLocal(date);
-                const dayBookings = getBookingsForDate(iso);
+                // Filter: only pending, confirmed, completed (not cancelled/archived)
+                const visibleStatuses = ['pending', 'confirmed', 'completed'];
+                const dayBookings = getBookingsForDate(iso)
+                  .filter(b => visibleStatuses.includes(b.status))
+                  .sort((a, b) => parseSlotStartMin(a.time_slot) - parseSlotStartMin(b.time_slot));
                 const hasBookings = dayBookings.length > 0;
                 const isExpanded = expandedDate === iso;
                 const today = formatDateISOLocal(new Date());
                 const isToday = iso === today;
+
+                if (isMobile) {
+                  // Mobile: keep dot-based compact view
+                  return (
+                    <button
+                      key={iso}
+                      onClick={() => setExpandedDate(isExpanded ? null : iso)}
+                      style={{
+                        aspectRatio: '1',
+                        background: isExpanded ? '#14b8a6' : (hasBookings ? '#ecfdf5' : '#fff'),
+                        color: isExpanded ? '#fff' : (hasBookings ? '#065f46' : '#374151'),
+                        border: isToday ? '2px solid #14b8a6' : '2px solid #f3f4f6',
+                        borderRadius: 10,
+                        cursor: 'pointer',
+                        fontWeight: hasBookings ? 700 : 500,
+                        fontSize: 14,
+                        fontFamily: '"Outfit", sans-serif',
+                        position: 'relative',
+                        transition: 'all 0.15s'
+                      }}
+                    >
+                      {date.getDate()}
+                      {hasBookings && (
+                        <div style={{ position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 2 }}>
+                          {Array.from({ length: Math.min(dayBookings.length, 3) }).map((_, i) => (
+                            <div key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: isExpanded ? '#fff' : '#14b8a6' }} />
+                          ))}
+                        </div>
+                      )}
+                    </button>
+                  );
+                }
+
+                // Desktop: Google Calendar style with booking entries inside
                 return (
-                  <button
+                  <div
                     key={iso}
                     onClick={() => setExpandedDate(isExpanded ? null : iso)}
                     style={{
-                      aspectRatio: '1',
-                      background: isExpanded ? '#14b8a6' : (hasBookings ? '#ecfdf5' : '#fff'),
-                      color: isExpanded ? '#fff' : (hasBookings ? '#065f46' : '#374151'),
-                      border: isToday ? '2px solid #14b8a6' : '2px solid #f3f4f6',
-                      borderRadius: 10,
+                      minHeight: 100,
+                      background: isExpanded ? '#ecfdf5' : '#fff',
+                      border: isToday ? '2px solid #14b8a6' : '1px solid #f3f4f6',
+                      borderRadius: 8,
                       cursor: 'pointer',
-                      fontWeight: hasBookings ? 700 : 500,
-                      fontSize: 14,
-                      fontFamily: '"Outfit", sans-serif',
-                      position: 'relative',
+                      padding: 6,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 3,
                       transition: 'all 0.15s'
                     }}
                   >
-                    {date.getDate()}
-                    {hasBookings && (
-                      <div style={{ position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 2 }}>
-                        {Array.from({ length: Math.min(dayBookings.length, 3) }).map((_, i) => (
-                          <div key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: isExpanded ? '#fff' : '#14b8a6' }} />
-                        ))}
-                      </div>
-                    )}
-                  </button>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: isToday ? '#14b8a6' : '#065f46', marginBottom: 2 }}>
+                      {date.getDate()}
+                    </div>
+                    {dayBookings.map(b => {
+                      const bgColor = b.status === 'confirmed' ? '#14b8a6' : b.status === 'pending' ? '#fbbf24' : '#9ca3af';
+                      // Extract short label: "10:00" for hour, "1d/3d" for multi-day
+                      const isMulti = b.end_date && b.end_date !== b.booking_date;
+                      const shortTime = isMulti ? b.time_slot : (b.time_slot?.split(' - ')[0] || '');
+                      return (
+                        <div
+                          key={b.id}
+                          onClick={(e) => { e.stopPropagation(); setExpandedDate(iso); setExpandedBookingId(b.id); }}
+                          style={{
+                            background: bgColor,
+                            color: '#fff',
+                            borderRadius: 4,
+                            padding: '2px 5px',
+                            fontSize: 11,
+                            fontWeight: 600,
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            cursor: 'pointer'
+                          }}
+                          title={`${b.time_slot} - ${b.customer_name}`}
+                        >
+                          {shortTime} {b.customer_name}
+                        </div>
+                      );
+                    })}
+                  </div>
                 );
               })}
             </div>
