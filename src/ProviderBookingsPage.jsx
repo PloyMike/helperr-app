@@ -454,12 +454,12 @@ function ProviderBookingsPage() {
             justifyContent: 'center'
           }}>
             {[
-              { key: 'all', label: 'All', icon: '📋' },
-              { key: 'pending', label: 'Pending', icon: '⏳' },
-              { key: 'confirmed', label: 'Confirmed', icon: '✅' },
-              { key: 'cancelled', label: 'Cancelled', icon: '❌' },
-              { key: 'archived', label: 'Archived', icon: '📦' }
-            ].map(({ key, label, icon }) => {
+              { key: 'all', label: 'All' },
+              { key: 'pending', label: 'Pending' },
+              { key: 'confirmed', label: 'Confirmed' },
+              { key: 'cancelled', label: 'Cancelled' },
+              { key: 'archived', label: 'Archived' }
+            ].map(({ key, label }) => {
               const isActive = statusFilter === key;
               return (
                 <button
@@ -486,8 +486,7 @@ function ProviderBookingsPage() {
                   onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'rgba(20, 184, 166, 0.08)'; }}
                   onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
                 >
-                  <span style={{ fontSize: 14 }}>{icon}</span>
-                  <span>{label}</span>
+                  {label}
                 </button>
               );
             })}
@@ -504,10 +503,10 @@ function ProviderBookingsPage() {
             gap: 6
           }}>
             {[
-              { key: 'list', label: 'List', icon: '📋' },
-              { key: 'calendar', label: 'Month', icon: '📅' },
-              { key: 'week', label: 'Week', icon: '🗓' }
-            ].map(({ key, label, icon }) => {
+              { key: 'list', label: 'List' },
+              { key: 'calendar', label: 'Month' },
+              { key: 'week', label: 'Week' }
+            ].map(({ key, label }) => {
               const isActive = viewMode === key;
               return (
                 <button
@@ -533,8 +532,7 @@ function ProviderBookingsPage() {
                   onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'rgba(20, 184, 166, 0.08)'; }}
                   onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
                 >
-                  <span style={{ fontSize: 14 }}>{icon}</span>
-                  <span>{label}</span>
+                  {label}
                 </button>
               );
             })}

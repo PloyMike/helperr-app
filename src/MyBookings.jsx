@@ -299,19 +299,48 @@ function MyBookings() {
       </div>
 
       <div style={styles.container}>
-        <div style={styles.filters}>
-          {['all', 'pending', 'confirmed', 'cancelled', 'archived'].map(status => (
-            <button
-              key={status}
-              onClick={() => setStatusFilter(status)}
-              style={{
-                ...styles.filterBtn,
-                ...(statusFilter === status ? styles.filterBtnActive : {})
-              }}
-            >
-              {status.charAt(0).toUpperCase() + status.slice(1)}
-            </button>
-          ))}
+        {/* Profi-Design: Status-Filter centered with gradient card + pills */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%)',
+            padding: '14px 20px',
+            borderRadius: 16,
+            boxShadow: '0 8px 24px rgba(6, 95, 70, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)',
+            border: '1px solid rgba(20, 184, 166, 0.15)',
+            display: 'flex',
+            gap: 8,
+            flexWrap: 'wrap',
+            justifyContent: 'center'
+          }}>
+            {['all', 'pending', 'confirmed', 'cancelled', 'archived'].map(status => {
+              const isActive = statusFilter === status;
+              return (
+                <button
+                  key={status}
+                  onClick={() => setStatusFilter(status)}
+                  style={{
+                    padding: '9px 18px',
+                    borderRadius: 999,
+                    border: 'none',
+                    cursor: 'pointer',
+                    background: isActive ? 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)' : 'transparent',
+                    color: isActive ? '#fff' : '#6b7280',
+                    fontWeight: 600,
+                    fontSize: 13,
+                    fontFamily: '"Outfit", sans-serif',
+                    boxShadow: isActive ? '0 4px 12px rgba(20, 184, 166, 0.35)' : 'none',
+                    transform: isActive ? 'translateY(-1px)' : 'translateY(0)',
+                    transition: 'all 0.2s ease',
+                    whiteSpace: 'nowrap'
+                  }}
+                  onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = 'rgba(20, 184, 166, 0.08)'; }}
+                  onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
+                >
+                  {status.charAt(0).toUpperCase() + status.slice(1)}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {filteredBookings.length === 0 ? (
