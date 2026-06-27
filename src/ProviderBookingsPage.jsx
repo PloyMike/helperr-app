@@ -814,32 +814,54 @@ function ProviderBookingsPage() {
                 const isToday = iso === today;
 
                 if (isMobile) {
-                  // Mobile: keep dot-based compact view
+                  // Mobile: colored box (B) + badge with count (C)
+                  // Box wird teal-farbig wenn Bookings da, mit Anzahl als Badge oben rechts
+                  const bookingCount = dayBookings.length;
                   return (
                     <button
                       key={iso}
                       onClick={() => setExpandedDate(isExpanded ? null : iso)}
                       style={{
                         aspectRatio: '1',
-                        background: isExpanded ? '#14b8a6' : (hasBookings ? '#ecfdf5' : '#fff'),
-                        color: isExpanded ? '#fff' : (hasBookings ? '#065f46' : '#374151'),
-                        border: isToday ? '2px solid #14b8a6' : '2px solid #f3f4f6',
+                        background: isExpanded
+                          ? 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)'
+                          : (hasBookings ? 'linear-gradient(135deg, #14b8a6 0%, #0d9488 100%)' : '#fff'),
+                        color: (isExpanded || hasBookings) ? '#fff' : '#374151',
+                        border: isToday ? '2px solid #065f46' : '2px solid #f3f4f6',
                         borderRadius: 10,
                         cursor: 'pointer',
                         fontWeight: hasBookings ? 700 : 500,
-                        fontSize: 14,
+                        fontSize: 16,
                         fontFamily: '"Outfit", sans-serif',
                         position: 'relative',
-                        transition: 'all 0.15s'
+                        transition: 'all 0.15s',
+                        boxShadow: hasBookings ? '0 2px 8px rgba(20, 184, 166, 0.25)' : 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
                       }}
                     >
                       {date.getDate()}
-                      {hasBookings && (
-                        <div style={{ position: 'absolute', bottom: 4, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 2 }}>
-                          {Array.from({ length: Math.min(dayBookings.length, 3) }).map((_, i) => (
-                            <div key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: isExpanded ? '#fff' : '#14b8a6' }} />
-                          ))}
-                        </div>
+                      {hasBookings && bookingCount > 0 && (
+                        <span style={{
+                          position: 'absolute',
+                          top: 2,
+                          right: 2,
+                          background: '#fff',
+                          color: '#065f46',
+                          borderRadius: '50%',
+                          minWidth: 16,
+                          height: 16,
+                          fontSize: 10,
+                          fontWeight: 700,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '0 4px',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.15)'
+                        }}>
+                          {bookingCount}
+                        </span>
                       )}
                     </button>
                   );
