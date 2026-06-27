@@ -12,6 +12,7 @@ function ProviderBookingsPage() {
   // === Calendar View State ===
   const [viewMode, setViewMode] = useState('list'); // 'list', 'calendar', or 'week'
   const [isMobile, setIsMobile] = useState(false);
+  const [selectedBookingForModal, setSelectedBookingForModal] = useState(null);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -19,6 +20,14 @@ function ProviderBookingsPage() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // ESC key closes modal
+  useEffect(() => {
+    if (!selectedBookingForModal) return;
+    const handleEsc = (e) => { if (e.key === 'Escape') setSelectedBookingForModal(null); };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [selectedBookingForModal]);
   const [currentCalendarMonth, setCurrentCalendarMonth] = useState(new Date());
   const [expandedDate, setExpandedDate] = useState(null);
   const [expandedBookingId, setExpandedBookingId] = useState(null);
@@ -394,6 +403,86 @@ function ProviderBookingsPage() {
     return b.status === statusFilter;
   });
 
+  // Helper: render a single booking card (used in list AND modal)
+  const renderBookingCard = (booking, opts = {}) => {
+    if (!booking) return null;
+    const inModal = opts.inModal || false;
+    return (
+      <div key={booking.id} style={{...styles.card, position: "relative", ...(inModal ? { boxShadow: 'none', margin: 0 } : {})}}>
+        <div style={styles.cardHeader}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={styles.customerPlaceholder}>
+              {booking.customer_name?.charAt(0).toUpperCase() || 'U'}
+            </div>
+            <div>
+              <h3 style={styles.cardTitle}>{booking.customer_name}</h3>
+              <p style={styles.cardSub}>Customer Request</p>
+            </div>
+          </div>
+          <span style={{...styles.statusBadge, background: getStatusColor(booking.status)}}>
+            {getStatusLabel(booking.status)}
+          </span>
+          {!inModal && <button onClick={() => handleArchive(booking.id)} style={styles.archiveBtn} title="Archive booking">✕</button>}
+        </div>
+
+        <div style={styles.cardBody}>
+          {booking.end_date && booking.end_date !== booking.booking_date ? (
+            <>
+              <div style={styles.infoRow}><div><span style={styles.infoLabel}>From</span><span style={styles.infoValue}>{new Date(booking.booking_date).toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span></div></div>
+              <div style={styles.infoRow}><div><span style={styles.infoLabel}>To</span><span style={styles.infoValue}>{new Date(booking.end_date).toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span></div></div>
+              <div style={styles.infoRow}><div><span style={styles.infoLabel}>Duration</span><span style={styles.infoValue}>{booking.time_slot}</span></div></div>
+              {(() => {
+                const date = new Date(booking.booking_date);
+                const dayKey = ['sun','mon','tue','wed','thu','fri','sat'][date.getDay()];
+                const startTime = booking.profiles?.schedule?.[dayKey]?.start;
+                if (!startTime) return null;
+                return (<div style={styles.infoRow}><div><span style={styles.infoLabel}>Service starts at</span><span style={styles.infoValue}>{startTime}</span></div></div>);
+              })()}
+            </>
+          ) : (
+            <>
+              <div style={styles.infoRow}><div><span style={styles.infoLabel}>Date</span><span style={styles.infoValue}>{new Date(booking.booking_date).toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span></div></div>
+              <div style={styles.infoRow}><div><span style={styles.infoLabel}>Time</span><span style={styles.infoValue}>{booking.time_slot}</span></div></div>
+            </>
+          )}
+          {booking.service_address && (
+            <div style={styles.infoRow}>
+              <div>
+                <span style={styles.infoLabel}>Address</span>
+                <span style={styles.infoValue}>
+                  {booking.service_address?.startsWith("GPS Location:") ? (() => { const coords = booking.service_address.replace("GPS Location: ", "").split(", "); return <a href={`https://www.google.com/maps?q=${coords[0]},${coords[1]}`} target="_blank" rel="noopener noreferrer" style={{ color: "#14B8A6", textDecoration: "underline" }}>📍 {booking.service_address}</a>; })() : (booking.service_address || "No address provided")}
+                  {booking.address_notes && <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>Note: {booking.address_notes}</div>}
+                </span>
+              </div>
+            </div>
+          )}
+          <div style={styles.infoRow}>
+            <div>
+              <span style={styles.infoLabel}>Contact</span>
+              <button onClick={() => { localStorage.setItem('helperr_message_to', booking.customer_email); window.navigateTo('messages'); }} style={styles.contactBtn}>
+                💬 Contact via Helperr Messages
+              </button>
+            </div>
+          </div>
+          <div style={styles.infoRow}><div><span style={styles.infoLabel}>Price</span><span style={styles.infoValue}>{booking.total_price}</span></div></div>
+          {booking.message && (<div style={styles.messageBox}><span style={styles.infoLabel}>Message:</span><p style={styles.messageText}>{booking.message}</p></div>)}
+        </div>
+
+        <div style={styles.cardActions}>
+          {booking.status === 'pending' && (
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => handleAccept(booking.id)} style={styles.btnAccept}>Accept</button>
+              <button onClick={() => handleDecline(booking.id)} style={styles.btnDecline}>Decline</button>
+            </div>
+          )}
+          {booking.status === 'confirmed' && booking.payment_status !== 'captured' && (
+            <button onClick={() => handleCancelConfirmed(booking.id)} style={styles.btnDecline}>Cancel Booking</button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   if (!user) {
     return (
       <div style={styles.app}>
@@ -592,7 +681,7 @@ function ProviderBookingsPage() {
                         {dayBookings.map(b => {
                           const bgColor = b.status === 'confirmed' ? '#14b8a6' : b.status === 'pending' ? '#fbbf24' : '#9ca3af';
                           return (
-                            <div key={b.id} onClick={() => { setExpandedDate(iso); setExpandedBookingId(b.id); }} style={{ background: bgColor, color: '#fff', borderRadius: 8, padding: '8px 10px', cursor: 'pointer' }}>
+                            <div key={b.id} onClick={() => setSelectedBookingForModal(b)} style={{ background: bgColor, color: '#fff', borderRadius: 8, padding: '8px 10px', cursor: 'pointer' }}>
                               <div style={{ fontSize: 13, fontWeight: 700 }}>{b.time_slot}</div>
                               <div style={{ fontSize: 11, opacity: 0.95 }}>{b.customer_name} • {b.service_name}</div>
                             </div>
@@ -641,7 +730,7 @@ function ProviderBookingsPage() {
                         const isMulti = b.end_date && b.end_date !== b.booking_date;
                         const shortTime = isMulti ? b.time_slot : (b.time_slot?.split(' - ')[0] || '');
                         return (
-                          <div key={b.id} onClick={() => { setExpandedDate(iso); setExpandedBookingId(b.id); }} style={{ background: bgColor, color: '#fff', borderRadius: 6, padding: '5px 7px', fontSize: 11, fontWeight: 600, cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }} title={`${b.time_slot} - ${b.customer_name}`}>
+                          <div key={b.id} onClick={() => setSelectedBookingForModal(b)} style={{ background: bgColor, color: '#fff', borderRadius: 6, padding: '5px 7px', fontSize: 11, fontWeight: 600, cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }} title={`${b.time_slot} - ${b.customer_name}`}>
                             <div style={{ fontWeight: 700 }}>{shortTime}</div>
                             <div style={{ fontSize: 10, opacity: 0.95, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{b.customer_name}</div>
                           </div>
@@ -668,7 +757,7 @@ function ProviderBookingsPage() {
                       {dayBookings.map(b => (
                         <button
                           key={b.id}
-                          onClick={() => setExpandedBookingId(expandedBookingId === b.id ? null : b.id)}
+                          onClick={() => setSelectedBookingForModal(b)}
                           style={{
                             padding: '10px 14px',
                             background: '#fff',
@@ -785,7 +874,7 @@ function ProviderBookingsPage() {
                       return (
                         <div
                           key={b.id}
-                          onClick={(e) => { e.stopPropagation(); setExpandedDate(iso); setExpandedBookingId(b.id); }}
+                          onClick={(e) => { e.stopPropagation(); setSelectedBookingForModal(b); }}
                           style={{
                             background: bgColor,
                             color: '#fff',
@@ -822,7 +911,7 @@ function ProviderBookingsPage() {
                       .map(b => (
                         <button
                           key={b.id}
-                          onClick={() => setExpandedBookingId(expandedBookingId === b.id ? null : b.id)}
+                          onClick={() => setSelectedBookingForModal(b)}
                           style={{
                             padding: '10px 14px',
                             background: '#fff',
@@ -856,143 +945,47 @@ function ProviderBookingsPage() {
           </div>
         ) : (
           <div style={styles.grid}>
-            {filteredBookings.map(booking => (
-              <div key={booking.id} style={{...styles.card, position: "relative"}}>
-                <div style={styles.cardHeader}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={styles.customerPlaceholder}>
-                      {booking.customer_name?.charAt(0).toUpperCase() || 'U'}
-                    </div>
-                    <div>
-                      <h3 style={styles.cardTitle}>{booking.customer_name}</h3>
-                      <p style={styles.cardSub}>Customer Request</p>
-                    </div>
-                  </div>
-                  <span style={{...styles.statusBadge, background: getStatusColor(booking.status)}}>
-                    {getStatusLabel(booking.status)}
-                  </span>
-                  <button onClick={() => handleArchive(booking.id)} style={styles.archiveBtn} title="Archive booking">✕</button>
-                </div>
-
-                <div style={styles.cardBody}>
-                  {booking.end_date && booking.end_date !== booking.booking_date ? (
-                    <>
-                      <div style={styles.infoRow}>
-                        <div>
-                          <span style={styles.infoLabel}>From</span>
-                          <span style={styles.infoValue}>{new Date(booking.booking_date).toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span>
-                        </div>
-                      </div>
-                      <div style={styles.infoRow}>
-                        <div>
-                          <span style={styles.infoLabel}>To</span>
-                          <span style={styles.infoValue}>{new Date(booking.end_date).toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span>
-                        </div>
-                      </div>
-                      <div style={styles.infoRow}>
-                        <div>
-                          <span style={styles.infoLabel}>Duration</span>
-                          <span style={styles.infoValue}>{booking.time_slot}</span>
-                        </div>
-                      </div>
-                      {(() => {
-                        const date = new Date(booking.booking_date);
-                        const dayKey = ['sun','mon','tue','wed','thu','fri','sat'][date.getDay()];
-                        const startTime = booking.profiles?.schedule?.[dayKey]?.start;
-                        if (!startTime) return null;
-                        return (
-                          <div style={styles.infoRow}>
-                            <div>
-                              <span style={styles.infoLabel}>Service starts at</span>
-                              <span style={styles.infoValue}>{startTime}</span>
-                            </div>
-                          </div>
-                        );
-                      })()}
-                    </>
-                  ) : (
-                    <>
-                      <div style={styles.infoRow}>
-                        <div>
-                          <span style={styles.infoLabel}>Date</span>
-                          <span style={styles.infoValue}>{new Date(booking.booking_date).toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</span>
-                        </div>
-                      </div>
-                      <div style={styles.infoRow}>
-                        <div>
-                          <span style={styles.infoLabel}>Time</span>
-                          <span style={styles.infoValue}>{booking.time_slot}</span>
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  {booking.service_address && (
-                    <div style={styles.infoRow}>
-                      <div>
-                        <span style={styles.infoLabel}>Address</span>
-                        <span style={styles.infoValue}>
-                          {booking.service_address?.startsWith("GPS Location:") ? (() => { const coords = booking.service_address.replace("GPS Location: ", "").split(", "); return <a href={`https://www.google.com/maps?q=${coords[0]},${coords[1]}`} target="_blank" rel="noopener noreferrer" style={{ color: "#14B8A6", textDecoration: "underline" }}>📍 {booking.service_address}</a>; })() : (booking.service_address || "No address provided")}
-                          {booking.address_notes && <div style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>Note: {booking.address_notes}</div>}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div style={styles.infoRow}>
-                    <div>
-                      <span style={styles.infoLabel}>Contact</span>
-                      <button
-                        onClick={() => {
-                          localStorage.setItem('helperr_message_to', booking.customer_email);
-                          window.navigateTo('messages');
-                        }}
-                        style={styles.contactBtn}
-                      >
-                        💬 Contact via Helperr Messages
-                      </button>
-                    </div>
-                  </div>
-
-                  <div style={styles.infoRow}>
-                    <div>
-                      <span style={styles.infoLabel}>Price</span>
-                      <span style={styles.infoValue}>{booking.total_price}</span>
-                    </div>
-                  </div>
-
-                  {booking.message && (
-                    <div style={styles.messageBox}>
-                      <span style={styles.infoLabel}>Message:</span>
-                      <p style={styles.messageText}>{booking.message}</p>
-                    </div>
-                  )}
-                </div>
-
-                <div style={styles.cardActions}>
-                  {booking.status === 'pending' && (
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <button onClick={() => handleAccept(booking.id)} style={styles.btnAccept}>
-                        Accept
-                      </button>
-                      <button onClick={() => handleDecline(booking.id)} style={styles.btnDecline}>
-                        Decline
-                      </button>
-                    </div>
-                  )}
-
-                  {booking.status === 'confirmed' && booking.payment_status !== 'captured' && (
-                    <button onClick={() => handleCancelConfirmed(booking.id)} style={styles.btnDecline}>
-                      Cancel Booking
-                    </button>
-                  )}
-
-                </div>
-              </div>
-            ))}
+            {filteredBookings.map(booking => renderBookingCard(booking))}
           </div>
         )}
       </div>
+
+      {/* Modal: Booking Details */}
+      {selectedBookingForModal && (
+        <div
+          onClick={() => setSelectedBookingForModal(null)}
+          style={{
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0, 0, 0, 0.6)', zIndex: 9999,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: 20
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#fff', borderRadius: 16, maxWidth: 600, width: '100%',
+              maxHeight: '90vh', overflow: 'auto', position: 'relative',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)'
+            }}
+          >
+            <button
+              onClick={() => setSelectedBookingForModal(null)}
+              style={{
+                position: 'absolute', top: 12, right: 12, zIndex: 10,
+                background: '#f3f4f6', border: 'none', width: 36, height: 36,
+                borderRadius: '50%', cursor: 'pointer', fontSize: 18,
+                color: '#374151', fontWeight: 700,
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }}
+              title="Close"
+            >
+              ✕
+            </button>
+            {renderBookingCard(selectedBookingForModal, { inModal: true })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
