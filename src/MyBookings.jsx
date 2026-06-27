@@ -386,7 +386,7 @@ function MyBookings() {
                   <span style={{...styles.statusBadge, background: getStatusColor(booking)}}>
                     {getStatusLabel(booking)}
                   </span>
-                  <button onClick={() => handleArchive(booking.id)} style={styles.archiveBtn} title="Archive booking">✕</button>
+                  {booking.status !== 'archived' && <button onClick={() => handleArchive(booking.id)} style={styles.archiveBtn} title="Archive booking">✕</button>}
                 </div>
 
                 <div style={styles.cardBody}>

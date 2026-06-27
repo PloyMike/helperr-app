@@ -422,7 +422,7 @@ function ProviderBookingsPage() {
           <span style={{...styles.statusBadge, background: getStatusColor(booking.status)}}>
             {getStatusLabel(booking.status)}
           </span>
-          {!inModal && <button onClick={() => handleArchive(booking.id)} style={styles.archiveBtn} title="Archive booking">✕</button>}
+          {!inModal && booking.status !== 'archived' && <button onClick={() => handleArchive(booking.id)} style={styles.archiveBtn} title="Archive booking">✕</button>}
         </div>
 
         <div style={styles.cardBody}>
