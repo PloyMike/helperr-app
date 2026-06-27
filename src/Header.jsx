@@ -313,17 +313,20 @@ function Header({ transparent, isScrolled }) {
                         marginLeft: 6,
                         background: '#ef4444',
                         color: 'white',
-                        borderRadius: '50%',
+                        borderRadius: 999,
                         minWidth: 18,
                         height: 18,
                         padding: '0 5px',
-                        fontSize: 11,
-                        fontWeight: 400,
+                        fontSize: 10,
+                        fontWeight: 700,
+                        letterSpacing: '0.2px',
                         display: 'inline-flex',
                         alignItems: 'center',
-                        justifyContent: 'center'
+                        justifyContent: 'center',
+                        boxShadow: '0 2px 4px rgba(239, 68, 68, 0.4)',
+                        fontFamily: '-apple-system, BlinkMacSystemFont, "Outfit", sans-serif'
                       }}>
-                        {messagesBadge}
+                        {messagesBadge > 9 ? "9+" : messagesBadge}
                       </span>
                     )}
                   </button>
@@ -337,17 +340,20 @@ function Header({ transparent, isScrolled }) {
                         marginLeft: 6,
                         background: '#ef4444',
                         color: 'white',
-                        borderRadius: '50%',
+                        borderRadius: 999,
                         minWidth: 18,
                         height: 18,
                         padding: '0 5px',
-                        fontSize: 11,
-                        fontWeight: 400,
+                        fontSize: 10,
+                        fontWeight: 700,
+                        letterSpacing: '0.2px',
                         display: 'inline-flex',
                         alignItems: 'center',
-                        justifyContent: 'center'
+                        justifyContent: 'center',
+                        boxShadow: '0 2px 4px rgba(239, 68, 68, 0.4)',
+                        fontFamily: '-apple-system, BlinkMacSystemFont, "Outfit", sans-serif'
                       }}>
-                        {myBookingsBadge}
+                        {myBookingsBadge > 9 ? "9+" : myBookingsBadge}
                       </span>
                     )}
                   </button>
@@ -362,17 +368,20 @@ function Header({ transparent, isScrolled }) {
                           marginLeft: 6,
                           background: '#ef4444',
                           color: 'white',
-                          borderRadius: '50%',
+                          borderRadius: 999,
                           minWidth: 18,
                           height: 18,
                           padding: '0 5px',
-                          fontSize: 11,
-                          fontWeight: 400,
+                          fontSize: 10,
+                          fontWeight: 700,
+                          letterSpacing: '0.2px',
                           display: 'inline-flex',
                           alignItems: 'center',
-                          justifyContent: 'center'
+                          justifyContent: 'center',
+                          boxShadow: '0 2px 4px rgba(239, 68, 68, 0.4)',
+                          fontFamily: '-apple-system, BlinkMacSystemFont, "Outfit", sans-serif'
                         }}>
-                          {providerBookingsBadge}
+                          {providerBookingsBadge > 9 ? "9+" : providerBookingsBadge}
                         </span>
                       )}
                     </button>
@@ -611,17 +620,20 @@ function Header({ transparent, isScrolled }) {
                     marginLeft: 'auto',
                     background: '#ef4444',
                     color: 'white',
-                    borderRadius: '50%',
+                    borderRadius: 999,
                     minWidth: 20,
                     height: 20,
                     padding: '0 6px',
                     fontSize: 11,
-                    fontWeight: 400,
+                    fontWeight: 700,
+                    letterSpacing: '0.2px',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    boxShadow: '0 2px 4px rgba(239, 68, 68, 0.4)',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Outfit", sans-serif'
                   }}>
-                    {messagesBadge}
+                    {messagesBadge > 9 ? "9+" : messagesBadge}
                   </span>
                 )}
               </button>
@@ -630,20 +642,23 @@ function Header({ transparent, isScrolled }) {
               {myBookingsBadge > 0 && (
                 <span style={{
                   marginLeft: 'auto',
-                    marginRight: 16,
+                  marginRight: 16,
                   background: '#ef4444',
                   color: 'white',
-                  borderRadius: '50%',
+                  borderRadius: 999,
                   minWidth: 20,
                   height: 20,
                   padding: '0 6px',
                   fontSize: 11,
-                  fontWeight: 400,
+                  fontWeight: 700,
+                  letterSpacing: '0.2px',
                   display: 'inline-flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 4px rgba(239, 68, 68, 0.4)',
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Outfit", sans-serif'
                 }}>
-                  {myBookingsBadge}
+                  {myBookingsBadge > 9 ? "9+" : myBookingsBadge}
                 </span>
               )}
             </button>
@@ -656,17 +671,20 @@ function Header({ transparent, isScrolled }) {
                     marginRight: 16,
                     background: '#ef4444',
                     color: 'white',
-                    borderRadius: '50%',
+                    borderRadius: 999,
                     minWidth: 20,
                     height: 20,
                     padding: '0 6px',
                     fontSize: 11,
-                    fontWeight: 400,
+                    fontWeight: 700,
+                    letterSpacing: '0.2px',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    boxShadow: '0 2px 4px rgba(239, 68, 68, 0.4)',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Outfit", sans-serif'
                   }}>
-                    {providerBookingsBadge}
+                    {providerBookingsBadge > 9 ? "9+" : providerBookingsBadge}
                   </span>
                 )}
               </button>
