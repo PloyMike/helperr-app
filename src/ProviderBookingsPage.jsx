@@ -842,27 +842,6 @@ function ProviderBookingsPage() {
                       }}
                     >
                       {date.getDate()}
-                      {hasBookings && bookingCount > 0 && (
-                        <span style={{
-                          position: 'absolute',
-                          top: 2,
-                          right: 2,
-                          background: '#fff',
-                          color: '#065f46',
-                          borderRadius: '50%',
-                          minWidth: 16,
-                          height: 16,
-                          fontSize: 10,
-                          fontWeight: 700,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          padding: '0 4px',
-                          boxShadow: '0 1px 3px rgba(0,0,0,0.15)'
-                        }}>
-                          {bookingCount}
-                        </span>
-                      )}
                     </button>
                   );
                 }
