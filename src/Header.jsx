@@ -96,11 +96,15 @@ function Header({ transparent, isScrolled }) {
       }
 
       // Fetch unread messages count
-      const { count: unreadCount } = await supabase
+      const { count: unreadCount, error: msgErr } = await supabase
         .from('messages')
         .select('*', { count: 'exact', head: true })
         .eq('receiver_email', user.email)
         .or('read.is.null,read.eq.false');
+      
+      console.log('DEBUG msg query - user.email:', user.email);
+      console.log('DEBUG msg query - unreadCount:', unreadCount);
+      console.log('DEBUG msg query - error:', msgErr);
       
       setMessagesBadge(unreadCount || 0);
     } catch (error) {
