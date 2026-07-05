@@ -76,10 +76,6 @@ function MessagesPage() {
           senderNameMap[msg.sender_email] = msg.sender_name;
         }
       });
-      console.log('DEBUG userEmail:', userEmail);
-      console.log('DEBUG data sample:', data?.slice(0, 3));
-      console.log('DEBUG senderNameMap:', senderNameMap);
-      console.log('DEBUG convList emails:', emails);
       if (emails.length > 0) {
         const { data: profiles } = await supabase
           .from('profiles')
