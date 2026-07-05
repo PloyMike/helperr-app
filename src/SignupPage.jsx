@@ -15,9 +15,6 @@ function SignupPage() {
 
     const { data, error } = await signUp(email, password, name);
     
-    console.log('DEBUG SIGNUP data:', JSON.stringify(data, null, 2));
-    console.log('DEBUG SIGNUP error:', error);
-    
     if (error) {
       alert('Registration failed: ' + error.message);
       setLoading(false);
@@ -25,8 +22,8 @@ function SignupPage() {
     }
     
     // Supabase Security-Feature: bei already-registered gibt es KEIN error,
-    // aber data.user.identities Array ist leer
-    if (data?.user && data.user.identities && data.user.identities.length === 0) {
+    // aber data.user ist null (statt User-Object)
+    if (!data?.user) {
       alert('⚠ This email is already registered. Please log in instead.');
       window.navigateTo('login');
       setLoading(false);
