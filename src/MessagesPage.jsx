@@ -69,9 +69,9 @@ function MessagesPage() {
 
       const convList = Object.values(convMap);
       const emails = convList.map(c => c.email);
-      // Build lookup: latest sender_name pro chat-partner (from messages where they were sender)
+      // Build lookup: latest sender_name pro chat-partner (from loaded data)
       const senderNameMap = {};
-      messages?.forEach(msg => {
+      data?.forEach(msg => {
         if (msg.sender_email !== userEmail && msg.sender_name && !senderNameMap[msg.sender_email]) {
           senderNameMap[msg.sender_email] = msg.sender_name;
         }
@@ -166,6 +166,9 @@ function MessagesPage() {
     if (!newMessage.trim() || !selectedConversation) return;
     setSending(true);
     try {
+      console.log('DEBUG send message - user:', user);
+      console.log('DEBUG send message - user_metadata:', user?.user_metadata);
+      console.log('DEBUG send message - name:', user?.user_metadata?.name);
       const { error } = await supabase.from('messages').insert([{
         sender_email: userEmail,
         sender_name: user?.user_metadata?.name || null,
