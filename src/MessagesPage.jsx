@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useAuth } from './AuthContext';
 import { supabase } from './supabase';
 import Header from './Header';
 
 function MessagesPage() {
+  const { user } = useAuth();
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -67,6 +69,13 @@ function MessagesPage() {
 
       const convList = Object.values(convMap);
       const emails = convList.map(c => c.email);
+      // Build lookup: latest sender_name pro chat-partner (from messages where they were sender)
+      const senderNameMap = {};
+      messages?.forEach(msg => {
+        if (msg.sender_email !== userEmail && msg.sender_name && !senderNameMap[msg.sender_email]) {
+          senderNameMap[msg.sender_email] = msg.sender_name;
+        }
+      });
       if (emails.length > 0) {
         const { data: profiles } = await supabase
           .from('profiles')
@@ -74,7 +83,7 @@ function MessagesPage() {
           .in('email', emails);
         convList.forEach(conv => {
           const profile = profiles?.find(p => p.email === conv.email);
-          conv.name = profile?.name || conv.email;
+          conv.name = profile?.name || senderNameMap[conv.email] || conv.email;
           conv.image = profile?.image_url || '👤';
         });
       }
@@ -93,7 +102,7 @@ function MessagesPage() {
           if (profile) {
             conv = {
               email: profile.email,
-              name: profile.name || profile.email,
+              name: profile.name || senderNameMap[profile.email] || profile.email,
               image: profile.image_url || '👤',
               lastMessage: 'Start a conversation...',
               timestamp: new Date().toISOString(),
@@ -159,6 +168,7 @@ function MessagesPage() {
     try {
       const { error } = await supabase.from('messages').insert([{
         sender_email: userEmail,
+        sender_name: user?.user_metadata?.name || null,
         receiver_email: selectedConversation.email,
         message: newMessage.trim(),
         read: false
