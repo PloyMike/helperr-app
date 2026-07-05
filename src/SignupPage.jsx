@@ -15,6 +15,9 @@ function SignupPage() {
 
     const { data, error } = await signUp(email, password, name);
     
+    console.log('DEBUG SIGNUP data:', JSON.stringify(data, null, 2));
+    console.log('DEBUG SIGNUP error:', error);
+    
     if (error) {
       alert('Registration failed: ' + error.message);
       setLoading(false);
