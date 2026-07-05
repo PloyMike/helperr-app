@@ -127,7 +127,8 @@ function Header({ transparent, isScrolled }) {
         schema: 'public',
         table: 'messages',
         filter: `receiver_email=eq.${user.email}`
-      }, () => {
+      }, (payload) => {
+        console.log('DEBUG realtime message event:', payload);
         fetchBookingCounts();
       })
       .subscribe();
