@@ -115,6 +115,42 @@ function Header({ transparent, isScrolled }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, profile, hasProviderProfile]);
 
+  // Realtime: refresh badges when messages or bookings change
+  useEffect(() => {
+    if (!user) return;
+
+    // Messages: new message received or read status changed
+    const messagesChannel = supabase
+      .channel('header-messages-' + user.id)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'messages',
+        filter: `receiver_email=eq.${user.email}`
+      }, () => {
+        fetchBookingCounts();
+      })
+      .subscribe();
+
+    // Bookings: any change affects badges
+    const bookingsChannel = supabase
+      .channel('header-bookings-' + user.id)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'bookings'
+      }, () => {
+        fetchBookingCounts();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(messagesChannel);
+      supabase.removeChannel(bookingsChannel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
   // Protect Helperr logo from translation
   useEffect(() => {
     const observer = new MutationObserver(() => {
