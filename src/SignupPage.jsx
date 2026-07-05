@@ -13,14 +13,25 @@ function SignupPage() {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await signUp(email, password, name);
+    const { data, error } = await signUp(email, password, name);
     
     if (error) {
       alert('Registration failed: ' + error.message);
-    } else {
-      alert('✅ Registration successful! Please check your email to confirm.');
-      window.navigateTo('login');
+      setLoading(false);
+      return;
     }
+    
+    // Supabase Security-Feature: bei already-registered gibt es KEIN error,
+    // aber data.user.identities Array ist leer
+    if (data?.user && data.user.identities && data.user.identities.length === 0) {
+      alert('⚠ This email is already registered. Please log in instead.');
+      window.navigateTo('login');
+      setLoading(false);
+      return;
+    }
+    
+    alert('✅ Registration successful! Please check your email to confirm.');
+    window.navigateTo('login');
     setLoading(false);
   };
 
