@@ -74,7 +74,7 @@ function Header({ transparent, isScrolled }) {
   };
 
   const fetchBookingCounts = async () => {
-    if (!user || !profile) return;
+    if (!user) return;
 
     try {
       const { count: myCount } = await supabase
@@ -96,15 +96,11 @@ function Header({ transparent, isScrolled }) {
       }
 
       // Fetch unread messages count
-      const { count: unreadCount, error: msgErr } = await supabase
+      const { count: unreadCount } = await supabase
         .from('messages')
         .select('*', { count: 'exact', head: true })
         .eq('receiver_email', user.email)
         .or('read.is.null,read.eq.false');
-      
-      console.log('DEBUG msg query - user.email:', user.email);
-      console.log('DEBUG msg query - unreadCount:', unreadCount);
-      console.log('DEBUG msg query - error:', msgErr);
       
       setMessagesBadge(unreadCount || 0);
     } catch (error) {
@@ -113,7 +109,7 @@ function Header({ transparent, isScrolled }) {
   };
 
   useEffect(() => {
-    if (user && profile) {
+    if (user) {
       fetchBookingCounts();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -131,8 +127,7 @@ function Header({ transparent, isScrolled }) {
         schema: 'public',
         table: 'messages',
         filter: `receiver_email=eq.${user.email}`
-      }, (payload) => {
-        console.log('DEBUG realtime message event:', payload);
+      }, () => {
         fetchBookingCounts();
       })
       .subscribe();
