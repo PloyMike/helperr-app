@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 
 # Sitemap location
-Sitemap: https://helperr-app-indol.vercel.app/sitemap.xml
+Sitemap: https://helperr.co/sitemap.xml
 
 # Crawl delay (optional, be nice to servers)
 Crawl-delay: 1
