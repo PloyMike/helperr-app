@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
+
+const isNativeApp = Capacitor.isNativePlatform();
 import { supabase } from './supabase';
 
 function Header({ transparent, isScrolled }) {
@@ -247,7 +250,7 @@ function Header({ transparent, isScrolled }) {
     // Load Google Translate script if not already loaded
     if (!window.googleTranslateElementInit) {
       const script = document.createElement('script');
-      script.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+      script.src = 'https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
       document.body.appendChild(script);
       
       window.googleTranslateElementInit = () => {
@@ -894,7 +897,8 @@ function Header({ transparent, isScrolled }) {
     background: '#fff',
     borderBottom: '1px solid #e5e7eb',
     boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-    fontFamily: '"Outfit", sans-serif'
+    fontFamily: '"Outfit", sans-serif',
+    ...(isNativeApp ? { paddingTop: 'calc(env(safe-area-inset-top) - 6px)' } : {})
   },
   headerTransparentTop: {
     background: 'transparent',
@@ -915,7 +919,9 @@ function Header({ transparent, isScrolled }) {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    height: 70,
+    height: isNativeApp ? 32 : 70,
+    marginTop: 0,
+    marginBottom: isNativeApp ? 12 : 0,
     gap: 12
   },
   hamburgerBtn: {
@@ -1038,7 +1044,8 @@ function Header({ transparent, isScrolled }) {
     bottom: 0,
     background: 'rgba(0,0,0,0.5)',
     zIndex: 9999,
-    display: 'flex'
+    display: 'flex',
+    ...(isNativeApp ? { paddingTop: 'env(safe-area-inset-top)' } : {})
   },
   mobileMenu: {
     background: 'white',
