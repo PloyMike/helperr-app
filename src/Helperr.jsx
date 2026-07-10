@@ -621,7 +621,7 @@ const styles = {
   searchWrap: { background: '#fff', borderRadius: 999, display: 'flex', alignItems: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.15)', marginTop: 24, overflow: 'hidden' },
   searchIcon: { fontSize: 18, marginLeft: 18, marginRight: 10, opacity: 0.6 },
   searchInput: { border: 'none', outline: 'none', fontSize: 16, flex: 1, background: 'transparent', color: '#111827', padding: '14px 0' },
-  clearBtn: { background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: 18 },
+  clearBtn: { background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: 18, padding: '4px 8px', marginRight: 12 },
   filtersWrap: { background: '#fff', borderBottom: '1px solid #e5e7eb', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' },
   filters: { maxWidth: 1400, margin: '0 auto', padding: '12px 20px', display: 'flex', gap: 8, alignItems: 'center', overflowX: 'auto' },
   filterBtn: { background: '#fff', border: '1.5px solid #e5e7eb', borderRadius: 20, padding: '7px 16px', fontSize: 13, fontWeight: 500, color: '#6b7280', cursor: 'pointer', whiteSpace: 'nowrap', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)', transition: 'all 0.2s' },
