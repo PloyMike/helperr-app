@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Capacitor } from '@capacitor/core';
-
-const isNativeApp = Capacitor.isNativePlatform();
 import { supabase } from './supabase';
 
 function Header({ transparent, isScrolled }) {
@@ -886,6 +884,8 @@ function Header({ transparent, isScrolled }) {
       document.head.appendChild(style);
     }
   }
+
+  const isNativeApp = Capacitor.isNativePlatform();
 
   const styles = {
   header: {
