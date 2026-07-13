@@ -301,6 +301,9 @@ function Header({ transparent, isScrolled }) {
 
   const closeMobileMenu = () => setShowMobileMenu(false);
 
+  // Native App: KEIN Header (BottomNav ersetzt ihn)
+  if (isNativeApp) return null;
+
   return (
     <>
       <header style={{

@@ -23,6 +23,9 @@ import TermsPage from './TermsPage';
 import PrivacyPage from './PrivacyPage';
 import CookiesPage from './CookiesPage';
 import ExpertAgreementPage from './ExpertAgreementPage';
+import BottomNav from './BottomNav';
+import { supabase } from './supabase';
+import { useEffect } from 'react';
 import CommunityPage from './CommunityPage';
 import AboutPage from './AboutPage';
 import ContactPage from './ContactPage';
@@ -47,6 +50,24 @@ function App() {
   const initialView = isRecovery ? 'update-password' : (isRepay ? 'repay' : 'home');
   const [currentView, setCurrentView] = useState(initialView);
   const [selectedProfile, setSelectedProfile] = useState(null);
+  const [hasProviderProfile, setHasProviderProfile] = useState(false);
+
+  // Check ob User ein Provider-Profile hat
+  useEffect(() => {
+    const checkProvider = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setHasProviderProfile(false); return; }
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, job')
+        .eq('email', user.email)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      setHasProviderProfile(!!(data && data.job));
+    };
+    checkProvider();
+  }, [currentView]);
 
   window.navigateTo = (view, profile) => {
     setCurrentView(view);
@@ -162,6 +183,9 @@ function App() {
         
         {/* AI CHATBOT - Versteckt auf Messages Page */}
         {currentView !== 'messages' && <ChatbotWidget />}
+
+        {/* BOTTOM NAV - nur in native App (Capacitor) */}
+        <BottomNav currentView={currentView} hasProviderProfile={hasProviderProfile} />
       </div>
     </AuthProvider>
   );
