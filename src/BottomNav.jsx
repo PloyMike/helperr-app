@@ -31,17 +31,26 @@ const BottomNav = ({ currentView, hasProviderProfile }) => {
             <button
               key={view}
               onClick={() => handleClick(view)}
+              className="notranslate"
+              translate="no"
+              lang="en"
               style={{
                 ...styles.navBtn,
                 color: isActive ? '#065f46' : '#9ca3af'
               }}
             >
               <Icon size={22} strokeWidth={isActive ? 2.4 : 2} />
-              <span style={{
-                ...styles.navLabel,
-                fontWeight: isActive ? 700 : 500
-              }}>
-                {label}
+              <span 
+                className="notranslate"
+                translate="no"
+                lang="en"
+                style={{
+                  ...styles.navLabel,
+                  fontWeight: isActive ? 700 : 500,
+                  unicodeBidi: 'isolate'
+                }}
+              >
+                <bdi translate="no">{label}</bdi>
               </span>
             </button>
           );

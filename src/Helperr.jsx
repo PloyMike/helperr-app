@@ -1,5 +1,4 @@
 import { Capacitor } from '@capacitor/core';
-import { SlidersHorizontal } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabase';
 import Header from './Header';
@@ -14,7 +13,6 @@ function Helperr() {
   const [category, setCategory] = useState('All');
   const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [sortBy, setSortBy] = useState('distance');
-  const [showSortMenu, setShowSortMenu] = useState(false);
   const [selected, setSelected] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showBooking, setShowBooking] = useState(false);
@@ -330,46 +328,17 @@ function Helperr() {
               <button onClick={() => setSearch('')} style={styles.clearBtn}>✕</button>
             )}
             <div style={styles.sortDivider}></div>
-            <div style={{ position: 'relative' }} className="notranslate" translate="no">
-              <button 
-                onClick={() => setShowSortMenu(!showSortMenu)}
-                style={styles.sortIconBtn}
-                aria-label="Sort"
-              >
-                <SlidersHorizontal size={20} color="#065f46" strokeWidth={2.2} />
-              </button>
-              {showSortMenu && (
-                <>
-                  <div 
-                    onClick={() => setShowSortMenu(false)}
-                    style={{ position: 'fixed', inset: 0, zIndex: 998 }}
-                  />
-                  <div style={styles.sortMenu} className="notranslate" translate="no">
-                    {[
-                      { val: 'distance', label: 'Nearest first' },
-                      { val: 'newest', label: 'Newest first' },
-                      { val: 'rating', label: 'Highest rated' },
-                      { val: 'price_asc', label: 'Price: low to high' },
-                      { val: 'price_desc', label: 'Price: high to low' }
-                    ].map(opt => (
-                      <button
-                        key={opt.val}
-                        onClick={() => { setSortBy(opt.val); setShowSortMenu(false); }}
-                        style={{
-                          ...styles.sortMenuItem,
-                          background: sortBy === opt.val ? '#f0fdfa' : '#fff',
-                          fontWeight: sortBy === opt.val ? 700 : 500
-                        }}
-                        className="notranslate"
-                        translate="no"
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
+            <select
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value)}
+              style={styles.sortSelect}
+            >
+              <option value="distance">Nearest first</option>
+              <option value="newest">Newest first</option>
+              <option value="rating">Highest rated</option>
+              <option value="price_asc">Price: low to high</option>
+              <option value="price_desc">Price: high to low</option>
+            </select>
           </div>
         </div>
       </div>
@@ -660,7 +629,7 @@ const styles = {
   filterBtnActive: { background: '#065f46', borderColor: '#065f46', color: '#fff', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)', transform: 'translateY(-1px)' },
   sortDivider: { width: 1, alignSelf: 'stretch', background: '#e5e7eb', margin: '8px 0' },
   sortIconBtn: { background: 'transparent', border: 'none', cursor: 'pointer', padding: '8px 12px 8px 8px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  sortMenu: { position: 'absolute', top: 'calc(100% + 8px)', right: 0, background: '#fff', borderRadius: 12, boxShadow: '0 12px 32px rgba(0,0,0,0.15)', border: '1px solid #e5e7eb', minWidth: 200, zIndex: 999, overflow: 'hidden' },
+  sortMenu: { position: 'absolute', top: 'calc(100% + 8px)', right: 0, background: '#fff', borderRadius: 12, boxShadow: '0 12px 32px rgba(0,0,0,0.15)', border: '1px solid #e5e7eb', minWidth: 200, zIndex: 10000, overflow: 'hidden' },
   sortMenuItem: { display: 'block', width: '100%', padding: '12px 16px', border: 'none', background: '#fff', textAlign: 'left', cursor: 'pointer', fontSize: 14, color: '#065f46', fontFamily: 'inherit', borderBottom: '1px solid #f3f4f6' },
   sortSelect: { flex: '0 0 auto', minWidth: 200, marginLeft: -10, padding: '14px 32px 14px 0px', border: 'none', background: 'transparent', fontSize: 14, fontFamily: 'inherit', fontWeight: 600, cursor: 'pointer', color: '#065f46', appearance: 'none', WebkitAppearance: 'none', outline: 'none', textAlign: 'left', backgroundImage: 'url(\"data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\' fill=\'%23065f46\'%3e%3cpath d=\'M6 9L1 4h10z\'/%3e%3c/svg%3e\")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center' },
   availToggle: { marginLeft: 'auto', fontSize: 13, color: '#6b7280', cursor: 'pointer', display: 'flex', alignItems: 'center', background: '#fff', padding: '7px 16px', borderRadius: 20, border: '1.5px solid #e5e7eb', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' },
