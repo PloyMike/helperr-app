@@ -24,6 +24,7 @@ import PrivacyPage from './PrivacyPage';
 import CookiesPage from './CookiesPage';
 import ExpertAgreementPage from './ExpertAgreementPage';
 import BottomNav from './BottomNav';
+import AppMenuPage from './AppMenuPage';
 import { supabase } from './supabase';
 import { useEffect } from 'react';
 import CommunityPage from './CommunityPage';
@@ -177,6 +178,8 @@ function App() {
           <ContactPage />
         ) : currentView === 'payment' ? (
           <PaymentPage />
+        ) : currentView === 'app-menu' ? (
+          <AppMenuPage />
         ) : (
           <Helperr />
         )}

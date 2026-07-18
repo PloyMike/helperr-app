@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import React, { useState, useEffect, useRef } from 'react';
 import { getCurrencyCode, getCurrencySymbol } from './currency';
 import { supabase } from './supabase';
@@ -936,7 +937,8 @@ function BookingCalendar({ profile, onClose }) {
                           onChange={(e) => setAddress({...address, notes: e.target.value})}
                           style={{
                             ...styles.input,
-                            minHeight: 80,
+                            minHeight: 40,
+                            maxHeight: 60,
                             resize: 'vertical',
                             fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                           }}
@@ -1012,7 +1014,8 @@ function BookingCalendar({ profile, onClose }) {
                       }}
                       style={{
                         ...styles.input,
-                        minHeight: 100,
+                        minHeight: 40,
+                        maxHeight: 60,
                         resize: 'vertical',
                         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                       }}
@@ -1187,10 +1190,10 @@ function BookingCalendar({ profile, onClose }) {
                   }} 
                   style={{
                     ...styles.textarea,
-                    ...(isMobile ? { height: 50, minHeight: 50 } : {})
+                    ...(isMobile ? { height: 40, minHeight: 40, maxHeight: 60 } : {})
                   }} 
                   placeholder="Any special requests or notes for the expert..." 
-                  rows={4}
+                  rows={1}
                 />
               </div>
 
@@ -1219,20 +1222,20 @@ function BookingCalendar({ profile, onClose }) {
 }
 
 const styles = {
-  overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1200, padding: '20px', fontFamily: '"Outfit", sans-serif' },
-  modal: { background: 'white', borderRadius: 16, width: '100%', maxWidth: 700, maxHeight: '88vh', overflowY: 'auto', margin: '0 8px' },
+  overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: Capacitor.isNativePlatform() ? '#fff' : 'rgba(0,0,0,0.5)', display: 'flex', alignItems: Capacitor.isNativePlatform() ? 'stretch' : 'center', justifyContent: 'center', zIndex: 1200, padding: Capacitor.isNativePlatform() ? 0 : '20px', fontFamily: '"Outfit", sans-serif' },
+  modal: { background: 'white', borderRadius: Capacitor.isNativePlatform() ? 0 : 16, width: '100%', maxWidth: Capacitor.isNativePlatform() ? '100%' : 700, maxHeight: Capacitor.isNativePlatform() ? '100vh' : '88vh', minHeight: Capacitor.isNativePlatform() ? '100vh' : 'auto', overflowY: 'auto', margin: Capacitor.isNativePlatform() ? 0 : '0 8px', paddingTop: Capacitor.isNativePlatform() ? 'env(safe-area-inset-top)' : 0, paddingBottom: Capacitor.isNativePlatform() ? 'calc(90px + env(safe-area-inset-bottom))' : 0 },
   header: { background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', padding: '12px 12px', borderRadius: '16px 16px 0 0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
   title: { margin: 0, fontSize: 'clamp(18px, 5vw, 22px)', fontWeight: 800, color: 'white' },
   subtitle: { margin: '4px 0 0', fontSize: 13, color: '#d1fae5' },
   closeBtn: { background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', width: 32, height: 32, borderRadius: '50%', cursor: 'pointer', fontSize: 16, fontWeight: 700 },
-  progress: { display: 'flex', alignItems: 'center', padding: '10px 12px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb' },
+  progress: { display: 'flex', alignItems: 'center', padding: '6px 12px', background: '#f9fafb', borderBottom: '1px solid #e5e7eb' },
   progressStep: { display: 'flex', alignItems: 'center', gap: 6 },
   progressStepActive: { },
   progressNumber: { width: 28, height: 28, borderRadius: '50%', background: '#e5e7eb', color: '#6b7280', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700 },
   progressLabel: { fontSize: 12, color: '#6b7280', fontWeight: 600 },
   progressLine: { flex: 1, height: 2, background: '#e5e7eb', margin: '0 6px' },
-  body: { padding: '12px 10px' },
-  stepTitle: { fontSize: 16, fontWeight: 700, color: '#111827', marginBottom: 4 },
+  body: { padding: Capacitor.isNativePlatform() ? '20px 16px' : '12px 10px', overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' },
+  stepTitle: { fontSize: 17, fontWeight: 700, color: '#111827', marginBottom: 12, marginTop: 8 },
   calendarHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, padding: '8px 12px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', borderRadius: 10 },
   monthBtn: { background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '6px 12px', borderRadius: 6, cursor: 'pointer', fontSize: 14, fontWeight: 700, fontFamily: '"Outfit", sans-serif' },
   monthTitle: { color: 'white', fontSize: 16, fontWeight: 700 },
@@ -1250,7 +1253,7 @@ const styles = {
   timeSectionLabelMobile: { fontSize: 10, fontWeight: 700, color: '#065f46', marginBottom: 4, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.5px' },
   scrollPickerWrapperMobile: { position: 'relative', width: 70, height: 100, overflow: 'hidden' },
   scrollSpacerMobile: { height: 30 },
-  timePreviewMobile: { background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', padding: 6, borderRadius: 8, marginBottom: 8, textAlign: 'center' },
+  timePreviewMobile: { background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', padding: 6, borderRadius: 8, marginBottom: 8, marginTop: 4, textAlign: 'center' },
   
   desktopTimeContainer: { display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'center', marginBottom: 8, flexWrap: 'wrap' },
   timeSection: { background: '#f9fafb', borderRadius: 10, padding: 10, border: '2px solid #e5e7eb', flex: '1 1 auto', maxWidth: 200, minWidth: 160 },
@@ -1294,37 +1297,37 @@ const styles = {
   },
   colon: { fontSize: 20, fontWeight: 700, color: '#065f46', padding: '0 4px' },
   timeDivider: { fontSize: 16, color: '#6b7280', fontWeight: 700, display: 'flex', alignItems: 'center', padding: '0 4px' },
-  errorSlot: { minHeight: 48, marginTop: 8, marginBottom: 8 },
+  errorSlot: { minHeight: 0, marginTop: 4, marginBottom: 4 },
   errorBox: { background: '#fee2e2', color: '#dc2626', padding: 8, borderRadius: 8, fontSize: 13, fontWeight: 600, marginBottom: 10, textAlign: 'center' },
   timePreviewLabel: { fontSize: 11, color: '#d1fae5', fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' },
   timePreviewValue: { fontSize: 16, color: 'white', fontWeight: 800 },
-  summary: { background: '#f9fafb', padding: 12, borderRadius: 12, marginBottom: 12, border: '1px solid #e5e7eb' },
-  summaryRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  summary: { background: '#f9fafb', padding: 10, borderRadius: 10, marginBottom: 8, border: '1px solid #e5e7eb' },
+  summaryRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   summaryLabel: { fontSize: 13, color: '#6b7280', fontWeight: 600 },
   summaryValue: { fontSize: 14, color: '#111827', fontWeight: 700 },
-  formGroup: { marginBottom: 12 },
-  label: { display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 },
-  input: { width: '100%', padding: '10px 12px', border: '2px solid #e5e7eb', borderRadius: 10, fontSize: 14, fontFamily: '"Outfit", sans-serif', outline: 'none', transition: 'all 0.2s', boxSizing: 'border-box' },
-  textarea: { width: '100%', padding: '10px 12px', border: '2px solid #e5e7eb', borderRadius: 10, fontSize: 13, fontFamily: '"Outfit", sans-serif', outline: 'none', resize: 'vertical', boxSizing: 'border-box' },
-  btnNext: { flex: 1, padding: '10px 14px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', width: '100%' },
+  formGroup: { marginBottom: 8 },
+  label: { display: 'block', fontSize: 12, fontWeight: 600, color: '#374151', marginBottom: 3 },
+  input: { width: '100%', padding: '8px 10px', border: '1.5px solid #e5e7eb', borderRadius: 8, fontSize: 14, fontFamily: '"Outfit", sans-serif', outline: 'none', transition: 'all 0.2s', boxSizing: 'border-box' },
+  textarea: { width: '100%', padding: '6px 10px', border: '1.5px solid #e5e7eb', borderRadius: 8, fontSize: 13, fontFamily: '"Outfit", sans-serif', outline: 'none', resize: 'vertical', boxSizing: 'border-box', minHeight: 32 },
+  btnNext: { flex: 1, padding: Capacitor.isNativePlatform() ? '14px 20px' : '10px 14px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', width: '100%', marginTop: Capacitor.isNativePlatform() ? 12 : 0 },
   btnBack: { padding: '10px 14px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif' },
   btnSubmit: { flex: 1, padding: '10px 14px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 10, fontSize: 15, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)' },
   btnSecondary: { padding: '14px 24px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: 10, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.2s' },
   btnPrimary: { flex: 1, padding: '14px 24px', background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: 'none', borderRadius: 10, fontSize: 16, fontWeight: 700, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)', transition: 'all 0.2s' },
   footer: { display: 'flex', gap: 12, marginTop: 20 },
   durationSection: { marginBottom: 20 },
-  durationLabel: { fontSize: 13, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  durationLabel: { fontSize: 11, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6, display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   durationHint: { fontSize: 10, fontWeight: 500, color: '#14b8a6', textTransform: 'none', letterSpacing: 0 },
   durationGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 },
   durationScroll: { display: 'flex', overflowX: 'auto', scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch', gap: 8, paddingBottom: 6, scrollbarWidth: 'thin' },
   durationBtn: { padding: '10px 4px', background: '#fff', color: '#065f46', border: '2px solid #ecfdf5', borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.15s' },
   durationBtnSelected: { background: 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)', color: '#fff', borderColor: '#065f46', boxShadow: '0 4px 12px rgba(20, 184, 166, 0.3)' },
-  durationBtnScroll: { padding: '12px 18px', minWidth: 70, background: '#fff', color: '#065f46', border: '2px solid #ecfdf5', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.15s', scrollSnapAlign: 'start', flexShrink: 0 },
+  durationBtnScroll: { padding: '8px 14px', minWidth: 58, background: '#fff', color: '#065f46', border: '1.5px solid #ecfdf5', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.15s', scrollSnapAlign: 'start', flexShrink: 0 },
   durationBtnScrollSelected: { background: 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)', color: '#fff', borderColor: '#065f46', boxShadow: '0 4px 12px rgba(20, 184, 166, 0.3)' },
   slotsSection: { marginBottom: 16 },
   slotsLabel: { fontSize: 13, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 10 },
-  slotsGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 },
-  slotBtn: { padding: '12px 4px', background: '#fff', color: '#065f46', border: '2px solid #ecfdf5', borderRadius: 10, fontSize: 15, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.15s' },
+  slotsGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6 },
+  slotBtn: { padding: '8px 4px', background: '#fff', color: '#065f46', border: '1.5px solid #ecfdf5', borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.15s' },
   slotBtnSelected: { background: 'linear-gradient(135deg, #14b8a6 0%, #065f46 100%)', color: '#fff', borderColor: '#065f46', boxShadow: '0 4px 12px rgba(20, 184, 166, 0.3)' },
   slotBtnDisabled: { background: '#f9fafb', color: '#d1d5db', borderColor: '#f3f4f6', cursor: 'not-allowed', textDecoration: 'line-through' },
   slotBtnBooked: { background: '#fef2f2', color: '#dc2626', borderColor: '#fee2e2', cursor: 'not-allowed', textDecoration: 'line-through' },

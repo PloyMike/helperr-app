@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import React, { useState } from 'react';
 import { useAuth } from './AuthContext';
 import Header from './Header';
@@ -44,6 +45,22 @@ function SignupPage() {
         <div style={styles.heroGlow1}></div>
         <div style={styles.heroGlow2}></div>
         <div style={styles.heroContent}>
+          <img 
+            src="/logo.jpeg" 
+            alt="Helperr" 
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: '50%',
+              objectFit: 'cover',
+              border: '3px solid rgba(255,255,255,0.9)',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+              marginBottom: 16,
+              display: 'block',
+              marginLeft: 'auto',
+              marginRight: 'auto'
+            }}
+          />
           <h1 style={styles.heroTitle}>Create Account</h1>
           <p style={styles.heroSubtitle}>Join Helperr and discover amazing services</p>
         </div>
@@ -142,7 +159,7 @@ const styles = {
   },
   hero: {
     background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 70%, #14b8a6 100%)',
-    padding: '140px 20px 80px',
+    padding: Capacitor.isNativePlatform() ? 'calc(env(safe-area-inset-top) + 20px) 20px 60px' : '140px 20px 80px',
     position: 'relative',
     overflow: 'hidden',
     clipPath: 'ellipse(120% 100% at 50% 0%)'

@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabase';
 import { useAuth } from './AuthContext';
@@ -556,11 +557,11 @@ function MyBookings() {
 
 const styles = {
   app: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh', paddingTop: 0 },
-  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 70%, #14b8a6 100%)', padding: '120px 20px 64px', marginBottom: 40, position: 'relative', overflow: 'hidden', clipPath: 'ellipse(120% 100% at 50% 0%)' },
+  hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 70%, #14b8a6 100%)', padding: Capacitor.isNativePlatform() ? 'calc(env(safe-area-inset-top) + 20px) 20px 40px' : '120px 20px 64px', marginBottom: 40, position: 'relative', overflow: 'hidden', clipPath: 'ellipse(120% 100% at 50% 0%)' },
   heroInner: { maxWidth: 1100, margin: '0 auto', textAlign: 'center' },
   heroTitle: { color: '#fff', fontSize: 42, fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.02em' },
   heroSub: { color: '#d1fae5', fontSize: 16, margin: 0 },
-  container: { maxWidth: 1100, margin: '0 auto', padding: '0 20px 60px' },
+  container: { maxWidth: 1100, margin: '0 auto', padding: Capacitor.isNativePlatform() ? '0 20px calc(120px + env(safe-area-inset-bottom)) 20px' : '0 20px 60px' },
   filters: { display: 'flex', gap: 12, marginBottom: 32, flexWrap: 'wrap', background: '#fff', padding: 20, borderRadius: 16, boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)' },
   filterBtn: { padding: '10px 20px', background: '#f9fafb', border: '2px solid #e5e7eb', borderRadius: 10, fontSize: 14, fontWeight: 600, color: '#6b7280', cursor: 'pointer', fontFamily: '"Outfit", sans-serif', transition: 'all 0.2s', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)' },
   filterBtnActive: { background: '#065f46', borderColor: '#065f46', color: 'white', boxShadow: '0 4px 12px rgba(6, 95, 70, 0.3)', transform: 'translateY(-1px)' },

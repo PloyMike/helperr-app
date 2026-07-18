@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { useAuth } from './AuthContext';
 import { supabase } from './supabase';
 import Header from './Header';
@@ -364,7 +365,7 @@ const styles = {
     left: 0,
     right: 0,
     bottom: 0,
-    paddingTop: 70,
+    paddingTop: Capacitor.isNativePlatform() ? 'calc(env(safe-area-inset-top) - 20px)' : 70,
     display: 'flex',
     flexDirection: 'column'
   },
@@ -402,7 +403,7 @@ const styles = {
     boxShadow: 'none'
   },
   searchBar: {
-    padding: 16,
+    padding: Capacitor.isNativePlatform() ? '4px 16px 12px 16px' : 16,
     borderBottom: '1px solid #ecfdf5',
     background: '#fff',
     flexShrink: 0
@@ -544,7 +545,7 @@ const styles = {
     color: '#6b7280'
   },
   chatHeader: {
-    padding: '14px 20px',
+    padding: Capacitor.isNativePlatform() ? '4px 20px 10px' : '14px 20px',
     borderBottom: '1px solid #ecfdf5',
     background: 'linear-gradient(135deg, #ffffff 0%, #f0fdfa 100%)',
     flexShrink: 0,
@@ -636,7 +637,9 @@ const styles = {
     fontWeight: 500
   },
   inputArea: {
-    padding: '12px 16px calc(12px + env(safe-area-inset-bottom)) 16px',
+    padding: Capacitor.isNativePlatform() 
+      ? '12px 16px calc(80px + env(safe-area-inset-bottom)) 16px' 
+      : '12px 16px calc(12px + env(safe-area-inset-bottom)) 16px',
     borderTop: '1px solid #ecfdf5',
     background: 'linear-gradient(180deg, #ffffff 0%, #f0fdfa 100%)',
     flexShrink: 0,

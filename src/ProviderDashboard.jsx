@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabase';
 import { useAuth } from './AuthContext';
@@ -347,7 +348,7 @@ const styles = {
   container: { 
     maxWidth: 1200, 
     margin: '0 auto', 
-    padding: '40px 20px' 
+    padding: Capacitor.isNativePlatform() ? '20px 20px calc(120px + env(safe-area-inset-bottom)) 20px' : '40px 20px' 
   },
   dashboardHeader: { 
     display: 'flex', 

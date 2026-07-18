@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabase';
 import Header from './Header';
@@ -446,7 +447,7 @@ function MyPayments() {
 const styles = {
   app: { fontFamily: '"Outfit", sans-serif', background: '#f9fafb', minHeight: '100vh', paddingTop: 0 },
   loading: { minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, color: '#6b7280' },
-  container: { maxWidth: 720, margin: '0 auto', padding: '40px 20px' },
+  container: { maxWidth: 720, margin: '0 auto', padding: Capacitor.isNativePlatform() ? '20px 20px calc(120px + env(safe-area-inset-bottom)) 20px' : '40px 20px' },
   hero: { background: 'linear-gradient(135deg, #065f46 0%, #047857 40%, #0f766e 70%, #14b8a6 100%)', padding: '120px 20px 64px', marginBottom: 40, position: 'relative', overflow: 'hidden', clipPath: 'ellipse(120% 100% at 50% 0%)' },
   heroInner: { maxWidth: 800, margin: '0 auto', textAlign: 'center' },
   heroTitle: { color: '#fff', fontSize: 42, fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.02em' },

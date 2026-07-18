@@ -1,19 +1,21 @@
 import React from 'react';
 import { Home, MessageCircle, Calendar, Briefcase, Menu } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
+import { useBadges } from './useBadges';
 
 const BottomNav = ({ currentView, hasProviderProfile }) => {
   const isNativeApp = Capacitor.isNativePlatform();
+  const { messagesBadge, myBookingsBadge, providerBookingsBadge } = useBadges();
   
   // Nur in native App anzeigen, nie im Web
   if (!isNativeApp) return null;
 
   const navItems = [
-    { view: 'home', icon: Home, label: 'Home' },
-    { view: 'messages', icon: MessageCircle, label: 'Messages' },
-    { view: 'bookings', icon: Calendar, label: 'Bookings' },
-    ...(hasProviderProfile ? [{ view: 'provider-bookings', icon: Briefcase, label: 'Experts' }] : []),
-    { view: 'app-menu', icon: Menu, label: 'Menu' }
+    { view: 'home', icon: Home, label: 'Home', badge: 0 },
+    { view: 'messages', icon: MessageCircle, label: 'Messages', badge: messagesBadge },
+    { view: 'bookings', icon: Calendar, label: 'Bookings', badge: myBookingsBadge },
+    ...(hasProviderProfile ? [{ view: 'provider-bookings', icon: Briefcase, label: 'Experts', badge: providerBookingsBadge }] : []),
+    { view: 'app-menu', icon: Menu, label: 'Menu', badge: 0 }
   ];
 
   const handleClick = (view) => {
@@ -25,7 +27,7 @@ const BottomNav = ({ currentView, hasProviderProfile }) => {
   return (
     <div style={styles.container}>
       <div style={styles.nav}>
-        {navItems.map(({ view, icon: Icon, label }) => {
+        {navItems.map(({ view, icon: Icon, label, badge }) => {
           const isActive = currentView === view;
           return (
             <button
@@ -39,7 +41,14 @@ const BottomNav = ({ currentView, hasProviderProfile }) => {
                 color: isActive ? '#065f46' : '#9ca3af'
               }}
             >
-              <Icon size={22} strokeWidth={isActive ? 2.4 : 2} />
+              <div style={{ position: 'relative', display: 'inline-flex' }}>
+                <Icon size={22} strokeWidth={isActive ? 2.4 : 2} />
+                {badge > 0 && (
+                  <span style={styles.badge}>
+                    {badge > 9 ? '9+' : badge}
+                  </span>
+                )}
+              </div>
               <span 
                 className="notranslate"
                 translate="no"
@@ -92,6 +101,25 @@ const styles = {
     padding: '6px 8px',
     minWidth: 56,
     transition: 'color 0.2s'
+  },
+  badge: {
+    position: 'absolute',
+    top: -6,
+    right: -10,
+    background: '#ef4444',
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 700,
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    padding: '0 5px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    lineHeight: 1,
+    border: '2px solid #fff',
+    boxSizing: 'content-box'
   },
   navLabel: {
     fontSize: 10,

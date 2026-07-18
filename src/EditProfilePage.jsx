@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabase';
 import { useAuth } from './AuthContext';
@@ -885,7 +886,7 @@ const styles = {
   heroInner: { maxWidth: 800, margin: '0 auto', textAlign: 'center' },
   heroTitle: { color: '#fff', fontSize: 42, fontWeight: 800, margin: '0 0 8px', letterSpacing: '-0.02em' },
   heroSub: { color: '#d1fae5', fontSize: 16, margin: 0 },
-  container: { maxWidth: 800, margin: '0 auto', padding: '0 20px 60px' },
+  container: { maxWidth: 800, margin: '0 auto', padding: Capacitor.isNativePlatform() ? '0 20px calc(120px + env(safe-area-inset-bottom)) 20px' : '0 20px 60px' },
   form: { display: 'flex', flexDirection: 'column', gap: 20 },
   section: { background: 'white', padding: 24, borderRadius: 16, border: '1.5px solid #e5e7eb', boxShadow: '0 8px 20px rgba(0, 0, 0, 0.08)', transition: 'all 0.2s' },
   sectionTitle: { margin: '0 0 20px 0', fontSize: 18, fontWeight: 700, color: '#1F2937' },

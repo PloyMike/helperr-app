@@ -1,0 +1,16 @@
+{
+  "appId": "co.helperr.app",
+  "appName": "Helperr",
+  "webDir": "build",
+  "ios": {
+    "contentInset": "always"
+  },
+  "server": {
+    "allowNavigation": [
+      "translate.google.com",
+      "translate.googleapis.com",
+      "*.google.com",
+      "*.googleapis.com"
+    ]
+  }
+}

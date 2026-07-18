@@ -1,6 +1,9 @@
 import React from 'react';
+import { Capacitor } from '@capacitor/core';
 
 function Footer() {
+  // Native App: Footer weg (Links sind im Menu)
+  if (Capacitor.isNativePlatform()) return null;
   const currentYear = new Date().getFullYear();
 
   return (
