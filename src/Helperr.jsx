@@ -1,5 +1,6 @@
 import { Capacitor } from '@capacitor/core';
 import React, { useState, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import { supabase } from './supabase';
 import Header from './Header';
 import ReviewsSection from './ReviewsSection';
@@ -13,6 +14,9 @@ function Helperr() {
   const [category, setCategory] = useState('All');
   const [onlyAvailable, setOnlyAvailable] = useState(false);
   const [sortBy, setSortBy] = useState('distance');
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const [sortMenuPos, setSortMenuPos] = useState({ top: 0, right: 0 });
+  const sortBtnRef = useRef(null);
   const [selected, setSelected] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showBooking, setShowBooking] = useState(false);
@@ -304,6 +308,24 @@ function Helperr() {
         <div style={styles.heroGlow1}></div>
         <div style={styles.heroGlow2}></div>
         <div style={styles.heroInner}>
+          {Capacitor.isNativePlatform() && (
+            <img 
+              src="/logo.jpeg" 
+              alt="Helperr" 
+              style={{
+                width: 72,
+                height: 72,
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: '3px solid rgba(255,255,255,0.9)',
+                boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
+                marginBottom: 16,
+                display: 'block',
+                marginLeft: 'auto',
+                marginRight: 'auto'
+              }}
+            />
+          )}
           <h1 style={{
             ...styles.heroTitle,
             fontSize: window.innerWidth <= 768 ? 36 : 60,
@@ -328,17 +350,62 @@ function Helperr() {
               <button onClick={() => setSearch('')} style={styles.clearBtn}>✕</button>
             )}
             <div style={styles.sortDivider}></div>
-            <select
-              value={sortBy}
-              onChange={e => setSortBy(e.target.value)}
-              style={styles.sortSelect}
-            >
-              <option value="distance">Nearest first</option>
-              <option value="newest">Newest first</option>
-              <option value="rating">Highest rated</option>
-              <option value="price_asc">Price: low to high</option>
-              <option value="price_desc">Price: high to low</option>
-            </select>
+            <div style={{ position: 'relative', flexShrink: 0, zIndex: 2147483645 }}>
+              <button
+                ref={sortBtnRef}
+                onClick={(e) => {
+                  const r = e.currentTarget.getBoundingClientRect();
+                  setSortMenuPos({ top: r.bottom + 8, right: window.innerWidth - r.right });
+                  setShowSortMenu(!showSortMenu);
+                }}
+                style={{
+                  background: 'transparent', border: 'none', padding: '10px 14px',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6,
+                  color: '#065f46', fontSize: 20
+                }}
+                aria-label="Sort"
+              >
+                ⇅
+              </button>
+              {showSortMenu && ReactDOM.createPortal(
+                <>
+                  <div
+                    onClick={() => setShowSortMenu(false)}
+                    style={{ position: 'fixed', inset: 0, background: 'transparent', zIndex: 2147483646 }}
+                  />
+                  <div style={{
+                    position: 'fixed', top: sortMenuPos.top, right: sortMenuPos.right,
+                    background: '#fff', borderRadius: 12,
+                    boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
+                    border: '1px solid #e5e7eb', minWidth: 220,
+                    zIndex: 2147483647, overflow: 'hidden'
+                  }}>
+                    {[
+                      { val: 'distance', label: 'Nearest first' },
+                      { val: 'newest', label: 'Newest first' },
+                      { val: 'rating', label: 'Highest rated' },
+                      { val: 'price_asc', label: 'Price: low to high' },
+                      { val: 'price_desc', label: 'Price: high to low' }
+                    ].map(opt => (
+                      <button
+                        key={opt.val}
+                        onClick={() => { setSortBy(opt.val); setShowSortMenu(false); }}
+                        style={{
+                          display: 'block', width: '100%', padding: '12px 16px',
+                          border: 'none', background: sortBy === opt.val ? '#f0fdfa' : '#fff',
+                          textAlign: 'left', cursor: 'pointer', fontSize: 14,
+                          color: '#065f46', fontWeight: sortBy === opt.val ? 700 : 500,
+                          fontFamily: 'inherit', borderBottom: '1px solid #f3f4f6'
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </>,
+                document.body
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -619,7 +686,7 @@ const styles = {
   heroInner: { maxWidth: 700, margin: '0 auto', textAlign: 'center' },
   heroTitle: { color: '#fff', fontSize: 52, fontWeight: 800, margin: '0 0 12px', letterSpacing: '-0.02em' },
   heroSub: { color: '#d1fae5', fontSize: 16, margin: '0 0 8px', lineHeight: 1.6 },
-  searchWrap: { background: '#fff', borderRadius: 999, display: 'flex', alignItems: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.15)', marginTop: 24, overflow: 'hidden' },
+  searchWrap: { background: '#fff', borderRadius: 999, display: 'flex', alignItems: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.15)', marginTop: 24 },
   searchIcon: { fontSize: 18, marginLeft: 18, marginRight: 10, opacity: 0.6 },
   searchInput: { border: 'none', outline: 'none', fontSize: 16, flex: 1, background: 'transparent', color: '#111827', padding: '14px 0' },
   clearBtn: { background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: 18, padding: '4px 8px', marginRight: 12 },
@@ -631,7 +698,7 @@ const styles = {
   sortIconBtn: { background: 'transparent', border: 'none', cursor: 'pointer', padding: '8px 12px 8px 8px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   sortMenu: { position: 'absolute', top: 'calc(100% + 8px)', right: 0, background: '#fff', borderRadius: 12, boxShadow: '0 12px 32px rgba(0,0,0,0.15)', border: '1px solid #e5e7eb', minWidth: 200, zIndex: 10000, overflow: 'hidden' },
   sortMenuItem: { display: 'block', width: '100%', padding: '12px 16px', border: 'none', background: '#fff', textAlign: 'left', cursor: 'pointer', fontSize: 14, color: '#065f46', fontFamily: 'inherit', borderBottom: '1px solid #f3f4f6' },
-  sortSelect: { flex: '0 0 auto', minWidth: 200, marginLeft: -10, padding: '14px 32px 14px 0px', border: 'none', background: 'transparent', fontSize: 14, fontFamily: 'inherit', fontWeight: 600, cursor: 'pointer', color: '#065f46', appearance: 'none', WebkitAppearance: 'none', outline: 'none', textAlign: 'left', backgroundImage: 'url(\"data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\' fill=\'%23065f46\'%3e%3cpath d=\'M6 9L1 4h10z\'/%3e%3c/svg%3e\")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center' },
+  sortSelect: { flex: '0 0 auto', minWidth: window.innerWidth <= 768 ? 130 : 200, maxWidth: window.innerWidth <= 768 ? 130 : 'none', marginLeft: -10, padding: '14px 32px 14px 0px', border: 'none', background: 'transparent', fontSize: 14, fontFamily: 'inherit', fontWeight: 600, cursor: 'pointer', color: '#065f46', appearance: 'none', WebkitAppearance: 'none', outline: 'none', textAlign: 'left', backgroundImage: 'url(\"data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'12\' height=\'12\' viewBox=\'0 0 12 12\' fill=\'%23065f46\'%3e%3cpath d=\'M6 9L1 4h10z\'/%3e%3c/svg%3e\")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center' },
   availToggle: { marginLeft: 'auto', fontSize: 13, color: '#6b7280', cursor: 'pointer', display: 'flex', alignItems: 'center', background: '#fff', padding: '7px 16px', borderRadius: 20, border: '1.5px solid #e5e7eb', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)' },
   results: { maxWidth: 1400, margin: '0 auto', padding: Capacitor.isNativePlatform() ? '24px 20px calc(120px + env(safe-area-inset-bottom)) 20px' : '24px 20px 60px' },
   resultCount: { color: '#6b7280', fontSize: 14, marginBottom: 20 },

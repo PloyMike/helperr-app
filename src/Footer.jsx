@@ -19,6 +19,7 @@ function Footer() {
           <div style={styles.linkColumn}>
             <h3 style={styles.columnTitle}>Legal</h3>
             <button onClick={() => window.navigateTo('terms')} style={styles.link}>Terms & Conditions</button>
+            <button onClick={() => window.navigateTo('refund')} style={styles.link}>Refund Policy</button>
             <button onClick={() => window.navigateTo('privacy')} style={styles.link}>Privacy Policy</button>
             <button onClick={() => window.navigateTo('cookies')} style={styles.link}>Cookie Policy</button>
           </div>

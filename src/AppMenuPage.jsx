@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, CreditCard, LayoutDashboard, Briefcase, Globe, LogOut, LogIn, UserPlus, Info, Mail, FileText, Shield, Cookie, HandshakeIcon, Users } from 'lucide-react';
+import { User, CreditCard, LayoutDashboard, Briefcase, Globe, LogOut, LogIn, UserPlus, Info, Mail, FileText, Shield, Cookie, HandshakeIcon, Users, RefreshCw } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { supabase } from './supabase';
 
@@ -116,6 +116,7 @@ const AppMenuPage = () => {
             <div style={styles.section}>
               <div style={styles.sectionTitle}>LEGAL</div>
               <MenuItem icon={FileText} label="Terms & Conditions" onClick={() => nav('terms')} />
+              <MenuItem icon={RefreshCw} label="Refund & Cancellation" onClick={() => nav('refund')} />
               <MenuItem icon={Shield} label="Privacy Policy" onClick={() => nav('privacy')} />
               <MenuItem icon={Cookie} label="Cookie Policy" onClick={() => nav('cookies')} />
             </div>
@@ -169,6 +170,7 @@ const AppMenuPage = () => {
             <div style={styles.section}>
               <div style={styles.sectionTitle}>LEGAL</div>
               <MenuItem icon={FileText} label="Terms & Conditions" onClick={() => nav('terms')} />
+              <MenuItem icon={RefreshCw} label="Refund & Cancellation" onClick={() => nav('refund')} />
               <MenuItem icon={Shield} label="Privacy Policy" onClick={() => nav('privacy')} />
               <MenuItem icon={Cookie} label="Cookie Policy" onClick={() => nav('cookies')} />
             </div>

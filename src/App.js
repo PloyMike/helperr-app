@@ -20,6 +20,7 @@ import AGB from './AGB';
 import PaymentPage from './PaymentPage';
 import RepayPage from './RepayPage';
 import TermsPage from './TermsPage';
+import RefundPage from './RefundPage';
 import PrivacyPage from './PrivacyPage';
 import CookiesPage from './CookiesPage';
 import ExpertAgreementPage from './ExpertAgreementPage';
@@ -162,6 +163,8 @@ function App() {
           <Datenschutz />
         ) : currentView === 'agb' ? (
           <AGB />
+        ) : currentView === 'refund' ? (
+          <RefundPage />
         ) : currentView === 'terms' ? (
           <TermsPage />
         ) : currentView === 'privacy' ? (
